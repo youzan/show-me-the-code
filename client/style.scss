@@ -1,0 +1,24 @@
+body {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.header {
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+}
+
+.content {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: row;
+
+  .editor {
+    flex: 1 1 100%;
+  }
+}

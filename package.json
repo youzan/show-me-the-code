@@ -36,6 +36,7 @@
     "babel-core": "^7.0.0-alpha.19",
     "babel-loader": "^7.1.1",
     "babel-plugin-zent": "^1.0.1",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^2.0.0-alpha.19",
     "babel-preset-react": "^7.0.0-alpha.19",
     "babel-preset-stage-0": "^7.0.0-alpha.19",
