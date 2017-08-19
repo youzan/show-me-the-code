@@ -2,10 +2,15 @@
 
 {% block content %}
     <div id="header" class="header"></div>
-    <div class="content">
-    </div>
+    <div class="content"></div>
 {% endblock %}
 
 {% block script %}
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/static/vs/loader.js"></script>
     <script src="/static/client.js"></script>
+{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" href="/static/client.css" />
 {% endblock %}

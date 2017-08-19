@@ -1,5 +1,6 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const base = {
   output: {
@@ -7,7 +8,7 @@ const base = {
     filename: '[name].js'
   },
   resolve: {
-    extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx']
+    extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx', '.css']
   },
   devtool: '#source-map'
 }
@@ -88,6 +89,9 @@ const client = Object.assign({}, base, {
           ]
         }
       }, {
+        test: /\.(css|scss)$/,
+        use: ExtractTextPlugin.extract(['css-loader', 'postcss-loader'])
+      }, {
         test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
         loader: 'file-loader'
       }, {
@@ -99,7 +103,14 @@ const client = Object.assign({}, base, {
       }
     ]
   },
+  externals: [{
+    'socket.io-client': 'io'
+  }],
   plugins: [
+    new ExtractTextPlugin({
+      filename: '[name].css',
+      allChunks: true
+    }),
     new CopyPlugin([{
       from: 'node_modules/monaco-editor/min/vs',
       to: 'vs'
