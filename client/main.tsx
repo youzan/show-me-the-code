@@ -5,7 +5,11 @@ import { Provider } from 'mobx-react';
 import Header from './Header';
 import ViewModel from './ViewModel';
 
+const store = new ViewModel();
+
 ReactDOM.render(
-    <Header />,
-    document.getElementById('header')
+  <Provider store={store}>
+    <Header />
+  </Provider>,
+  document.getElementById('header')
 );

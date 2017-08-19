@@ -31,6 +31,7 @@
     "@types/react": "^16.0.2",
     "@types/react-dom": "^15.5.3",
     "@types/socket.io": "^1.4.29",
+    "@types/socket.io-client": "^1.4.29",
     "babel-core": "^7.0.0-alpha.19",
     "babel-loader": "^7.1.1",
     "babel-preset-env": "^2.0.0-alpha.19",
@@ -48,6 +49,8 @@
     "nodemon": "^1.11.0",
     "react": "^16.0.0-beta.5",
     "react-dom": "^16.0.0-beta.5",
+    "socket.io": "^1.4.8",
+    "socket.io-client": "^1.4.8",
     "webpack": "^3.5.5",
     "zent": "^3.5.0-beta10"
   },
@@ -56,7 +59,6 @@
     "babel-plugin-zent": "^1.0.1",
     "babel-preset-react": "^7.0.0-alpha.19",
     "mobx": "^3.2.2",
-    "mobx-react": "^4.2.2",
-    "socket.io": "^2.0.3"
+    "mobx-react": "^4.2.2"
   }
 }

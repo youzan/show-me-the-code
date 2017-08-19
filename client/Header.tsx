@@ -1,13 +1,22 @@
 import React, { Component } from 'react';
+import { observer, inject } from 'mobx-react';
+import { Dialog } from 'zent';
 
-class Header extends Component {
-    render() {
-        return (
-            <div>
-                
-            </div>
-        );
-    }
+import ViewModel from './ViewModel';
+
+interface IHeaderProps {
+  store: ViewModel
 }
 
-export default Header;
+@inject('store') @observer
+class Header extends Component<IHeaderProps, {}> {
+  render() {
+    return (
+      <div>
+        <Dialog visible={true} />
+      </div>
+    );
+  }
+}
+
+export default Header as any

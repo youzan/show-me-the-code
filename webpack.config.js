@@ -8,7 +8,8 @@ const base = {
   },
   resolve: {
     extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx']
-  }
+  },
+  devtool: '#source-map'
 }
 
 const node = Object.assign({}, base, {
