@@ -1,0 +1,16 @@
+{
+	"presets": [
+		[
+			"env",
+			{
+				"targets": {
+					"node": true
+				},
+				"debug": true,
+				"modules": false
+			}
+		],
+		"stage-0",
+		"typescript"
+	]
+}
