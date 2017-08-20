@@ -2,6 +2,7 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
+        "allowJs": true,
         "jsx": "preserve",
         "lib": [
             "dom",

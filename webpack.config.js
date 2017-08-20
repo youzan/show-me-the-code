@@ -47,7 +47,10 @@ const node = merge({}, base, {
     'socket.io': 'commonjs socket.io',
     'any-promise': 'commonjs any-promise',
     'fsevents': 'commonjs fsevents',
-    'lodash': 'commonjs lodash'
+    'lodash': 'commonjs lodash',
+    'uuid': 'commonjs uuid',
+    'randomstring': 'commonjs randomstring',
+    'sequelize': 'commonjs sequelize'
   }],
   plugins: [
     new CopyPlugin([{
