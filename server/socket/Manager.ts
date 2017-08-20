@@ -13,10 +13,8 @@ export default class SocketManager {
       let userName = '';
       socket.on('user.login', (data) => userName = data.userName);
       socket.on('room.join', (data) => {
-        
-      })
+
+      });
     });
   }
 }
-
-
