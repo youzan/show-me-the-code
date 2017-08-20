@@ -8,5 +8,11 @@
             "dom",
             "es2017"
         ]
-    }
+    },
+    "exclude": [
+        ".vscode",
+        "build",
+        "node_modules",
+        "static"
+    ]
 }

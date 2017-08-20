@@ -9,7 +9,7 @@ const base = {
     filename: '[name].js'
   },
   resolve: {
-    extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx', '.css']
+    extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx', '.css', '.vue']
   },
   devtool: '#source-map'
 }
@@ -62,7 +62,7 @@ const node = merge({}, base, {
 
 const client = merge({}, base, {
   entry: {
-    client: './client/main.tsx'
+    client: './client/main.ts'
   },
   output: {
     path: path.resolve(__dirname, './static'),
@@ -71,27 +71,16 @@ const client = merge({}, base, {
   module: {
     loaders: [
       {
-        test: /\.(j|t)sx?$/,
+        test: /\.(j|t)s?$/,
         loader: 'babel-loader',
-        exclude: /node_modules/,
+        exclude: /node_modules/
+      }, {
+        test: /.vue$/,
+        loader: 'vue-loader',
         options: {
-          babelrc: false,
-          plugins: [
-            'syntax-jsx',
-            'transform-react-jsx',
-            'transform-react-display-name',
-            'zent'
-          ],
-          presets: [
-            ['env', {
-              targets: {
-                browsers: 'ie >= 10, firefox >= 11, chrome >= 15, safari >= 7, opera >= 12.1'
-              },
-              modules: false
-            }],
-            'stage-0',
-            'typescript'
-          ]
+          loaders: {
+            ts: 'babel-loader'
+          }
         }
       }, {
         test: /\.(css|scss)$/,
