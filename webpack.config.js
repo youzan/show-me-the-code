@@ -1,6 +1,7 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const { merge } = require('lodash');
 
 const base = {
   output: {
@@ -13,7 +14,7 @@ const base = {
   devtool: '#source-map'
 }
 
-const node = Object.assign({}, base, {
+const node = merge({}, base, {
   entry: {
     server: './server/main.ts'
   },
@@ -45,7 +46,8 @@ const node = Object.assign({}, base, {
   externals: [{
     'socket.io': 'commonjs socket.io',
     'any-promise': 'commonjs any-promise',
-    'fsevents': 'commonjs fsevents'
+    'fsevents': 'commonjs fsevents',
+    'lodash': 'commonjs lodash'
   }],
   plugins: [
     new CopyPlugin([{
@@ -55,7 +57,7 @@ const node = Object.assign({}, base, {
   ]
 });
 
-const client = Object.assign({}, base, {
+const client = merge({}, base, {
   entry: {
     client: './client/main.tsx'
   },
@@ -103,9 +105,11 @@ const client = Object.assign({}, base, {
       }
     ]
   },
-  externals: [{
-    'socket.io-client': 'io'
-  }],
+  resolve: {
+    alias: {
+      'socket.io-client': 'socket.io-client/dist/socket.io.js'
+    }
+  },
   plugins: [
     new ExtractTextPlugin({
       filename: '[name].css',

@@ -5,10 +5,13 @@ import * as socket from 'socket.io'
 import * as nunjucks from 'koa-nunjucks-2';
 
 import router from './router';
+import SocketManager from './socket/Manager';
 
 const app = new Koa();
 const server = http.createServer(app.callback());
 const io = socket(server);
+
+const manager = new SocketManager(io);
 
 app.use(nunjucks({
     ext: 'njk',
