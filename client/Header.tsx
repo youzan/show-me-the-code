@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react';
-import { Dialog, Input, Button, Tabs } from 'zent';
+import { Dialog, Input, Button, Tabs, Select } from 'zent';
 
 const { TabPanel } = Tabs as any;
 
 import ViewModel from './ViewModel';
+
+const languages = ['TypeScript', 'JavaScript', 'CSS', 'LESS', 'SCSS', 'JSON', 'HTML', 'XML', 'PHP', 'C#', 'C++', 'Razor', 'Markdown', 'Diff', 'Java', 'VB', 'CoffeeScript', 'Handlebars', 'Batch', 'Pug', 'F#', 'Lua', 'Powershell', 'Python', 'SASS','R', 'Objective-C']
 
 interface IHeaderProps {
   store: ViewModel
@@ -59,11 +61,12 @@ class Header extends Component<IHeaderProps, IHeaderState> {
   }
 
   render() {
-    const { userName, room, createRoom } = this.props.store;
+    const { userName, room, createRoom, changeLanguage } = this.props.store;
     const { input, activeTab, room: roomValue, key } = this.state;
 
     return (
       <div className="header">
+        <Select data={languages} filter={(item, keyword) => item.indexOf(keyword) > -1} onChange={changeLanguage} />
         <Dialog
           visible={!userName}
           maskClosable={false}

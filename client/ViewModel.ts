@@ -12,6 +12,8 @@ export default class {
   @observable userName: string = ''
   @observable room: string
   @observable key: string
+  @observable code = ''
+  editor: monaco.editor.IStandaloneCodeEditor
 
   @action userNameChange = (value: string) => this.userName = value
 
@@ -21,6 +23,18 @@ export default class {
 
   createRoom = () => {
     this.socket.emit('room.create');
+  }
+
+  @action
+  roomJoint = (data) => {
+    this.language = data.lang;
+    this.room = data.id;
+    this.code = data.code;
+  }
+
+  @action
+  changeLanguage = (e, data) => {
+    this.language = data;
   }
 
   constructor() {
@@ -43,15 +57,18 @@ export default class {
 
   async initEditor() {
     const monaco = await getMonaco();
-    const editor: monaco.editor.IStandaloneCodeEditor = monaco.editor.create(document.getElementById('editor'), {
-			value: [
-				'function x() {',
-				'\tconsole.log("Hello world!");',
-				'}'
-			].join('\n'),
-			language: 'javascript'
+    this.editor = monaco.editor.create(document.getElementById('editor'), {
+			value: this.code,
+			language: this.language
     });
-    editor.onDidChangeModelContent((e) => console.log(JSON.stringify(e)))
+    autorun(() => {
+      this.editor.setValue(this.code);
+    });
+    autorun(() => {
+      console.log('set language');
+      (window as any).monaco.editor.setModelLanguage(this.editor.getModel(), this.language);
+    });
+    this.editor.onDidChangeModelContent((e) => () => {});
   }
 
   initSocket() {
@@ -61,6 +78,8 @@ export default class {
     });
     this.socket.on('room.fail', (err) => Notify.error(`加入房间失败，${err}`));
     this.socket.on('create.fail', (err) => Notify.error(`创建房间失败，${err}`));
+    this.socket.on('create.success', this.roomJoint);
+    this.socket.on('room.join', this.roomJoint);
   }
 }
 
