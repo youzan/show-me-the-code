@@ -1,11 +1,12 @@
 import * as Router from 'koa-router';
 
-import { getIndexHTML } from './controller/index';
+import { getIndexHTML, getRoomHTML } from './controller/index';
 
 const router = new Router();
 
 router.get('/', getIndexHTML);
-router.get('/room/:id', () => {});
+router.redirect('/room', '/');
+router.get('/room/:id', getRoomHTML);
 
 export default router;
 
