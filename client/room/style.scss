@@ -23,3 +23,7 @@ body,
     flex: 1 1 100%;
   }
 }
+
+.md-theme-default.md-select-content .md-menu-item.md-selected {
+  color: black !important;
+}
