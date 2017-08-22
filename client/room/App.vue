@@ -6,7 +6,7 @@
       </mu-select-field>
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" theme="vs-dark" />
+      <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" @change="handleCodeChange" theme="vs-dark" />
     </div>
     <mu-dialog :open="!auth">
       <mu-text-field label="Your Name" v-model.trim="userName" />
@@ -41,15 +41,9 @@ declare var _global: {
     },
     'room.success'() {
       this.auth = true;
-    }
-  },
-  watch: {
-    auth(value) {
-      if (value) {
-        (this.$refs.dialog as any).close();
-      } else {
-        (this.$refs.dialog as any).open();
-      }
+    },
+    'code.change'(data) {
+      this.code = data;
     }
   }
 } as any)
@@ -82,6 +76,10 @@ export default class App extends Vue {
       key: this.key,
       userName: this.userName
     });
+  }
+
+  handleCodeChange(value, e) {
+    this.$socket.emit('code.change', value);
   }
 }
 

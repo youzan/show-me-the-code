@@ -3,9 +3,11 @@
 import * as randomString from 'randomstring';
 
 import * as models from '../models';
+import Room from './Room';
 
 export default class SocketManager {
   io: SocketIO.Server
+  rooms: Map<string, Room> = new Map()
 
   constructor(io: SocketIO.Server) {
     this.io = io;
@@ -34,9 +36,11 @@ export default class SocketManager {
         } catch (error) {
           socket.emit('room.fail', error.toString());
         }
-      });
-      socket.on('disconnect', function() {
-        console.log('Client disconnected.');
+
+        if (!this.rooms.has(data.id)) {
+          this.rooms.set(data.id, new Room(data.id));
+        }
+        this.rooms.get(data.id).join(userName, socket);
       });
     });
   }
