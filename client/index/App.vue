@@ -1,7 +1,7 @@
 <template>
   <md-tabs>
     <md-tab md-label="Create Room">
-      hello
+      <md-button class="md-raised" @click="handleCreate">Create</md-button>
     </md-tab>
     <md-tab md-label="Join Room">
       <md-input-container>
@@ -22,9 +22,13 @@ import Component from 'vue-class-component';
 import { MDTabs, MDTab } from 'vue-material';
 
 @Component
-export default class extends Vue {
+export default class App extends Vue {
   id = ''
   key = ''
+
+  handleCreate() {
+
+  }
 }
 
 </script>

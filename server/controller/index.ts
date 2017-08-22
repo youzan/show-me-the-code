@@ -5,6 +5,10 @@ export async function getIndexHTML(ctx: Context) {
     await (<any>ctx).render('index');
 }
 
+export async function postCreateRoomJSON(ctx: Context) {
+    
+}
+
 export async function getRoomHTML(ctx: Context) {
     const { id } = (<any>ctx);
     const room = await models.Room.findOne({
