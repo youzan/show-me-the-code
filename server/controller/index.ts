@@ -1,4 +1,6 @@
 import { Context } from 'koa';
+import { generate } from 'randomstring';
+
 import * as models from '../models';
 
 export async function getIndexHTML(ctx: Context) {
@@ -6,11 +8,16 @@ export async function getIndexHTML(ctx: Context) {
 }
 
 export async function postCreateRoomJSON(ctx: Context) {
-    
+    const key = generate(4);
+    const room = await models.Room.create({
+        key
+    });
+    ctx.body = JSON.stringify(room.dataValues);
+    ctx.type = 'application/json';
 }
 
 export async function getRoomHTML(ctx: Context) {
-    const { id } = (<any>ctx);
+    const { id } = ctx.params;
     const room = await models.Room.findOne({
         where: {
             id
@@ -18,7 +25,7 @@ export async function getRoomHTML(ctx: Context) {
     });
     if (room) {
         await (<any>ctx).render('room', {
-            id: (<any>ctx).id
+            id
         });
     } else {
         ctx.redirect('/');

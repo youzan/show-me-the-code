@@ -14,15 +14,18 @@ module.exports = function(sequelize, DataTypes) {
     },
     code: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
+      defaultValue: ''
     },
     lang: {
       type: DataTypes.CHAR,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 'javascript'
     },
     last_time: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: Date.now()
     }
   }, {
     tableName: 'room'

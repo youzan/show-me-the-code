@@ -32,6 +32,7 @@
     "@types/socket.io": "^1.4.29",
     "@types/socket.io-client": "^1.4.29",
     "autoprefixer": "^7.1.2",
+    "axios": "^0.16.2",
     "babel-core": "^7.0.0-alpha.19",
     "babel-loader": "^7.1.1",
     "babel-polyfill": "^6.26.0",
