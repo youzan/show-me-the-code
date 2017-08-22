@@ -62,7 +62,8 @@ const node = merge({}, base, {
 
 const client = merge({}, base, {
   entry: {
-    client: './client/main.ts'
+    index: './client/index/main.ts',
+    room: './client/room/main.ts'
   },
   output: {
     path: path.resolve(__dirname, './static'),

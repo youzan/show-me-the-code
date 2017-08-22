@@ -5,10 +5,15 @@
 {% endblock %}
 
 {% block script %}
+    <script>
+        window._global = {
+            id: '{{ id }}'
+        }
+    </script>
     <script src="/static/vs/loader.js"></script>
-    <script src="/static/client.js"></script>
+    <script src="/static/room.js"></script>
 {% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" href="/static/client.css" />
+    <link rel="stylesheet" href="/static/room.css" />
 {% endblock %}
