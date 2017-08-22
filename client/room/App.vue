@@ -6,11 +6,11 @@
       </mu-select-field>
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" />
+      <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" theme="vs-dark" />
     </div>
     <mu-dialog :open="!auth">
-      <mu-text-field label="Your Name" v-model="userName"/>
-      <mu-text-field label="Key" v-model="key" />
+      <mu-text-field label="Your Name" v-model.trim="userName" />
+      <mu-text-field label="Key" v-model.trim="key" :errorText="err" />
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
   </div>
@@ -35,6 +35,14 @@ declare var _global: {
   components: {
     'v-monaco': MonacoEditor
   },
+  sockets: {
+    'room.fail'(msg) {
+      this.err = msg;
+    },
+    'room.success'() {
+      this.auth = true;
+    }
+  },
   watch: {
     auth(value) {
       if (value) {
@@ -44,7 +52,7 @@ declare var _global: {
       }
     }
   }
-})
+} as any)
 export default class App extends Vue {
   code = `console.log('hello world');`
   language = 'javascript'
@@ -54,7 +62,7 @@ export default class App extends Vue {
   userNameSet = false
   id = _global.id
   key = ''
-  $socket: SocketIOClient.Socket = undefined
+  err = ''
 
   mounted() {
     if (window.localStorage) {
@@ -63,31 +71,17 @@ export default class App extends Vue {
         this.userName = userName;
       }
     }
-    this.initSocket();
-  }
-
-  initSocket() {
-    const socket = io('/socket.io');
-    this.$socket = socket;
-    socket.on('connection', () => {
-
-    });
-    socket.on('room.success', () => {
-      this.auth = true;
-    });
   }
 
   doAuth() {
     if (window.localStorage) {
       localStorage.setItem(KEY, this.userName);
     }
-    if (this.$socket) {
-      this.$socket.emit('room.join', {
-        id: this.id,
-        key: this.key,
-        userName: this.userName
-      });
-    }
+    (this as any).$socket.emit('room.join', {
+      id: this.id,
+      key: this.key,
+      userName: this.userName
+    });
   }
 }
 

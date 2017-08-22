@@ -7,7 +7,10 @@
 {% block script %}
     <script>
         window._global = {
-            id: '{{ id }}'
+            id: '{{ id }}',
+            url: {
+                socket: 'http://127.0.0.1:3000'
+            }
         }
     </script>
     <script src="/static/vs/loader.js"></script>

@@ -1,7 +1,7 @@
 <template>
   <div class="app">
-    <mu-text-field label="ID" v-model="id" />
-    <mu-text-field label="Key" v-model="key" />
+    <mu-text-field label="ID" v-model.trim="id" />
+    <mu-text-field label="Key" v-model.trim="key" />
     <mu-raised-button label="GO!" :href="roomURL" target="_blank" />
     <mu-raised-button label="Create" @click="handleCreate" />
   </div>

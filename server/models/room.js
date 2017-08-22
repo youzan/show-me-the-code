@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: DataTypes.UUIDV4,
     },
     key: {
-      type: DataTypes.CHAR,
+      type: DataTypes.STRING(4),
       allowNull: false
     },
     code: {
@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ''
     },
     lang: {
-      type: DataTypes.CHAR,
+      type: DataTypes.STRING(20),
       allowNull: false,
       defaultValue: 'javascript'
     },
