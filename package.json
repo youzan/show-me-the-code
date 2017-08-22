@@ -54,7 +54,7 @@
     "postcss-loader": "^2.0.6",
     "precss": "^2.0.0",
     "sequelize-auto": "^0.4.28",
-    "socket.io-client": "^1.7.4",
+    "socket.io-client": "^2.0.3",
     "vue": "^2.4.2",
     "vue-class-component": "^5.0.2",
     "vue-loader": "^13.0.4",
@@ -69,7 +69,7 @@
     "pg-hstore": "^2.3.2",
     "randomstring": "^1.1.5",
     "sequelize": "^4.6.0",
-    "socket.io": "^1.7.4",
+    "socket.io": "^2.0.3",
     "uuid": "^3.1.0"
   }
 }
