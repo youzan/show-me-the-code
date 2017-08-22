@@ -49,6 +49,7 @@
     "koa-router": "^7.2.1",
     "koa-static": "^4.0.1",
     "monaco-editor": "^0.10.0",
+    "muse-ui": "^2.1.0",
     "nodemon": "^1.11.0",
     "postcss-loader": "^2.0.6",
     "precss": "^2.0.0",
@@ -57,7 +58,6 @@
     "vue": "^2.4.2",
     "vue-class-component": "^5.0.2",
     "vue-loader": "^13.0.4",
-    "vue-material": "^0.7.4",
     "vue-monaco": "^0.1.1",
     "vue-template-compiler": "^2.4.2",
     "webpack": "^3.5.5"

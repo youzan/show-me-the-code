@@ -1,12 +1,13 @@
 import 'babel-polyfill';
 import Vue from 'vue';
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.css'
+import MuseUI from 'muse-ui'
+import 'muse-ui/dist/muse-ui.css'
+import 'muse-ui/dist/theme-carbon.css'
 
 import App from './App';
 import './style';
 
-Vue.use(VueMaterial);
+Vue.use(MuseUI)
 
 new Vue({
   el: '#app',

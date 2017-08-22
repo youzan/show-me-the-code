@@ -1,13 +1,14 @@
 import 'babel-polyfill';
 import Vue from 'vue';
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.css'
+import MuseUI from 'muse-ui'
+import 'muse-ui/dist/muse-ui.css'
+import 'muse-ui/dist/theme-carbon.css'
 
 import App from './App';
 
-(window as any).require.config({ paths: { 'vs': '/static/vs' }});
+Vue.use(MuseUI);
 
-Vue.use(VueMaterial);
+(window as any).require.config({ paths: { 'vs': '/static/vs' }});
 
 (Vue as any).material.registerTheme('default', {
   primary: {
