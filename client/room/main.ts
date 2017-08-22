@@ -10,17 +10,6 @@ Vue.use(MuseUI);
 
 (window as any).require.config({ paths: { 'vs': '/static/vs' }});
 
-(Vue as any).material.registerTheme('default', {
-  primary: {
-    color: 'white',
-    hue: 900,
-    textColor: 'black'
-  },
-  accent: 'grey',
-  warn: 'red',
-  background: 'white'
-});
-
 const vm = new Vue({
   el: '#app',
   render: h => h(App)

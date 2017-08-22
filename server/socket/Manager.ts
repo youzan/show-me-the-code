@@ -15,29 +15,18 @@ export default class SocketManager {
   initSocket() {
     this.io.on('connection', socket => {
       let userName = '';
-      socket.on('user.login', (data) => userName = data.userName);
-      socket.on('room.create', async (data) => {
-        const key = randomString.generate(4);
-        try {
-          const room = await models.Room.create({
-            key,
-            code: '',
-            lang: 'javascript',
-            last_time: Date.now()
-          });
-          socket.emit('create.success', room.dataValues);
-        } catch (error) {
-          socket.emit('create.fail', error.toString());
-        }
-      })
-      socket.on('room.join', async ({ room: id, key }) => {
+      socket.on('room.join', async (data) => {
+        userName = data.name;
         try {
           const room = await models.Room.findOne({
             where: {
-              id,
-              key
+              id: data.room,
+              key: data.key
             }
           });
+          if (room) {
+            socket.emit('room.success');
+          }
         } catch (error) {
           socket.emit('room.fail', error.toString());
         }
