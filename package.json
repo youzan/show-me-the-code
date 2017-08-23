@@ -58,7 +58,7 @@
     "vue": "^2.4.2",
     "vue-class-component": "^5.0.2",
     "vue-loader": "^13.0.4",
-    "vue-monaco": "^0.1.1",
+    "vue-monaco": "^0.1.2",
     "vue-socket.io": "^2.1.1-a",
     "vue-template-compiler": "^2.4.2",
     "webpack": "^3.5.5"

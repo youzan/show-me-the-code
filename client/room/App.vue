@@ -17,12 +17,17 @@
 </template>
 
 <script lang="ts">
+/// <reference types="monaco-editor" />
+
+/// <reference path="../../model/socket.d.ts" />
+
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import MonacoEditor from 'vue-monaco';
 import io from 'socket.io-client';
 
 import { languages } from './config';
+import { adaptSelectionTOISelection } from './utils';
 import './style';
 
 const KEY = '$coding_username';
@@ -42,8 +47,10 @@ declare var _global: {
     'room.success'() {
       this.auth = true;
     },
-    'code.change'(data) {
-      this.code = data;
+    'code.change'(data: ISocketCodeChange) {
+      const editor: monaco.editor.IStandaloneCodeEditor = this.$refs.monaco.getMonaco();
+      
+      // editor.executeEdits('socket', )
     }
   }
 } as any)
@@ -78,8 +85,14 @@ export default class App extends Vue {
     });
   }
 
-  handleCodeChange(value, e) {
-    this.$socket.emit('code.change', value);
+  handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
+    const editor: monaco.editor.IStandaloneCodeEditor = (this.$refs.monaco as any).getMonaco();
+    const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionTOISelection(selection));
+    (this as any).$socket.emit('code.change', {
+      value,
+      event: e,
+      selections
+    });
   }
 }
 
