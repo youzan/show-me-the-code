@@ -58,6 +58,7 @@ declare var _global: {
         text: change.text,
         forceMoveMarkers: true
       })));
+      editor.setSelections(data.selections);
       this.code = data.value;
       this.syncing = false;
     }
@@ -105,7 +106,6 @@ export default class App extends Vue {
         selections
       });
     }
-
   }
 }
 
