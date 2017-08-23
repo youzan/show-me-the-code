@@ -34,5 +34,10 @@ export default class Room {
         socket.broadcast.to(this.id).emit('code.change', codeChange);
       }
     });
+
+    socket.on('selection.change', (selections: monaco.ISelection[]) => {
+      this.selections = selections;
+      socket.broadcast.to(this.id).emit('selection.change', selections);
+    });
   }
 }
