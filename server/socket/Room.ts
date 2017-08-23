@@ -2,8 +2,11 @@
 /// <reference types="monaco-editor" />
 
 /// <reference path="../../model/socket.d.ts" />
+/// <reference path="../../model/IDisposable.d.ts" />
 
-export default class Room {
+import Manager from './Manager';
+
+export default class Room implements IDisposable {
   clients: Map<Symbol, SocketIO.Socket> = new Map()
   id: string
   code: string = ''
@@ -13,17 +16,24 @@ export default class Room {
     positionLineNumber: 1,
     positionColumn: 1
   }];
-
+  language: string = 'javascript'
+  manager: Manager
   version = 1
 
-  constructor(id) {
+  constructor(id, manager: Manager) {
     this.id = id;
+    this.manager = manager;
   }
 
   join(userName: string, socket: SocketIO.Socket) {
     const sym = Symbol(userName);
     this.clients.set(sym, socket);
     socket.join(this.id);
+    socket.emit('room.success', {
+      clients: Array.from(this.clients.keys()),
+      code: this.code,
+      language: this.language
+    });
 
     socket.on('code.change', (codeChange: ISocketCodeChange) => {
       if (this.code !== codeChange.value) {
@@ -39,5 +49,15 @@ export default class Room {
       this.selections = selections;
       socket.broadcast.to(this.id).emit('selection.change', selections);
     });
+
+    socket.on('disconnect', () => {
+      this.clients.delete(sym);
+    });
+  }
+
+  dispose() {
+    this.manager.rooms.delete(this.id);
+    this.manager = null;
+    this.clients = null;
   }
 }

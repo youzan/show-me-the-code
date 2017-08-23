@@ -18,8 +18,8 @@ export default class SocketManager {
     this.io.on('connection', socket => {
       socket.emit('connect')
       let userName = '';
-      socket.on('room.join', async (data) => {
-        userName = data.name;
+      socket.on('room.join', async (data: ISocketRoomJoin) => {
+        userName = data.userName;
         try {
           const room = await models.Room.findOne({
             where: {
@@ -28,19 +28,18 @@ export default class SocketManager {
           });
           if (!room) {
             socket.emit('room.fail', 'room not exist');
+            return;
           } else if (room.dataValues.key.trim() === data.key) {
-            socket.emit('room.success');
+            if (!this.rooms.has(data.id)) {
+              this.rooms.set(data.id, new Room(data.id));
+            }
+            this.rooms.get(data.id).join(userName, socket);
           } else {
             socket.emit('room.fail', 'wrong key');
           }
         } catch (error) {
           socket.emit('room.fail', error.toString());
         }
-
-        if (!this.rooms.has(data.id)) {
-          this.rooms.set(data.id, new Room(data.id));
-        }
-        this.rooms.get(data.id).join(userName, socket);
       });
     });
   }

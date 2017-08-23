@@ -1,0 +1,3 @@
+interface IDisposable {
+  dispose: Function
+}

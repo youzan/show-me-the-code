@@ -43,8 +43,11 @@ declare var _global: {
     'room.fail'(msg) {
       this.err = msg;
     },
-    'room.success'() {
+    'room.success'(data: ISocketRoomSuccess) {
       this.auth = true;
+      this.code = data.code;
+      this.language = data.language;
+      this.clients = data.clients;
     },
     'code.change'(data: ISocketCodeChange) {
       this.syncing = true;
@@ -65,7 +68,7 @@ declare var _global: {
   }
 } as any)
 export default class App extends Vue {
-  code = `console.log('hello world');`
+  code = ''
   language = 'javascript'
   languages = languages
   userName = ''
@@ -75,6 +78,7 @@ export default class App extends Vue {
   key = ''
   err = ''
   syncing = false
+  clients = []
 
   mounted() {
     if (window.localStorage) {
