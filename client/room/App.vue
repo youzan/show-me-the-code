@@ -24,10 +24,9 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import MonacoEditor from 'vue-monaco';
-import io from 'socket.io-client';
 
 import { languages } from './config';
-import { adaptSelectionTOISelection } from './utils';
+import { adaptSelectionToISelection } from './utils';
 import './style';
 
 const KEY = '$coding_username';
@@ -49,7 +48,16 @@ declare var _global: {
     },
     'code.change'(data: ISocketCodeChange) {
       const editor: monaco.editor.IStandaloneCodeEditor = this.$refs.monaco.getMonaco();
-      
+      editor.executeEdits('socket', data.event.changes.map(change => ({
+        identifier: {
+          major: 1,
+          minor: 1
+        },
+        range: new monaco.Range(change.range.startLineNumber, change.range.startColumn, change.range.endLineNumber, change.range.endColumn),
+        text: change.text,
+        forceMoveMarkers: false
+      })));
+      this.code = data.value;
       // editor.executeEdits('socket', )
     }
   }
@@ -87,7 +95,7 @@ export default class App extends Vue {
 
   handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
     const editor: monaco.editor.IStandaloneCodeEditor = (this.$refs.monaco as any).getMonaco();
-    const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionTOISelection(selection));
+    const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionToISelection(selection));
     (this as any).$socket.emit('code.change', {
       value,
       event: e,

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const { merge } = require('lodash');
@@ -63,7 +64,8 @@ const node = merge({}, base, {
 const client = merge({}, base, {
   entry: {
     index: './client/index/main.ts',
-    room: './client/room/main.ts'
+    room: './client/room/main.ts',
+    vendor: ['vue', 'muse-ui', 'socket.io-client', 'vue-class-component', 'axios', 'vue-socket.io', 'vue-monaco']
   },
   output: {
     path: path.resolve(__dirname, './static'),
@@ -111,7 +113,11 @@ const client = merge({}, base, {
     new CopyPlugin([{
       from: 'node_modules/monaco-editor/min/vs',
       to: 'vs'
-    }])
+    }]),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: "vendor",
+      minChunks: Infinity
+    })
   ]
 })
 

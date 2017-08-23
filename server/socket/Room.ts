@@ -24,9 +24,11 @@ export default class Room {
     socket.join(this.id);
 
     socket.on('code.change', (codeChange: ISocketCodeChange) => {
-      this.code = codeChange.value;
-      this.selections = codeChange.selections;
-      socket.broadcast.to(this.id).emit('code.change', codeChange);
+      if (this.code !== codeChange.value) {
+        this.code = codeChange.value;
+        this.selections = codeChange.selections;
+        socket.broadcast.to(this.id).emit('code.change', codeChange);
+      }
     });
   }
 }
