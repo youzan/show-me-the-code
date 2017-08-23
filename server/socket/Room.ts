@@ -14,6 +14,8 @@ export default class Room {
     positionColumn: 1
   }];
 
+  version = 1
+
   constructor(id) {
     this.id = id;
   }
@@ -27,6 +29,8 @@ export default class Room {
       if (this.code !== codeChange.value) {
         this.code = codeChange.value;
         this.selections = codeChange.selections;
+        codeChange.ident = this.version;
+        this.version += 1;
         socket.broadcast.to(this.id).emit('code.change', codeChange);
       }
     });

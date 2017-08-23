@@ -47,18 +47,19 @@ declare var _global: {
       this.auth = true;
     },
     'code.change'(data: ISocketCodeChange) {
+      this.syncing = true;
       const editor: monaco.editor.IStandaloneCodeEditor = this.$refs.monaco.getMonaco();
-      editor.executeEdits('socket', data.event.changes.map(change => ({
+      editor.executeEdits('socket', data.event.changes.map((change, index) => ({
         identifier: {
-          major: 1,
-          minor: 1
+          major: data.ident,
+          minor: index
         },
         range: new monaco.Range(change.range.startLineNumber, change.range.startColumn, change.range.endLineNumber, change.range.endColumn),
         text: change.text,
-        forceMoveMarkers: false
+        forceMoveMarkers: true
       })));
       this.code = data.value;
-      // editor.executeEdits('socket', )
+      this.syncing = false;
     }
   }
 } as any)
@@ -72,6 +73,7 @@ export default class App extends Vue {
   id = _global.id
   key = ''
   err = ''
+  syncing = false
 
   mounted() {
     if (window.localStorage) {
@@ -94,13 +96,16 @@ export default class App extends Vue {
   }
 
   handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
-    const editor: monaco.editor.IStandaloneCodeEditor = (this.$refs.monaco as any).getMonaco();
-    const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionToISelection(selection));
-    (this as any).$socket.emit('code.change', {
-      value,
-      event: e,
-      selections
-    });
+    if (!this.syncing) {
+      const editor: monaco.editor.IStandaloneCodeEditor = (this.$refs.monaco as any).getMonaco();
+      const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionToISelection(selection));
+      (this as any).$socket.emit('code.change', {
+        value,
+        event: e,
+        selections
+      });
+    }
+
   }
 }
 
