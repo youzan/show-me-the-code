@@ -26,8 +26,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/debug": "0.0.30",
     "@types/koa": "^2.0.39",
     "@types/koa-router": "^7.0.22",
+    "@types/randomstring": "^1.1.6",
     "@types/sequelize": "^4.0.69",
     "@types/socket.io": "^1.4.29",
     "@types/socket.io-client": "^1.4.29",

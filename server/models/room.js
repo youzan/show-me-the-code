@@ -25,7 +25,7 @@ module.exports = function(sequelize, DataTypes) {
     last_time: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: Date.now()
+      defaultValue: DataTypes.NOW
     }
   }, {
     tableName: 'room'

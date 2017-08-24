@@ -1,7 +1,5 @@
 /// <reference types="socket.io" />
 
-import * as randomString from 'randomstring';
-
 import * as models from '../models';
 import Room from './Room';
 
@@ -31,7 +29,7 @@ export default class SocketManager {
             return;
           } else if (room.dataValues.key.trim() === data.key) {
             if (!this.rooms.has(data.id)) {
-              this.rooms.set(data.id, new Room(data.id));
+              this.rooms.set(data.id, new Room(data.id, this, room.dataValues.code, room.dataValues.lang));
             }
             this.rooms.get(data.id).join(userName, socket);
           } else {

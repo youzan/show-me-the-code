@@ -2,8 +2,10 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
+        "noImplicitAny": true,
         "allowJs": true,
         "jsx": "preserve",
+        "target": "es5",
         "lib": [
             "dom",
             "es2017"

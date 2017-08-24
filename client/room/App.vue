@@ -4,6 +4,7 @@
       <mu-select-field v-model="language">
         <mu-menu-item v-for="language in languages" :key="language" :value="language" :title="language" />
       </mu-select-field>
+      <mu-raised-button label="Save" @click="$socket.emit('save')" />
     </mu-appbar>
     <div class="content">
       <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" @change="handleCodeChange" theme="vs-dark" />
