@@ -21,11 +21,7 @@
       <mu-text-field label="Key" v-model.trim="key" :errorText="err" />
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
-    <mu-paper class="clients">
-      <mu-menu>
-        <mu-menu-item v-for="client in clients" :key="client" :title="client" />
-      </mu-menu>
-    </mu-paper>
+    <v-client-list :clients="clients" />
   </div>
 </template>
 
@@ -41,6 +37,7 @@ import MonacoEditor from 'vue-monaco';
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
 import ConnectStatus from './components/ConnectStatus';
+import ClientList from './components/ClientList';
 import './style';
 
 const KEY = '$coding_username';
@@ -52,7 +49,8 @@ declare var _global: {
 @Component({
   components: {
     'v-monaco': MonacoEditor,
-    'v-connect-status': ConnectStatus
+    'v-connect-status': ConnectStatus,
+    'v-client-list': ClientList
   },
   sockets: {
     connect() {
