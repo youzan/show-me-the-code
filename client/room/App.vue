@@ -1,24 +1,31 @@
 <template>
   <div class="app">
-    <mu-appbar>
+    <mu-appbar titleClass="appbar">
       <mu-select-field v-model="language">
         <mu-menu-item v-for="language in languages" :key="language" :value="language" :title="language" />
       </mu-select-field>
       <mu-raised-button label="Save" @click="$socket.emit('save')" />
-      <mu-paper class="clients">
-        <mu-menu>
-          <mu-menu-item v-for="client in clients" :key="client" :title="client" />
-        </mu-menu>
-      </mu-paper>
+      <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
       <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" @change="handleCodeChange" theme="vs-dark" />
     </div>
-    <mu-dialog :open="!auth">
+    <mu-dialog body-class="connect-loading" :open="connect !== 'connected' && !auth">
+      <mu-circular-progress :size="60" :strokeWidth="5" />
+      <div class="connect-loading-text">
+        Connecting...
+      </div>
+    </mu-dialog>
+    <mu-dialog :open="connect === 'connected' && !auth">
       <mu-text-field label="Your Name" v-model.trim="userName" />
       <mu-text-field label="Key" v-model.trim="key" :errorText="err" />
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
+    <mu-paper class="clients">
+      <mu-menu>
+        <mu-menu-item v-for="client in clients" :key="client" :title="client" />
+      </mu-menu>
+    </mu-paper>
   </div>
 </template>
 
@@ -33,6 +40,7 @@ import MonacoEditor from 'vue-monaco';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
+import ConnectStatus from './components/ConnectStatus';
 import './style';
 
 const KEY = '$coding_username';
@@ -43,9 +51,20 @@ declare var _global: {
 
 @Component({
   components: {
-    'v-monaco': MonacoEditor
+    'v-monaco': MonacoEditor,
+    'v-connect-status': ConnectStatus
   },
   sockets: {
+    connect() {
+      this.connect = 'connected';
+    },
+    disconnect() {
+      this.connect = 'disconnect'
+    },
+    reconnect() {
+      this.connect = 'connected';
+      this.doAuth();
+    },
     'room.fail'(msg: string) {
       this.err = msg;
     },
@@ -88,6 +107,7 @@ export default class App extends Vue {
   err = ''
   syncing = false
   clients: string[] = []
+  connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
 
   mounted() {
     if (window.localStorage) {

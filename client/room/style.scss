@@ -32,4 +32,24 @@ body,
   position: fixed;
   right: 0;
   top: 0;
+  z-index: 10;
+}
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .mu-text-field {
+    margin: 0;
+  }
+}
+
+.connect-loading {
+  display: flex;
+  align-items: center;
+
+  &-text {
+    margin-left: 10px;
+  }
 }
