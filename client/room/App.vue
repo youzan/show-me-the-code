@@ -5,6 +5,11 @@
         <mu-menu-item v-for="language in languages" :key="language" :value="language" :title="language" />
       </mu-select-field>
       <mu-raised-button label="Save" @click="$socket.emit('save')" />
+      <mu-paper class="clients">
+        <mu-menu>
+          <mu-menu-item v-for="client in clients" :key="client" :title="client" />
+        </mu-menu>
+      </mu-paper>
     </mu-appbar>
     <div class="content">
       <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" @change="handleCodeChange" theme="vs-dark" />
@@ -41,7 +46,7 @@ declare var _global: {
     'v-monaco': MonacoEditor
   },
   sockets: {
-    'room.fail'(msg) {
+    'room.fail'(msg: string) {
       this.err = msg;
     },
     'room.success'(data: ISocketRoomSuccess) {
@@ -65,6 +70,9 @@ declare var _global: {
       editor.setSelections(data.selections);
       this.code = data.value;
       this.syncing = false;
+    },
+    'room.clients'(clients: string[]) {
+      this.clients = clients;
     }
   }
 } as any)
@@ -79,7 +87,7 @@ export default class App extends Vue {
   key = ''
   err = ''
   syncing = false
-  clients = []
+  clients: string[] = []
 
   mounted() {
     if (window.localStorage) {

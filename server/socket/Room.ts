@@ -24,6 +24,7 @@ export default class Room implements IDisposable {
   _language: string = 'javascript'
   manager: Manager
   version = 1
+  io: SocketIO.Server
 
   get language() {
     return this._language;
@@ -33,7 +34,8 @@ export default class Room implements IDisposable {
     this._language = value.trim();
   }
 
-  constructor(id: string, manager: Manager, code: string, language: string) {
+  constructor(io: SocketIO.Server, id: string, manager: Manager, code: string, language: string) {
+    this.io = io;
     this.id = id;
     this.manager = manager;
     this.code = code;
@@ -58,6 +60,7 @@ export default class Room implements IDisposable {
     this.clients.set(sym, new Client(userName, socket));
     socket.join(this.id);
 
+    socket.broadcast.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => it.name));
     socket.emit('room.success', {
       clients: Array.from(this.clients.values()).map(it => it.name),
       code: this.code,
@@ -88,12 +91,15 @@ export default class Room implements IDisposable {
       this.clients.delete(sym);
       if (this.clients.size === 0) {
         this.dispose();
+      } else {
+        this.io.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => it.name));
       }
     });
   }
 
   dispose() {
     this.save();
+    this.io = null;
     this.manager.rooms.delete(this.id);
     this.manager = null;
     this.clients = null;
