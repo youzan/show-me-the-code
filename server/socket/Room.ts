@@ -7,11 +7,12 @@
 import * as createDebug from 'debug';
 import * as models from '../models';
 import Manager from './Manager';
+import Client from './Client';
 
 const debug = createDebug('ROOM');
 
 export default class Room implements IDisposable {
-  clients: Map<Symbol, SocketIO.Socket> = new Map()
+  clients: Map<Symbol, Client> = new Map()
   id: string
   code: string = ''
   selections: Array<monaco.ISelection> = [{
@@ -54,11 +55,11 @@ export default class Room implements IDisposable {
   join(userName: string, socket: SocketIO.Socket) {
     debug(`${userName} join room ${this.id}`);
     const sym = Symbol(userName);
-    this.clients.set(sym, socket);
+    this.clients.set(sym, new Client(userName, socket));
     socket.join(this.id);
-    debug(`${Array.from(this.clients.keys()).map(it => it.toString())}`)
+
     socket.emit('room.success', {
-      clients: Array.from(this.clients.keys()),
+      clients: Array.from(this.clients.values()).map(it => it.name),
       code: this.code,
       language: this.language
     });
@@ -83,6 +84,7 @@ export default class Room implements IDisposable {
     });
 
     socket.on('disconnect', () => {
+      this.clients.get(sym).dispose();
       this.clients.delete(sym);
       if (this.clients.size === 0) {
         this.dispose();
