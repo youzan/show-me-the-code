@@ -77,9 +77,9 @@ export default class Room implements IDisposable {
       }
     });
 
-    socket.on('selection.change', (selections: monaco.ISelection[]) => {
+    socket.on('selection', (selections: monaco.ISelection[]) => {
       this.selections = selections;
-      socket.broadcast.to(this.id).emit('selection.change', selections);
+      socket.broadcast.to(this.id).emit('selection', selections);
     });
 
     socket.on('save', () => {

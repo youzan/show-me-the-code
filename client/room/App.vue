@@ -8,7 +8,7 @@
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" ref="monaco" class="editor" v-model="code" :language="language" @change="handleCodeChange" theme="vs-dark" />
+      <v-monaco v-if="auth" class="editor" v-model="code" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
     </div>
     <mu-dialog body-class="connect-loading" :open="connect !== 'connected' && !auth">
       <mu-circular-progress :size="60" :strokeWidth="5" />
@@ -33,6 +33,7 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import MonacoEditor from 'vue-monaco';
+import debounce from 'lodash/debounce';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
@@ -74,7 +75,7 @@ declare var _global: {
     },
     'code.change'(data: ISocketCodeChange) {
       this.syncing = true;
-      const editor: monaco.editor.IStandaloneCodeEditor = this.$refs.monaco.getMonaco();
+      const editor: monaco.editor.IStandaloneCodeEditor = this.editor
       editor.executeEdits('socket', data.event.changes.map((change, index) => ({
         identifier: {
           major: data.ident,
@@ -84,12 +85,17 @@ declare var _global: {
         text: change.text,
         forceMoveMarkers: true
       })));
-      editor.setSelections(data.selections);
       this.code = data.value;
       this.syncing = false;
     },
     'room.clients'(clients: string[]) {
       this.clients = clients;
+    },
+    selection(selections: monaco.ISelection[]) {
+      this.syncing = true;
+      const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
+      editor.setSelections(selections);
+      this.syncing = false;
     }
   }
 } as any)
@@ -106,6 +112,7 @@ export default class App extends Vue {
   syncing = false
   clients: string[] = []
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
+  editor: monaco.editor.IStandaloneCodeEditor
 
   mounted() {
     if (window.localStorage) {
@@ -127,16 +134,30 @@ export default class App extends Vue {
     });
   }
 
+  handleEditorMount(editor: monaco.editor.IStandaloneCodeEditor) {
+    this.editor = editor;
+  }
+
   handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
     if (!this.syncing) {
-      const editor: monaco.editor.IStandaloneCodeEditor = (this.$refs.monaco as any).getMonaco();
-      const selections: Array<monaco.ISelection> = editor.getSelections().map(selection => adaptSelectionToISelection(selection));
       (this as any).$socket.emit('code.change', {
         value,
-        event: e,
-        selections
+        event: e
       });
     }
+  }
+
+  handleSelection() {
+    if (this.syncing) {
+      return;
+    }
+    const selections: monaco.ISelection[] = this.editor.getSelections().map(it => ({
+        selectionStartLineNumber: it.selectionStartLineNumber,
+        selectionStartColumn: it.selectionStartColumn,
+        positionLineNumber: it.positionLineNumber,
+        positionColumn: it.positionColumn
+    }));
+    (this as any).$socket.emit('selection', selections);
   }
 }
 
