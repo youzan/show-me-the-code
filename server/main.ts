@@ -3,6 +3,10 @@ import * as path from 'path';
 import * as Koa from 'koa';
 import * as socket from 'socket.io'
 import * as nunjucks from 'koa-nunjucks-2';
+import * as bodyParser from 'koa-bodyparser';
+import * as session from 'koa-session';
+
+import passport from './passport';
 
 import router from './router';
 import SocketManager from './socket/Manager';
@@ -12,6 +16,12 @@ const server = http.createServer(app.callback());
 const io = socket(server);
 
 const manager = new SocketManager(io);
+
+app.use(bodyParser());
+app.keys = ['secret'];
+app.use(session({}, app));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(nunjucks({
     ext: 'njk',

@@ -1,22 +1,32 @@
 import { Context } from 'koa';
 import { generate } from 'randomstring';
+import * as Router from 'koa-router';
 
 import * as models from '../models';
 
-export async function getIndexHTML(ctx: Context) {
-    await (<any>ctx).render('index');
-}
+const router = new Router();
 
-export async function postCreateRoomJSON(ctx: Context) {
-    const key = generate(4);
-    const room = await models.Room.create({
-        key
-    });
-    ctx.body = JSON.stringify(room.dataValues);
-    ctx.type = 'application/json';
-}
+router.get('/', async (ctx: Context) => {
+    if (ctx.isUnauthenticated()) {
+        await ctx.redirect('/auth');
+    }
+    await (ctx as any).render('index');
+});
 
-export async function getRoomHTML(ctx: Context) {
+router.post('/create', async (ctx: Context) => {
+    if (ctx.isUnauthenticated()) {
+        await ctx.redirect('/auth');
+    } else {
+        const key = generate(4);
+        const room = await models.Room.create({
+            key
+        });
+        ctx.body = JSON.stringify(room.dataValues);
+        ctx.type = 'application/json';
+    }
+});
+
+router.get('/room/:id', async (ctx: Context) => {
     const { id } = ctx.params;
     const room = await models.Room.findOne({
         where: {
@@ -28,6 +38,8 @@ export async function getRoomHTML(ctx: Context) {
             id
         });
     } else {
-        ctx.redirect('/');
+        ctx.status = 404;
     }
-}
+});
+
+export default router;

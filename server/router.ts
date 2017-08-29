@@ -1,13 +1,13 @@
 import * as Router from 'koa-router';
 
-import { getIndexHTML, getRoomHTML, postCreateRoomJSON } from './controller/index';
+import { DOMAIN } from '../config';
+import index from './controller/index';
+import auth from './controller/auth';
 
 const router = new Router();
 
-router.get('/', getIndexHTML);
-router.post('/create', postCreateRoomJSON);
-router.redirect('/room', '/');
-router.get('/room/:id', getRoomHTML);
+router.use('/', index.routes(), index.allowedMethods());
+router.use('/auth', auth.routes(), auth.allowedMethods());
 
 export default router;
 
