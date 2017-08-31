@@ -5,6 +5,7 @@ import * as socket from 'socket.io'
 import * as nunjucks from 'koa-nunjucks-2';
 import * as bodyParser from 'koa-bodyparser';
 import * as session from 'koa-session';
+import * as Router from 'koa-router';
 
 import passport from './passport';
 
@@ -31,8 +32,11 @@ if (process.env.NODE_ENV === 'development') {
     const serve = require('koa-static');
     const mount = require('koa-mount');
     app.use(mount('/static', serve(path.resolve(__dirname, '../static'))));
+    const root = new Router();
+    root.get('/', async ctx => await ctx.redirect('/coding/') );
+    app.use(root.routes());
 }
 app.use(router.routes())
 app.use(router.allowedMethods());
 
-server.listen(3000);
+server.listen(5000);

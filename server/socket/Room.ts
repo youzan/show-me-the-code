@@ -44,7 +44,7 @@ export default class Room implements IDisposable {
 
   async save() {
     await models.Room.update({
-      code: this.code,
+      content: this.code,
       lang: this.language,
       last_time: Date.now()
     }, {

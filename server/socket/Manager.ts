@@ -27,7 +27,7 @@ export default class SocketManager {
           if (!room) {
             socket.emit('room.fail', 'room not exist');
             return;
-          } else if (room.dataValues.key.trim() === data.key) {
+          } else if (room.dataValues.room_key.trim() === data.key) {
             if (!this.rooms.has(data.id)) {
               this.rooms.set(data.id, new Room(this.io, data.id, this, room.dataValues.code, room.dataValues.lang));
             }

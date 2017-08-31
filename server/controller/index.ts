@@ -4,22 +4,24 @@ import * as Router from 'koa-router';
 
 import * as models from '../models';
 
+const { APPLICATION } = eval('require')('../config');
+
 const router = new Router();
 
 router.get('/', async (ctx: Context) => {
     if (ctx.isUnauthenticated()) {
-        await ctx.redirect('/auth');
+        await ctx.redirect('auth');
     }
     await (ctx as any).render('index');
 });
 
 router.post('/create', async (ctx: Context) => {
     if (ctx.isUnauthenticated()) {
-        await ctx.redirect('/auth');
+        await ctx.redirect('auth');
     } else {
         const key = generate(4);
         const room = await models.Room.create({
-            key
+            room_key: key
         });
         ctx.body = JSON.stringify(room.dataValues);
         ctx.type = 'application/json';

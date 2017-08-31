@@ -8,11 +8,11 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    key: {
+    room_key: {
       type: DataTypes.STRING(4),
       allowNull: false
     },
-    code: {
+    content: {
       type: DataTypes.TEXT,
       allowNull: false,
       defaultValue: ''

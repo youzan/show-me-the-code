@@ -6,7 +6,7 @@ import passport from '../passport';
 const router = new Router();
 
 router.get('/', async (ctx: Context) => {
-
+  await (ctx as any).render('auth');
 });
 
 router.get('/github', passport.authenticate('github'));
