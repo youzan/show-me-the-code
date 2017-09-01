@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MinifyPlugin = require("babel-minify-webpack-plugin");
 const { merge } = require('lodash');
 
 const base = {
@@ -106,6 +107,34 @@ const client = merge({}, base, {
     }
   },
   plugins: [
+    new webpack.optimize.CommonsChunkPlugin({
+      name: "vendor",
+      minChunks: Infinity
+    })
+  ]
+});
+
+if (process.env.NODE_ENV === 'production') {
+  client.output.path = path.resolve(__dirname, './dist');
+  client.output.filename = '[name]_[hash].js';
+  client.plugins.push(
+    new MinifyPlugin({}, {
+      comments: false
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: '"production"'
+      }
+    }),
+    new ExtractTextPlugin({
+      filename: '[name]_[hash].css',
+      allChunks: true
+    }),
+    new webpack.optimize.ModuleConcatenationPlugin()
+  );
+  client.devtool = false;
+} else {
+  client.plugins.push(
     new ExtractTextPlugin({
       filename: '[name].css',
       allChunks: true
@@ -113,12 +142,8 @@ const client = merge({}, base, {
     new CopyPlugin([{
       from: 'node_modules/monaco-editor/min/vs',
       to: 'vs'
-    }]),
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: Infinity
-    })
-  ]
-})
+    }])
+  );
+}
 
 module.exports = [node, client]

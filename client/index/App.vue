@@ -20,16 +20,16 @@ export default class App extends Vue {
   key = ''
 
   get roomURL() {
-    return `/room/${this.id}`;
+    return `room/${this.id}`;
   }
 
   async handleCreate() {
     const { data } = await axios({
       method: 'post',
-      url: '/create'
+      url: 'create'
     });
     this.id = data.id;
-    this.key = data.key;
+    this.key = data.room_key;
   }
 }
 

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev-build": "better-npm-run dev-build",
-    "dev-server": "better-npm-run dev-server"
+    "dev-server": "better-npm-run dev-server",
+    "build": "better-npm-run build"
   },
   "betterScripts": {
     "dev-build": {
@@ -20,6 +21,12 @@
       "env": {
         "NODE_ENV": "development",
         "DEBUG": "*,-not_this"
+      }
+    },
+    "build": {
+      "command": "webpack",
+      "env": {
+        "NODE_ENV": "production"
       }
     }
   },
@@ -42,6 +49,7 @@
     "axios": "^0.16.2",
     "babel-core": "^7.0.0-alpha.19",
     "babel-loader": "^7.1.1",
+    "babel-minify-webpack-plugin": "^0.2.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^2.0.0-alpha.19",
     "babel-preset-stage-0": "^7.0.0-alpha.19",
@@ -66,6 +74,7 @@
     "precss": "^2.0.0",
     "sequelize-auto": "^0.4.28",
     "socket.io-client": "^2.0.3",
+    "uglifyjs-webpack-plugin": "^0.4.6",
     "vue": "^2.4.2",
     "vue-class-component": "^5.0.2",
     "vue-loader": "^13.0.4",

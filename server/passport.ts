@@ -3,13 +3,24 @@ import { Strategy as GitHubStrategy } from 'passport-github2';
 
 const { APPLICATION } = eval('require')('../config');
 
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
 passport.use(new GitHubStrategy({
     clientID: APPLICATION.GITHUB.ID,
     clientSecret: APPLICATION.GITHUB.SECRET,
     callbackURL: APPLICATION.GITHUB.CALLBACK
 }, (accessToken, refreshToken, profile, done) => {
     process.nextTick(function () {
-        return done(null, profile);
+        console.log(profile)
+        return done(null, {
+            name: profile.displayName
+        });
     });
 }));
 

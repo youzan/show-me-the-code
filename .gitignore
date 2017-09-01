@@ -62,3 +62,4 @@ static
 db_config.js
 generateModel.js
 config*
+dist

@@ -5,6 +5,7 @@
         "allowJs": true,
         "jsx": "preserve",
         "target": "es5",
+        "module": "es2015",
         "lib": [
             "dom",
             "es2017"
