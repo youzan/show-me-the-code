@@ -5,15 +5,21 @@
 {% endblock %}
 
 {% block script %}
+    <script src="/static/vs/loader.js"></script>
     <script>
         window._global = {
             id: '{{ id }}',
             url: {
-                socket: 'http://127.0.0.1:3000'
+                socket: '{{ $ws_url }}'
             }
-        }
+        };
+        window.require.config({ paths: { 'vs': '{{ $monaco_url }}' }});
+        window.MonacoEnvironment = {
+		    getWorkerUrl: function(workerId, label) {
+			    return '{{ $domain }}/monaco_proxy.js';
+		    }
+	    };
     </script>
-    <script src="/static/vs/loader.js"></script>
     <script src="/static/room.js"></script>
 {% endblock %}
 

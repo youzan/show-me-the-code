@@ -7,12 +7,10 @@ import 'muse-ui/dist/theme-carbon.css'
 
 import App from './App';
 
-declare var _global;
+declare var _global: any;
 
 Vue.use(MuseUI);
 Vue.use(VueSocketio, _global.url.socket);
-
-(window as any).require.config({ paths: { 'vs': '/static/vs' }});
 
 const vm = new Vue({
   el: '#app',

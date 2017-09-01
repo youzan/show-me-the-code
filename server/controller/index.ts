@@ -12,6 +12,16 @@ router.get('/', async (ctx: Context) => {
     await (ctx as any).render('index');
 });
 
+router.get('monaco_proxy.js', async (ctx: Context) => {
+    ctx.type = 'text/javascript';
+    ctx.body = `
+        self.MonacoEnvironment = {
+            baseUrl: 'http://www.mycdn.com/monaco-editor/min/'
+        };
+        importScripts('www.mycdn.com/monaco-editor/min/vs/base/worker/workerMain.js');
+    `;
+})
+
 router.post('create', async (ctx: Context) => {
     const key = generate(4);
     const room = await models.Room.create({

@@ -12,13 +12,24 @@ import passport from './passport';
 import router from './router';
 import SocketManager from './socket/Manager';
 
+const config = eval('require')('../config');
+const resource = eval('require')('../resource');
+
 try {
     const app = new Koa();
     const server = http.createServer(app.callback());
     const io = socket(server);
-    
+
     const manager = new SocketManager(io);
-    
+    app.use(async (ctx, next) => {
+        Object.assign(ctx.state, {
+            $domain: config.DOMAIN,
+            $ws_url: config.WS_URL,
+            $monaco_url: config.MONACO_URL,
+            resource
+        });
+        next();
+    });
     app.use(bodyParser());
     app.keys = ['secret'];
     app.use(session({}, app));
@@ -27,7 +38,12 @@ try {
     
     app.use(nunjucks({
         ext: 'njk',
-        path: path.resolve(__dirname, './view')
+        path: path.resolve(__dirname, './view'),
+        nunjucksConfig: {
+            trimBlocks: true,
+            lstripBlocks: true,
+            watch: process.env.NODE_ENV === 'development'
+        }
     }));
     if (process.env.NODE_ENV === 'development') {
         const serve = require('koa-static');

@@ -61,5 +61,5 @@ build
 static
 db_config.js
 generateModel.js
-config*
+config
 dist
