@@ -135,15 +135,15 @@ if (process.env.NODE_ENV === 'production') {
   client.devtool = false;
 } else {
   client.plugins.push(
+    // new CopyPlugin([{
+    //   from: 'node_modules/monaco-editor/min/vs',
+    //   to: 'vs'
+    // }]),
     new ExtractTextPlugin({
       filename: '[name].css',
       allChunks: true
-    }),
-    new CopyPlugin([{
-      from: 'node_modules/monaco-editor/min/vs',
-      to: 'vs'
-    }])
+    })
   );
 }
 
-module.exports = [node, client]
+module.exports = [node, client];
