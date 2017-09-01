@@ -16,8 +16,7 @@
         Connecting...
       </div>
     </mu-dialog>
-    <mu-dialog :open="connect === 'connected' && !auth">
-      <mu-text-field label="Your Name" v-model.trim="userName" />
+    <mu-dialog :open="connect === 'connected' && !auth" :title="title">
       <mu-text-field label="Key" v-model.trim="key" :errorText="err" />
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
@@ -40,8 +39,6 @@ import { adaptSelectionToISelection } from './utils';
 import ConnectStatus from './components/ConnectStatus';
 import ClientList from './components/ClientList';
 import './style';
-
-const KEY = '$coding_username';
 
 declare var _global: {
   id: string,
@@ -104,7 +101,7 @@ export default class App extends Vue {
   code = ''
   language = 'javascript'
   languages = languages
-  userName = ''
+  userName = _global.userName
   auth = false
   userNameSet = false
   id = _global.id
@@ -115,19 +112,11 @@ export default class App extends Vue {
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
   editor: monaco.editor.IStandaloneCodeEditor
 
-  mounted() {
-    if (window.localStorage) {
-      const userName = localStorage.getItem(KEY);
-      if (userName) {
-        this.userName = userName;
-      }
-    }
+  get title() {
+    return `Welcome ${this.userName}`;
   }
 
   doAuth() {
-    if (window.localStorage) {
-      localStorage.setItem(KEY, this.userName);
-    }
     (this as any).$socket.emit('room.join', {
       id: this.id,
       key: this.key,

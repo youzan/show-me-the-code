@@ -4,7 +4,7 @@ import * as Router from 'koa-router';
 
 import * as models from '../models';
 
-const { APPLICATION } = eval('require')('../config/config');
+const { APPLICATION, MONACO_URL } = eval('require')('../config/config');
 
 const router = new Router();
 
@@ -24,9 +24,9 @@ router.get('monaco_proxy.js', async (ctx: Context) => {
     ctx.type = 'text/javascript';
     ctx.body = `
         self.MonacoEnvironment = {
-            baseUrl: 'http://www.mycdn.com/monaco-editor/min/'
+            baseUrl: '${MONACO_URL}/'
         };
-        importScripts('www.mycdn.com/monaco-editor/min/vs/base/worker/workerMain.js');
+        importScripts('${MONACO_URL}/vs/base/worker/workerMain.js');
     `;
 });
 

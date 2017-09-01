@@ -10,11 +10,12 @@
         window._global = {
             id: '{{ id }}',
             url: {
-                socket: '{{ $ws_url }}'
+                socket: '{{ $ws_url }}',
+                monaco: '{{ $monaco_url }}/vs'
             },
             userName: '{{ userName }}'
         };
-        window.require.config({ paths: { 'vs': '{{ $monaco_url }}' }});
+        window.require.config({ paths: { 'vs': _global.url.monaco }});
         window.MonacoEnvironment = {
 		    getWorkerUrl: function(workerId, label) {
 			    return '{{ $domain }}/monaco_proxy.js';
