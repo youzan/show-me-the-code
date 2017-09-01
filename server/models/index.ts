@@ -2,7 +2,7 @@ import Sequelize from 'sequelize';
 
 import * as room from './room';
 
-const config = eval('require')('../db_config');
+const config = eval('require')('../config/db_config');
 
 const sequelize = new Sequelize(config);
 

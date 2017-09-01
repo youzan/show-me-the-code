@@ -1,7 +1,7 @@
 import * as passport from 'koa-passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 
-const { APPLICATION } = eval('require')('../config');
+const { APPLICATION } = eval('require')('../config/config');
 
 passport.serializeUser((user, done) => {
     done(null, user);

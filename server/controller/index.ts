@@ -4,11 +4,19 @@ import * as Router from 'koa-router';
 
 import * as models from '../models';
 
-const { APPLICATION } = eval('require')('../config');
+const { APPLICATION } = eval('require')('../config/config');
 
 const router = new Router();
 
-router.get('/', async (ctx: Context) => {
+async function checkLogin(ctx: Context, next) {
+    if (ctx.isUnauthenticated()) {
+        await ctx.redirect('/auth');
+    } else {
+        await next();
+    }
+}
+
+router.get('/', checkLogin, async (ctx: Context) => {
     await (ctx as any).render('index');
 });
 
@@ -20,9 +28,9 @@ router.get('monaco_proxy.js', async (ctx: Context) => {
         };
         importScripts('www.mycdn.com/monaco-editor/min/vs/base/worker/workerMain.js');
     `;
-})
+});
 
-router.post('create', async (ctx: Context) => {
+router.post('create', checkLogin, async (ctx: Context) => {
     const key = generate(4);
     const room = await models.Room.create({
         room_key: key
@@ -31,7 +39,7 @@ router.post('create', async (ctx: Context) => {
     ctx.type = 'application/json';
 });
 
-router.get('room/:id', async (ctx: Context) => {
+router.get('room/:id', checkLogin, async (ctx: Context) => {
     const { id } = ctx.params;
     const room = await models.Room.findOne({
         where: {

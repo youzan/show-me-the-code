@@ -28,7 +28,7 @@ try {
             $monaco_url: config.MONACO_URL,
             resource
         });
-        next();
+        await next();
     });
     app.use(bodyParser());
     app.keys = ['secret'];
@@ -49,16 +49,14 @@ try {
         const serve = require('koa-static');
         const mount = require('koa-mount');
         app.use(mount('/static', serve(path.resolve(__dirname, '../static'))));
-        const root = new Router();
-        root.get('/', async ctx => await ctx.redirect('/coding/') );
-        app.use(root.routes());
     }
     app.use(router.routes())
     app.use(router.allowedMethods());
     
     server.listen(5000);
+    console.log('app listen on port 5000');
     
 } catch (error) {
-    console.log(error);
+    console.error(error);
 }
 
