@@ -40,6 +40,7 @@ router.post('create', checkLogin, async (ctx: Context) => {
 });
 
 router.get('room/:id', checkLogin, async (ctx: Context) => {
+    console.log(ctx.state)
     const { id } = ctx.params;
     const room = await models.Room.findOne({
         where: {
@@ -48,7 +49,8 @@ router.get('room/:id', checkLogin, async (ctx: Context) => {
     });
     if (room) {
         await (<any>ctx).render('room', {
-            id
+            id,
+            userName: ctx.state.user.name
         });
     } else {
         ctx.status = 404;

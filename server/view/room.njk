@@ -11,7 +11,8 @@
             id: '{{ id }}',
             url: {
                 socket: '{{ $ws_url }}'
-            }
+            },
+            userName: '{{ userName }}'
         };
         window.require.config({ paths: { 'vs': '{{ $monaco_url }}' }});
         window.MonacoEnvironment = {

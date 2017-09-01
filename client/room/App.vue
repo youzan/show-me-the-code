@@ -44,7 +44,8 @@ import './style';
 const KEY = '$coding_username';
 
 declare var _global: {
-  id: string
+  id: string,
+  userName: string
 };
 
 @Component({
