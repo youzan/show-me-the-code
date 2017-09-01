@@ -7,8 +7,6 @@ const { PREFIX } = eval('require')('../config');
 
 const router = new Router();
 
-router.prefix(PREFIX);
-
 router.use('/', index.routes(), index.allowedMethods());
 router.use('/auth', auth.routes(), auth.allowedMethods());
 

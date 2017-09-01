@@ -12,8 +12,8 @@ import passport from './passport';
 import router from './router';
 import SocketManager from './socket/Manager';
 
-const config = eval('require')('../config');
-const resource = eval('require')('../resource');
+const config = eval('require')('../config/config');
+const resource = eval('require')('../config/resource');
 
 try {
     const app = new Koa();
