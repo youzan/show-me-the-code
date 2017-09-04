@@ -29,7 +29,7 @@ export default class App extends Vue {
       url: 'create'
     });
     this.id = data.id;
-    this.key = data.room_key;
+    this.key = data.key;
   }
 }
 

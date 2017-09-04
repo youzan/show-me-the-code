@@ -8,7 +8,7 @@
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" class="editor" v-model="code" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
+      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
     </div>
     <mu-dialog body-class="connect-loading" :open="connect !== 'connected' && !auth">
       <mu-circular-progress :size="60" :strokeWidth="5" />
@@ -56,20 +56,23 @@ declare var _global: {
       this.connect = 'connected';
     },
     disconnect() {
-      this.connect = 'disconnect'
+      this.connect = 'disconnect';
+      this.auth = false;
     },
     reconnect() {
-      this.connect = 'connected';
-      this.doAuth();
+      this.connect = 'reconnect';
+      setTimeout(() => this.doAuth(), 1000);
     },
     'room.fail'(msg: string) {
       this.err = msg;
+      this.connect = 'connected';
     },
     'room.success'(data: ISocketRoomSuccess) {
       this.auth = true;
-      this.code = data.code;
+      this.content = data.content;
       this.language = data.language;
       this.clients = data.clients;
+      this.connect = 'connected';
     },
     'code.change'(data: ISocketCodeChange) {
       this.syncing = true;
@@ -83,7 +86,7 @@ declare var _global: {
         text: change.text,
         forceMoveMarkers: true
       })));
-      this.code = data.value;
+      this.content = data.value;
       this.syncing = false;
     },
     'room.clients'(clients: string[]) {
@@ -98,7 +101,7 @@ declare var _global: {
   }
 } as any)
 export default class App extends Vue {
-  code = ''
+  content = ''
   language = 'javascript'
   languages = languages
   userName = _global.userName

@@ -33,7 +33,7 @@ router.get('monaco_proxy.js', async (ctx: Context) => {
 router.post('create', checkLogin, async (ctx: Context) => {
     const key = generate(4);
     const room = await models.Room.create({
-        room_key: key
+        key
     });
     ctx.body = JSON.stringify(room.dataValues);
     ctx.type = 'application/json';

@@ -14,10 +14,9 @@ export default class SocketManager {
 
   initSocket() {
     this.io.on('connection', socket => {
-      socket.emit('connect')
-      let userName = '';
       socket.on('room.join', async (data: ISocketRoomJoin) => {
-        userName = data.userName;
+        const userName = data.userName;
+        console.log('!!!!!!!!!!!!!!!!!!!!!!', userName);
         try {
           const room = await models.Room.findOne({
             where: {
@@ -27,7 +26,7 @@ export default class SocketManager {
           if (!room) {
             socket.emit('room.fail', 'room not exist');
             return;
-          } else if (room.dataValues.room_key.trim() === data.key) {
+          } else if (room.dataValues.key.trim() === data.key) {
             if (!this.rooms.has(data.id)) {
               this.rooms.set(data.id, new Room(this.io, data.id, this, room.dataValues.content, room.dataValues.language));
             }

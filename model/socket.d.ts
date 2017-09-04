@@ -15,6 +15,6 @@ interface ISocketCodeChange {
 
 interface ISocketRoomSuccess {
   clients: string[]
-  code: string
+  content: string
   language: string
 }
