@@ -14,7 +14,7 @@ const debug = createDebug('ROOM');
 export default class Room implements IDisposable {
   clients: Map<Symbol, Client> = new Map()
   id: string
-  code: string = ''
+  content: string = ''
   selections: Array<monaco.ISelection> = [{
     selectionStartLineNumber: 1,
     selectionStartColumn: 1,
@@ -34,18 +34,18 @@ export default class Room implements IDisposable {
     this._language = value.trim();
   }
 
-  constructor(io: SocketIO.Server, id: string, manager: Manager, code: string, language: string) {
+  constructor(io: SocketIO.Server, id: string, manager: Manager, content: string, language: string) {
     this.io = io;
     this.id = id;
     this.manager = manager;
-    this.code = code;
+    this.content = content;
     this.language = language;
   }
 
   async save() {
     await models.Room.update({
-      content: this.code,
-      lang: this.language,
+      content: this.content,
+      language: this.language,
       last_time: Date.now()
     }, {
       where: {
@@ -63,13 +63,13 @@ export default class Room implements IDisposable {
     socket.broadcast.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => it.name));
     socket.emit('room.success', {
       clients: Array.from(this.clients.values()).map(it => it.name),
-      code: this.code,
+      content: this.content,
       language: this.language
     });
 
     socket.on('code.change', (codeChange: ISocketCodeChange) => {
-      if (this.code !== codeChange.value) {
-        this.code = codeChange.value;
+      if (this.content !== codeChange.value) {
+        this.content = codeChange.value;
         this.selections = codeChange.selections;
         codeChange.ident = this.version;
         this.version += 1;

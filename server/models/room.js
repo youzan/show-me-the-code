@@ -7,27 +7,32 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
+      field: 'coding_id'
     },
-    room_key: {
+    key: {
       type: DataTypes.STRING(4),
-      allowNull: false
+      allowNull: false,
+      field: 'coding_key'
     },
     content: {
       type: DataTypes.TEXT,
       allowNull: false,
-      defaultValue: ''
+      defaultValue: '',
+      field: 'coding_content'
     },
-    lang: {
+    language: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      defaultValue: 'javascript'
+      defaultValue: 'javascript',
+      field: 'coding_language'
     },
     last_time: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW
+      defaultValue: DataTypes.NOW,
+      field: 'coding_last_time'
     }
   }, {
-    tableName: 'room'
+    tableName: 'coding_room'
   });
 };
