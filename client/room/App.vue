@@ -53,15 +53,16 @@ declare var _global: {
   },
   sockets: {
     connect() {
+      if (this.connect === 'reconnect') {
+        setTimeout(() => this.doAuth(), 1000);
+      }
       this.connect = 'connected';
     },
     disconnect() {
       this.connect = 'disconnect';
-      this.auth = false;
     },
     reconnect() {
       this.connect = 'reconnect';
-      setTimeout(() => this.doAuth(), 1000);
     },
     'room.fail'(msg: string) {
       this.err = msg;
