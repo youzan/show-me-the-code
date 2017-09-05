@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev-build": "better-npm-run dev-build",
     "dev-server": "better-npm-run dev-server",
-    "build": "better-npm-run build"
+    "dist": "better-npm-run build"
   },
   "betterScripts": {
     "dev-build": {
@@ -23,7 +23,7 @@
         "DEBUG": "*,-not_this"
       }
     },
-    "build": {
+    "dist": {
       "command": "webpack",
       "env": {
         "NODE_ENV": "production"

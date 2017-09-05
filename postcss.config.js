@@ -4,7 +4,7 @@ const precss = require('precss');
 module.exports = {
   plugins: [
     autoprefixer({
-      browsers: 'electron >= 1.6'
+      browsers: 'ie >= 10, firefox >= 11, chrome >= 15, safari >= 7, opera >= 12.1'
     }),
     precss
   ]
