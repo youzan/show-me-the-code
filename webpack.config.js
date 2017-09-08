@@ -116,18 +116,16 @@ const client = merge({}, base, {
 
 if (process.env.NODE_ENV === 'production') {
   client.output.path = path.resolve(__dirname, './dist');
-  client.output.filename = '[name]_[hash].js';
+  client.output.filename = '[name]_[chunkhash].js';
   client.plugins.push(
-    new MinifyPlugin({}, {
-      comments: false
-    }),
+    new MinifyPlugin(),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
       }
     }),
     new ExtractTextPlugin({
-      filename: '[name]_[hash].css',
+      filename: '[name]_[contenthash].css',
       allChunks: true
     }),
     new webpack.optimize.ModuleConcatenationPlugin()

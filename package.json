@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev-build": "better-npm-run dev-build",
     "dev-server": "better-npm-run dev-server",
-    "dist": "better-npm-run build"
+    "dist": "better-npm-run dist"
   },
   "betterScripts": {
     "dev-build": {
