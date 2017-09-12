@@ -21,7 +21,7 @@ router.get('/room/:id', async (ctx: Context) => {
     const { id } = ctx.params;
 
     if (ctx.isUnauthenticated()) {
-        ctx.redirect(`${URL.base}/auth?room=${id}`);
+        return ctx.redirect(`${URL.base}/auth?room=${id}`);
     }
 
     const room = await models.Room.findOne({

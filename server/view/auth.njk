@@ -37,7 +37,7 @@
 
 {% block script %}
   <script>
-    sessionStorage.room = (location.search.substring(1).split('&').map(it => it.split('=')).find(it => it[0] === 'room') || [])[1];
+    sessionStorage.setItem('room', (location.search.substring(1).split('&').map(it => it.split('=')).find(it => it[0] === 'room') || [])[1] || '');
   </script>
 {% endblock %}
 
