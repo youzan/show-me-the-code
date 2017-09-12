@@ -8,9 +8,8 @@ import * as session from 'koa-session';
 import * as Router from 'koa-router';
 
 import passport from './passport';
-
-import router from './router';
 import SocketManager from './socket/Manager';
+import controller from './controller';
 
 const config = require('../config/config');
 const resource = require('../config/resource');
@@ -48,9 +47,10 @@ try {
         const mount = require('koa-mount');
         app.use(mount('/static', serve(path.resolve(__dirname, '../static'))));
     }
-    app.use(router.routes())
-    app.use(router.allowedMethods());
-    
+
+    app.use(controller.routes());
+    app.use(controller.allowedMethods());
+
     server.listen(5000);
     console.log('app listen on port 5000');
     

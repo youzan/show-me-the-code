@@ -24,7 +24,7 @@
       }
     },
     "dist": {
-      "command": "webpack --display-optimization-bailout",
+      "command": "webpack",
       "env": {
         "NODE_ENV": "production"
       }

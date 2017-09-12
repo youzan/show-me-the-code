@@ -16,5 +16,3 @@ const vm = new Vue({
   el: '#app',
   render: h => h(App)
 });
-
-window.socket = vm.$socket;
