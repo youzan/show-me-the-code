@@ -10,9 +10,11 @@ import App from './App';
 declare var _global: any;
 
 Vue.use(MuseUI);
-Vue.use(VueSocketio, _global.url.socket);
+Vue.use(VueSocketio, 'wss://job.youzan.com');
 
 const vm = new Vue({
   el: '#app',
   render: h => h(App)
 });
+
+window.socket = vm.$socket;

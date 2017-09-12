@@ -4,7 +4,7 @@ import * as Router from 'koa-router';
 
 import * as models from '../models';
 
-const { APPLICATION, MONACO_URL } = eval('require')('../config/config');
+const { APPLICATION, URL } = require('../config/config');
 
 const router = new Router();
 
@@ -20,17 +20,17 @@ router.get('/', checkLogin, async (ctx: Context) => {
     await (ctx as any).render('index');
 });
 
-router.get('monaco_proxy.js', async (ctx: Context) => {
+router.get('/monaco_proxy.js', async (ctx: Context) => {
     ctx.type = 'text/javascript';
     ctx.body = `
         self.MonacoEnvironment = {
-            baseUrl: '${MONACO_URL}/'
+            baseUrl: '${URL.monaco}/'
         };
-        importScripts('${MONACO_URL}/vs/base/worker/workerMain.js');
+        importScripts('${URL.monaco}/vs/base/worker/workerMain.js');
     `;
 });
 
-router.post('create', checkLogin, async (ctx: Context) => {
+router.post('/create', checkLogin, async (ctx: Context) => {
     const key = generate(4);
     const room = await models.Room.create({
         key
@@ -39,8 +39,7 @@ router.post('create', checkLogin, async (ctx: Context) => {
     ctx.type = 'application/json';
 });
 
-router.get('room/:id', checkLogin, async (ctx: Context) => {
-    console.log(ctx.state)
+router.get('/room/:id', checkLogin, async (ctx: Context) => {
     const { id } = ctx.params;
     const room = await models.Room.findOne({
         where: {

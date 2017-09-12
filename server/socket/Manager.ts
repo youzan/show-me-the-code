@@ -16,7 +16,6 @@ export default class SocketManager {
     this.io.on('connection', socket => {
       socket.on('room.join', async (data: ISocketRoomJoin) => {
         const userName = data.userName;
-        console.log('!!!!!!!!!!!!!!!!!!!!!!', userName);
         try {
           const room = await models.Room.findOne({
             where: {

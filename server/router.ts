@@ -4,7 +4,7 @@ import * as Router from 'koa-router';
 import index from './controller/index';
 import auth from './controller/auth';
 
-const { PREFIX } = eval('require')('../config/config');
+const { PREFIX } = require('../config/config');
 
 const router = new Router();
 

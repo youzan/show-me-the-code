@@ -10,7 +10,7 @@
     <div class="content">
       <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
     </div>
-    <mu-dialog body-class="connect-loading" :open="connect !== 'connected' && !auth">
+    <mu-dialog body-class="connect-loading" :open="connect !== 'connected'">
       <mu-circular-progress :size="60" :strokeWidth="5" />
       <div class="connect-loading-text">
         Connecting...

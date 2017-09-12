@@ -43,7 +43,7 @@ const node = merge({}, base, {
   },
   target: 'node',
   node: {
-    __dirname: true
+    __dirname: false
   },
   externals: [{
     'socket.io': 'commonjs socket.io',
@@ -52,13 +52,22 @@ const node = merge({}, base, {
     'lodash': 'commonjs lodash',
     'uuid': 'commonjs uuid',
     'randomstring': 'commonjs randomstring',
-    'sequelize': 'commonjs sequelize'
+    'sequelize': 'commonjs sequelize',
+    'koa': 'commonjs koa',
+    'koa-nunjucks-2': 'commonjs koa-nunjucks-2'
+  }, (context, request, done) => {
+    if (/\.\.\/config/.test(request)) {
+      done(null, `commonjs ${request}`);
+    } else {
+      done();
+    }
   }],
   plugins: [
     new CopyPlugin([{
       from: './server/view/**/*',
       to: './view/[name].[ext]'
-    }])
+    }]),
+    new webpack.optimize.ModuleConcatenationPlugin()
   ]
 });
 
@@ -70,7 +79,8 @@ const client = merge({}, base, {
   },
   output: {
     path: path.resolve(__dirname, './static'),
-    filename: '[name].js'
+    filename: '[name].js',
+    publicPath: process.env.PUBLIC_PATH || '/'
   },
   module: {
     loaders: [
@@ -131,6 +141,13 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.optimize.ModuleConcatenationPlugin()
   );
   client.devtool = false;
+
+  node.plugins.push(
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: '"production"'
+      }
+    }))
 } else {
   client.plugins.push(
     // new CopyPlugin([{

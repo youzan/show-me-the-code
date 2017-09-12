@@ -5,26 +5,18 @@
 {% endblock %}
 
 {% block script %}
-    <script src="/static/vs/loader.js"></script>
+    <script src="{{ url.loader }}"></script>
     <script>
-        window._global = {
-            id: '{{ id }}',
-            url: {
-                socket: '{{ $ws_url }}',
-                monaco: '{{ $monaco_url }}/vs'
-            },
-            userName: '{{ userName }}'
-        };
         window.require.config({ paths: { 'vs': _global.url.monaco }});
         window.MonacoEnvironment = {
 		    getWorkerUrl: function(workerId, label) {
-			    return '{{ $domain }}/monaco_proxy.js';
+			    return '{{ url.base }}/monaco_proxy.js';
 		    }
 	    };
     </script>
-    <script src="/static/room.js"></script>
+    <script src="{{ resource.base }}{{ resource.js.room }}"></script>
 {% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" href="/static/room.css" />
+    <link rel="stylesheet" href="{{ resource.base }}{{ resource.css.room }}" />
 {% endblock %}

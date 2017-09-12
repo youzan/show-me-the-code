@@ -2,12 +2,25 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <base href="{{ url.base }}">
+    <script>
+        window._global = {
+            id: '{{ id }}',
+            url: {
+                socket: '{{ url.websocket }}',
+                monaco: '{{ url.monaco }}/vs',
+                base: '{{ url.base }}'
+            },
+            userName: '{{ userName }}'
+        };
+    </script>
     {% block style %} {% endblock %}
 </head>
 <body>
     {% block content %} {% endblock %}
 
-    <script src="/static/vendor.js"></script>
+    <script src="{{ resource.base }}{{ resource.js.vendor }}"></script>
     {% block script %} {% endblock %}
 </body>
 </html>

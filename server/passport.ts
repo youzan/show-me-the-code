@@ -1,7 +1,7 @@
 import * as passport from 'koa-passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 
-const { APPLICATION } = eval('require')('../config/config');
+const { APPLICATION } = require('../config/config');
 
 passport.serializeUser((user, done) => {
     done(null, user);
@@ -17,7 +17,6 @@ passport.use(new GitHubStrategy({
     callbackURL: APPLICATION.GITHUB.CALLBACK
 }, (accessToken, refreshToken, profile, done) => {
     process.nextTick(function () {
-        console.log(profile)
         return done(null, {
             name: profile.displayName
         });

@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block script %}
-  <script src="/static/index.js"></script>
+  <script src="{{ resource.base }}{{ resource.js.index }}"></script>
 {% endblock %}
 
 
 {% block style %}
-    <link rel="stylesheet" href="/static/index.css" />
+    <link rel="stylesheet" href="{{ resource.base }}{{ resource.css.index }}" />
 {% endblock %}
 
