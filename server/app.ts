@@ -51,9 +51,12 @@ try {
     app.use(controller.routes());
     app.use(controller.allowedMethods());
 
-    server.listen(5000);
-    console.log('app listen on port 5000');
+    server.listen(8086);
+    console.log('app listen on port 8086');
     
 } catch (error) {
     console.error(error);
+    if (error.oauthError) {
+        console.error(error.oauthError);
+    }
 }
