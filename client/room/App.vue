@@ -129,6 +129,14 @@ export default class App extends Vue {
         (this as any).$socket.emit('save');
       }
     });
+    const query: { key?: string } = window.location.search.substring(1).split('&').reduce((pv, v) => {
+      const r = v.split('=');
+      pv[r[0]] = r[1];
+      return pv;
+    }, {});
+    if (query.key) {
+      this.key = query.key;
+    }
   }
 
   doAuth() {

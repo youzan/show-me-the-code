@@ -19,7 +19,7 @@ export default class App extends Vue {
   key = ''
 
   get roomURL() {
-    return `${_global.url.base}/room/${this.id}`;
+    return `${_global.url.base}/room/${this.id}?key=${this.key}`;
   }
 
   get buttonText() {
