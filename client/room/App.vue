@@ -2,7 +2,7 @@
   <div class="app">
     <mu-appbar titleClass="appbar">
       <mu-select-field v-model="language">
-        <mu-menu-item v-for="language in languages" :key="language" :value="language" :title="language" />
+        <mu-menu-item v-for="language in languages" :key="language" :value="language.value" :title="language.title" />
       </mu-select-field>
       <mu-raised-button label="Save" @click="$socket.emit('save')" />
       <v-connect-status :status="connect" />
