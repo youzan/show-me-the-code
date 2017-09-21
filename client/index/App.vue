@@ -49,3 +49,21 @@ export default class App extends Vue {
 
 </script>
 
+<style lang="scss">
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+
+  button {
+    margin-top: 10px;
+  }
+}
+</style>
+

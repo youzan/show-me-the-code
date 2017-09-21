@@ -40,7 +40,6 @@ import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
 import ConnectStatus from './components/ConnectStatus';
 import ClientList from './components/ClientList';
-import './style';
 
 declare var _global: {
   id: string,
@@ -123,6 +122,15 @@ export default class App extends Vue {
     return `Welcome ${this.userName}`;
   }
 
+  mounted() {
+    window.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.keyCode === 83) {
+        event.preventDefault();
+        (this as any).$socket.emit('save');
+      }
+    });
+  }
+
   doAuth() {
     if (!this.userName) {
       this.nameErr = '请输入你的用户名';
@@ -153,14 +161,69 @@ export default class App extends Vue {
       return;
     }
     const selections: monaco.ISelection[] = this.editor.getSelections().map(it => ({
-        selectionStartLineNumber: it.selectionStartLineNumber,
-        selectionStartColumn: it.selectionStartColumn,
-        positionLineNumber: it.positionLineNumber,
-        positionColumn: it.positionColumn
+      selectionStartLineNumber: it.selectionStartLineNumber,
+      selectionStartColumn: it.selectionStartColumn,
+      positionLineNumber: it.positionLineNumber,
+      positionColumn: it.positionColumn
     }));
     (this as any).$socket.emit('selection', selections);
   }
 }
 
 </script>
+
+<style lang="scss">
+body,
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.header {
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+}
+
+.content {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: row;
+
+  .editor {
+    flex: 1 1 100%;
+  }
+}
+
+.mu-dropDown-menu-text-overflow {
+  color: white;
+}
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .mu-text-field {
+    margin: 0;
+  }
+
+  &-key {
+    font-size: 16px;
+  }
+}
+
+.connect-loading {
+  display: flex;
+  align-items: center;
+
+  &-text {
+    margin-left: 10px;
+  }
+}
+</style>
 

@@ -8,8 +8,6 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 
-import './style';
-
 @Component({
   props: {
     clients: Array
@@ -20,4 +18,18 @@ export default class ClientList extends Vue {
 }
 
 </script>
+
+<style lang="scss">
+.client-list {
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 100;
+
+  &-item {
+    padding: 10px;
+  }
+}
+
+</style>
 

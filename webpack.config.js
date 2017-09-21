@@ -93,12 +93,13 @@ const client = merge({}, base, {
         loader: 'vue-loader',
         options: {
           loaders: {
-            ts: 'babel-loader'
+            ts: 'babel-loader',
+            scss: ExtractTextPlugin.extract(['css-loader', 'postcss-loader', 'sass-loader'])
           }
         }
       }, {
         test: /\.(css|scss)$/,
-        use: ExtractTextPlugin.extract(['css-loader', 'postcss-loader'])
+        use: ExtractTextPlugin.extract(['css-loader', 'postcss-loader', 'sass-loader'])
       }, {
         test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
         loader: 'file-loader'
