@@ -20,9 +20,9 @@ async function checkLogin(ctx: Context, next) {
 router.get('/room/:id', async (ctx: Context) => {
     const { id } = ctx.params;
 
-    if (ctx.isUnauthenticated()) {
-        return ctx.redirect(`${URL.base}/auth?room=${id}`);
-    }
+    // if (ctx.isUnauthenticated()) {
+    //     return ctx.redirect(`${URL.base}/auth?room=${id}`);
+    // }
 
     const room = await models.Room.findOne({
         where: {
@@ -32,15 +32,15 @@ router.get('/room/:id', async (ctx: Context) => {
     if (room) {
         await (<any>ctx).render('room', {
             id,
-            userName: ctx.state.user.name
+            // userName: ctx.state.user.name
+            userName: ''
         });
     } else {
         ctx.body = 'room does not exist'
     }
 });
 
-
-router.get('/', checkLogin, async (ctx: Context) => {
+router.get('/', async (ctx: Context) => {
     await (ctx as any).render('index');
 });
 
@@ -54,7 +54,7 @@ router.get('/monaco_proxy.js', async (ctx: Context) => {
     `;
 });
 
-router.post('/create', checkLogin, async (ctx: Context) => {
+router.post('/create', async (ctx: Context) => {
     const key = generate(4);
     const room = await models.Room.create({
         key

@@ -16,8 +16,9 @@
         Connecting...
       </div>
     </mu-dialog>
-    <mu-dialog :open="connect === 'connected' && !auth" :title="title">
-      <mu-text-field label="Key" v-model.trim="key" :errorText="err" />
+    <mu-dialog :open="connect === 'connected' && !auth">
+      <mu-text-field label="用户名" v-model.trim="userName" :error-text="nameErr" />
+      <mu-text-field label="钥匙" v-model.trim="key" :error-text="err" />
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
     <v-client-list :clients="clients" />
@@ -105,7 +106,7 @@ export default class App extends Vue {
   content = ''
   language = 'javascript'
   languages = languages
-  userName = _global.userName
+  userName = ''
   auth = false
   userNameSet = false
   id = _global.id
@@ -115,12 +116,17 @@ export default class App extends Vue {
   clients: string[] = []
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
   editor: monaco.editor.IStandaloneCodeEditor
+  nameErr = ''
 
   get title() {
     return `Welcome ${this.userName}`;
   }
 
   doAuth() {
+    if (!this.userName) {
+      this.nameErr = '请输入你的用户名';
+      return;
+    }
     (this as any).$socket.emit('room.join', {
       id: this.id,
       key: this.key,

@@ -7,12 +7,12 @@ import 'muse-ui/dist/theme-carbon.css'
 import App from './App';
 import './style';
 
-const roomId = sessionStorage.getItem('room');
+// const roomId = sessionStorage.getItem('room');
 
-if (roomId) {
-  sessionStorage.removeItem('room');
-  window.location.href = `${_global.url.base}/room/${roomId}`;
-}
+// if (roomId) {
+//   sessionStorage.removeItem('room');
+//   window.location.href = `${_global.url.base}/room/${roomId}`;
+// }
 
 Vue.use(MuseUI)
 

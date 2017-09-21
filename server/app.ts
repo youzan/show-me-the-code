@@ -51,8 +51,8 @@ try {
     app.use(controller.routes());
     app.use(controller.allowedMethods());
 
-    server.listen(8086);
-    console.log('app listen on port 8086');
+    server.listen(config.port);
+    console.log(`app listen on port ${config.port}`);
     
 } catch (error) {
     console.error(error);
