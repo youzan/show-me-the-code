@@ -1,6 +1,7 @@
 import { Context } from 'koa';
 import { generate } from 'randomstring';
 import * as Router from 'koa-router';
+import * as uuid from 'uuid/v1';
 
 import * as models from '../models';
 import auth from './auth';
@@ -56,8 +57,11 @@ router.get('/monaco_proxy.js', async (ctx: Context) => {
 
 router.post('/create', async (ctx: Context) => {
     const key = generate(4);
+    const creatorKey = uuid();
+    
     const room = await models.Room.create({
-        key
+        key,
+        creatorKey
     });
     ctx.body = JSON.stringify(room.dataValues);
     ctx.type = 'application/json';

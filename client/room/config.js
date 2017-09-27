@@ -95,4 +95,4 @@ export const languages = [
     value: 'objective-c',
     title: 'Objective-C'
   }
-]
+];

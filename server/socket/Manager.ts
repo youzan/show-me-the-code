@@ -27,9 +27,9 @@ export default class SocketManager {
             return;
           } else if (room.dataValues.key.trim() === data.key) {
             if (!this.rooms.has(data.id)) {
-              this.rooms.set(data.id, new Room(this.io, data.id, this, room.dataValues.content, room.dataValues.language));
+              this.rooms.set(data.id, new Room(this.io, data.id, this, room.dataValues.content, room.dataValues.language, room.dataValues.creatorKey));
             }
-            this.rooms.get(data.id).join(userName, socket);
+            this.rooms.get(data.id).join(userName, socket, data.creatorKey === room.dataValues.creatorKey);
           } else {
             socket.emit('room.fail', 'wrong key');
           }

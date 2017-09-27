@@ -1,6 +1,6 @@
 <template>
   <mu-paper class="client-list">
-    <div class="client-list-item" v-for="it in clients" :key="it">{{ it }}</div>
+    <div class="client-list-item" v-for="it in clients" :key="it.name">{{ it.name }} {{ it.status ? `- ${it.status}` : '' }}</div>
   </mu-paper>
 </template>
 

@@ -11,9 +11,18 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import axios from 'axios';
 
-@Component({
-  
-})
+const KEY = '$CODING_CREATOR_KEY';
+
+function saveCreatorKey(room, key) {
+  if (localStorage) {
+    const str = localStorage.getItem(KEY) || '{}';
+    const obj = JSON.parse(str);
+    obj[room] = key;
+    localStorage.setItem(KEY, JSON.stringify(obj));
+  }
+}
+
+@Component
 export default class App extends Vue {
   id = ''
   key = ''
@@ -44,6 +53,7 @@ export default class App extends Vue {
     });
     this.id = data.id;
     this.key = data.key;
+    saveCreatorKey(this.id, data.creatorKey);
   }
 }
 

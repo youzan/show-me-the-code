@@ -9,7 +9,7 @@
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
+      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" theme="vs-dark" />
     </div>
     <mu-dialog body-class="connect-loading" :open="connect !== 'connected'">
       <mu-circular-progress :size="60" :strokeWidth="5" />
@@ -45,6 +45,15 @@ declare var _global: {
   id: string,
   userName: string
 };
+
+function getCreatorKeys() {
+  if (localStorage) {
+    const str = localStorage.getItem('$CODING_CREATOR_KEY') || '{}';
+    const obj = JSON.parse(str);
+    return obj;
+  }
+  return { };
+}
 
 @Component({
   components: {
@@ -144,10 +153,12 @@ export default class App extends Vue {
       this.nameErr = '请输入你的用户名';
       return;
     }
+    const keys = getCreatorKeys();
     (this as any).$socket.emit('room.join', {
       id: this.id,
       key: this.key,
-      userName: this.userName
+      userName: this.userName,
+      creatorKey: keys[_global.id] || ''
     });
   }
 

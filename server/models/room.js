@@ -26,11 +26,10 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: 'javascript',
       field: 'coding_language'
     },
-    last_time: {
-      type: DataTypes.DATE,
+    creatorKey: {
+      type: DataTypes.STRING(36),
       allowNull: false,
-      defaultValue: DataTypes.NOW,
-      field: 'coding_last_time'
+      field: 'creator_key'
     }
   }, {
     tableName: 'coding_room'
