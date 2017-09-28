@@ -4,6 +4,7 @@ interface ISocketRoomJoin {
   id: string
   key: string
   userName: string
+  creatorKey: string
 }
 
 interface ISocketCodeChange {

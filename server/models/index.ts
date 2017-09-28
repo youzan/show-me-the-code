@@ -8,9 +8,9 @@ const sequelize = new Sequelize(config);
 
 const Room = room(sequelize, Sequelize);
 
-if (process.env.RUN_MODE !== 'qa') {
-  sequelize.sync();
-}
+// if (process.env.RUN_MODE !== 'qa') {
+//   sequelize.sync();
+// }
 
 export {
   Room

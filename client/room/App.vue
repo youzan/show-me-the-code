@@ -2,13 +2,14 @@
   <div class="app">
     <mu-appbar titleClass="appbar">
       <mu-select-field v-model="language">
-        <mu-menu-item v-for="language in languages" :key="language" :value="language" :title="language" />
+        <mu-menu-item v-for="language in languages" :key="language.value" :value="language.value" :title="language.title" />
       </mu-select-field>
       <mu-raised-button label="Save" @click="$socket.emit('save')" />
+      <div class="appbar-key">钥匙：{{ key }}</div>
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" theme="vs-dark" />
+      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" theme="vs-dark" />
     </div>
     <mu-dialog body-class="connect-loading" :open="connect !== 'connected'">
       <mu-circular-progress :size="60" :strokeWidth="5" />
@@ -39,12 +40,20 @@ import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
 import ConnectStatus from './components/ConnectStatus';
 import ClientList from './components/ClientList';
-import './style';
 
 declare var _global: {
   id: string,
   userName: string
 };
+
+function getCreatorKeys() {
+  if (localStorage) {
+    const str = localStorage.getItem('$CODING_CREATOR_KEY') || '{}';
+    const obj = JSON.parse(str);
+    return obj;
+  }
+  return { };
+}
 
 @Component({
   components: {
@@ -122,15 +131,34 @@ export default class App extends Vue {
     return `Welcome ${this.userName}`;
   }
 
+  mounted() {
+    window.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.keyCode === 83) {
+        event.preventDefault();
+        (this as any).$socket.emit('save');
+      }
+    });
+    const query: { key?: string } = window.location.search.substring(1).split('&').reduce((pv, v) => {
+      const r = v.split('=');
+      pv[r[0]] = r[1];
+      return pv;
+    }, {});
+    if (query.key) {
+      this.key = query.key;
+    }
+  }
+
   doAuth() {
     if (!this.userName) {
       this.nameErr = '请输入你的用户名';
       return;
     }
+    const keys = getCreatorKeys();
     (this as any).$socket.emit('room.join', {
       id: this.id,
       key: this.key,
-      userName: this.userName
+      userName: this.userName,
+      creatorKey: keys[_global.id] || ''
     });
   }
 
@@ -152,14 +180,73 @@ export default class App extends Vue {
       return;
     }
     const selections: monaco.ISelection[] = this.editor.getSelections().map(it => ({
-        selectionStartLineNumber: it.selectionStartLineNumber,
-        selectionStartColumn: it.selectionStartColumn,
-        positionLineNumber: it.positionLineNumber,
-        positionColumn: it.positionColumn
+      selectionStartLineNumber: it.selectionStartLineNumber,
+      selectionStartColumn: it.selectionStartColumn,
+      positionLineNumber: it.positionLineNumber,
+      positionColumn: it.positionColumn
     }));
     (this as any).$socket.emit('selection', selections);
   }
 }
 
 </script>
+
+<style lang="scss">
+body,
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.header {
+  height: 80px;
+  display: flex;
+  flex-direction: row;
+}
+
+.content {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: row;
+
+  .editor {
+    flex: 1 1 100%;
+  }
+}
+
+.mu-dropDown-menu-text-overflow {
+  color: white;
+}
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .mu-text-field {
+    margin: 0;
+  }
+
+  &-key {
+    font-size: 16px;
+  }
+}
+
+.connect-loading {
+  display: flex;
+  align-items: center;
+
+  &-text {
+    margin-left: 10px;
+  }
+}
+
+.mu-menu-list {
+  max-height: 500px;
+}
+</style>
 

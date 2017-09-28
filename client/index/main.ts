@@ -5,7 +5,6 @@ import 'muse-ui/dist/muse-ui.css'
 import 'muse-ui/dist/theme-carbon.css'
 
 import App from './App';
-import './style';
 
 // const roomId = sessionStorage.getItem('room');
 

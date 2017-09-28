@@ -13,6 +13,7 @@ const debug = createDebug('ROOM');
 
 export default class Room implements IDisposable {
   clients: Map<Symbol, Client> = new Map()
+  creatorSocket: SocketIO.Socket = null
   id: string
   content: string = ''
   selections: Array<monaco.ISelection> = [{
@@ -34,7 +35,7 @@ export default class Room implements IDisposable {
     this._language = value.trim();
   }
 
-  constructor(io: SocketIO.Server, id: string, manager: Manager, content: string, language: string) {
+  constructor(io: SocketIO.Server, id: string, manager: Manager, content: string, language: string, creatorKey: string) {
     this.io = io;
     this.id = id;
     this.manager = manager;
@@ -45,8 +46,7 @@ export default class Room implements IDisposable {
   async save() {
     await models.Room.update({
       content: this.content,
-      language: this.language,
-      last_time: Date.now()
+      language: this.language
     }, {
       where: {
         id: this.id
@@ -54,15 +54,29 @@ export default class Room implements IDisposable {
     });
   }
 
-  join(userName: string, socket: SocketIO.Socket) {
+  onStatusChange = () => {
+    if (this.creatorSocket) {
+      this.creatorSocket.emit('room.clients', Array.from(this.clients.values()).map(it => ({ name: it.name, status: it.status })));
+    }
+  }
+
+  join(userName: string, socket: SocketIO.Socket, isCreator: boolean) {
     debug(`${userName} join room ${this.id}`);
+
     const sym = Symbol(userName);
-    this.clients.set(sym, new Client(userName, socket));
+    const client = new Client(userName, socket, this.onStatusChange);
+    this.clients.set(sym, client);
     socket.join(this.id);
 
-    socket.broadcast.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => it.name));
+    if (isCreator) {
+      this.creatorSocket = socket;
+    }
+
+    socket.broadcast.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => ({ name: it.name, status: '' })));
+    this.onStatusChange();
+
     socket.emit('room.success', {
-      clients: Array.from(this.clients.values()).map(it => it.name),
+      clients: Array.from(this.clients.values()).map(it => ({ name: it.name, status: isCreator ? it.status : '' })),
       content: this.content,
       language: this.language
     });
@@ -86,7 +100,18 @@ export default class Room implements IDisposable {
       this.save();
     });
 
+    socket.on('blur', () => {
+      client.status = 'blur';
+    });
+
+    socket.on('focus', () => {
+      client.status = 'focus';
+    });
+
     socket.on('disconnect', () => {
+      if (isCreator) {
+        this.creatorSocket = null;
+      }
       this.clients.get(sym).dispose();
       this.clients.delete(sym);
       if (this.clients.size === 0) {
@@ -103,5 +128,6 @@ export default class Room implements IDisposable {
     this.manager.rooms.delete(this.id);
     this.manager = null;
     this.clients = null;
+    this.creatorSocket = null;
   }
 }
