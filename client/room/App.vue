@@ -244,5 +244,9 @@ body,
     margin-left: 10px;
   }
 }
+
+.mu-menu-list {
+  max-height: 500px;
+}
 </style>
 
