@@ -1,15 +1,18 @@
 <template>
   <div class="app">
     <mu-appbar titleClass="appbar">
-      <mu-select-field v-model="language">
+      <mu-select-field label="语言" v-model="language">
         <mu-menu-item v-for="language in languages" :key="language.value" :value="language.value" :title="language.title" />
       </mu-select-field>
       <mu-raised-button label="Save" @click="$socket.emit('save')" />
+      <mu-select-field label="字体大小" v-model.number="fontSize">
+        <mu-menu-item v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it" :title="String(it)" />
+      </mu-select-field>
       <div class="appbar-key">钥匙：{{ key }}</div>
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
-      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" theme="vs-dark" />
+      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
     </div>
     <mu-dialog body-class="connect-loading" :open="connect !== 'connected'">
       <mu-circular-progress :size="60" :strokeWidth="5" />
@@ -60,6 +63,14 @@ function getCreatorKeys() {
     'v-monaco': MonacoEditor,
     'v-connect-status': ConnectStatus,
     'v-client-list': ClientList
+  },
+  watch: {
+    fontSize(value) {
+      const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
+      editor.updateOptions({
+        fontSize: value
+      });
+    }
   },
   sockets: {
     connect() {
@@ -126,9 +137,14 @@ export default class App extends Vue {
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
   editor: monaco.editor.IStandaloneCodeEditor
   nameErr = ''
+  fontSize = 16
 
   get title() {
     return `Welcome ${this.userName}`;
+  }
+
+  monacoOptions = {
+    fontSize: 16
   }
 
   mounted() {
@@ -229,6 +245,14 @@ body,
 
   .mu-text-field {
     margin: 0;
+  }
+
+  &-fontsize {
+    color: white;
+
+    input {
+      color: inherit !important;
+    }
   }
 
   &-key {
