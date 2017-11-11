@@ -67,6 +67,18 @@ router.post('/create', async (ctx: Context) => {
     ctx.type = 'application/json';
 });
 
+router.get('/create', async (ctx: Context) => {
+    const key = generate(4);
+    const creatorKey = uuid();
+
+    const room = await models.Room.create({
+        key,
+        creatorKey
+    });
+
+    ctx.redirect(`${URL.base}/room/${room.id}?key=${key}`)
+});
+
 router.use('/auth', auth.routes(), auth.allowedMethods());
 
 export default router;

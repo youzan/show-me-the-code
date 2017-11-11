@@ -1,7 +1,7 @@
 <template>
   <div class="app">
-    <mu-text-field label="ID" v-model.trim="id" />
-    <mu-text-field label="Key" v-model.trim="key" />
+    <!-- <mu-text-field label="ID" v-model.trim="id" />
+    <mu-text-field label="Key" v-model.trim="key" /> -->
     <mu-raised-button :label="buttonText" @click="handleClick" />
   </div>
 </template>
@@ -40,7 +40,8 @@ export default class App extends Vue {
 
   handleClick() {
     if (this.id) {
-      window.open(this.roomURL, '_blank');
+      // window.open(this.roomURL, '_blank');
+      window.open(`${_global.url.base}/create`);
     } else {
       this.handleCreate();
     }
