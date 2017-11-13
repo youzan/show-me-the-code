@@ -55,16 +55,33 @@ router.get('/monaco_proxy.js', async (ctx: Context) => {
     `;
 });
 
-router.post('/create', async (ctx: Context) => {
+// router.post('/create', async (ctx: Context) => {
+//     const key = generate(4);
+//     const creatorKey = uuid();
+    
+//     const room = await models.Room.create({
+//         key,
+//         creatorKey
+//     });
+//     ctx.body = JSON.stringify(room.dataValues);
+//     ctx.type = 'application/json';
+// });
+
+router.get('/create', async (ctx: Context) => {
     const key = generate(4);
     const creatorKey = uuid();
-    
+
     const room = await models.Room.create({
         key,
         creatorKey
     });
-    ctx.body = JSON.stringify(room.dataValues);
-    ctx.type = 'application/json';
+
+    ctx.cookies.set('CODING_CREATOR_KEY', creatorKey, {
+        httpOnly: false,
+        signed: false
+    });
+
+    ctx.redirect(`${URL.base}/room/${room.id}?key=${key}`)
 });
 
 router.use('/auth', auth.routes(), auth.allowedMethods());

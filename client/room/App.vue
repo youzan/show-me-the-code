@@ -8,7 +8,7 @@
       <mu-select-field label="字体大小" v-model.number="fontSize">
         <mu-menu-item v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it" :title="String(it)" />
       </mu-select-field>
-      <div class="appbar-key">钥匙：{{ key }}</div>
+      <!-- <div class="appbar-key">钥匙：{{ key }}</div> -->
       <v-connect-status :status="connect" />
     </mu-appbar>
     <div class="content">
@@ -22,7 +22,7 @@
     </mu-dialog>
     <mu-dialog :open="connect === 'connected' && !auth">
       <mu-text-field label="用户名" v-model.trim="userName" :error-text="nameErr" />
-      <mu-text-field label="钥匙" v-model.trim="key" :error-text="err" />
+      <!-- <mu-text-field label="钥匙" v-model.trim="key" :error-text="err" /> -->
       <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
     </mu-dialog>
     <v-client-list :clients="clients" />
@@ -111,7 +111,7 @@ function getCreatorKeys() {
       this.content = data.value;
       this.syncing = false;
     },
-    'room.clients'(clients: string[]) {
+    'room.clients'(clients: any[]) {
       this.clients = clients;
     },
     selection(selections: monaco.ISelection[]) {
@@ -133,7 +133,7 @@ export default class App extends Vue {
   key = ''
   err = ''
   syncing = false
-  clients: string[] = []
+  clients: any[] = []
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
   editor: monaco.editor.IStandaloneCodeEditor
   nameErr = ''

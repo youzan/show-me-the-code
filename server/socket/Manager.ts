@@ -29,6 +29,8 @@ export default class SocketManager {
             if (!this.rooms.has(data.id)) {
               this.rooms.set(data.id, new Room(this.io, data.id, this, room.dataValues.content, room.dataValues.language, room.dataValues.creatorKey));
             }
+            console.log(data.creatorKey)
+            console.log(room.dataValues.creatorKey)
             this.rooms.get(data.id).join(userName, socket, data.creatorKey === room.dataValues.creatorKey);
           } else {
             socket.emit('room.fail', 'wrong key');

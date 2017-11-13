@@ -30,7 +30,7 @@ const node = merge({}, base, {
           presets: [
             ['env', {
               targets: {
-                node: true
+                node: "6.10"
               },
               modules: false
             }],
