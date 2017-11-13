@@ -76,7 +76,10 @@ router.get('/create', async (ctx: Context) => {
         creatorKey
     });
 
-    ctx.cookies.set('$CODING_CREATOR_KEY', creatorKey);
+    ctx.cookies.set('CODING_CREATOR_KEY', creatorKey, {
+        httpOnly: false,
+        signed: false
+    });
 
     ctx.redirect(`${URL.base}/room/${room.id}?key=${key}`)
 });

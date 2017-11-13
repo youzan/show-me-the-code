@@ -24,7 +24,7 @@
       }
     },
     "dist": {
-      "command": "webpack",
+      "command": "webpack --progress",
       "env": {
         "NODE_ENV": "production"
       }

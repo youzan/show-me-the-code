@@ -111,7 +111,7 @@ function getCreatorKeys() {
       this.content = data.value;
       this.syncing = false;
     },
-    'room.clients'(clients: string[]) {
+    'room.clients'(clients: any[]) {
       this.clients = clients;
     },
     selection(selections: monaco.ISelection[]) {
@@ -133,7 +133,7 @@ export default class App extends Vue {
   key = ''
   err = ''
   syncing = false
-  clients: string[] = []
+  clients: any[] = []
   connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
   editor: monaco.editor.IStandaloneCodeEditor
   nameErr = ''

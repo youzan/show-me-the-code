@@ -39,12 +39,7 @@ export default class App extends Vue {
   }
 
   handleClick() {
-    if (this.id) {
-      // window.open(this.roomURL, '_blank');
-      window.open(`${_global.url.base}/create`);
-    } else {
-      this.handleCreate();
-    }
+    window.open(`${_global.url.base}/create`);
   }
 
   async handleCreate() {
