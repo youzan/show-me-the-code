@@ -12,7 +12,7 @@ import App from './App';
 declare var _global: any;
 
 const cookie = parse(document.cookie);
-console.log(cookie)
+
 if (cookie['CODING_CREATOR_KEY'] && localStorage) {
   const keys = JSON.parse(localStorage.getItem('$CODING_CREATOR_KEY') || '{}');
   keys[_global.id] = cookie['CODING_CREATOR_KEY'];
