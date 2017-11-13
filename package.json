@@ -11,7 +11,7 @@
   },
   "betterScripts": {
     "dev-build": {
-      "command": "webpack --watch",
+      "command": "webpack --watch --progress",
       "env": {
         "NODE_ENV": "development"
       }
@@ -24,7 +24,7 @@
       }
     },
     "dist": {
-      "command": "webpack",
+      "command": "webpack --progress",
       "env": {
         "NODE_ENV": "production"
       }
@@ -33,6 +33,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/cookie": "^0.3.1",
     "@types/debug": "0.0.30",
     "@types/koa": "^2.0.39",
     "@types/koa-bodyparser": "^3.0.24",
@@ -57,6 +58,7 @@
     "babel-preset-typescript": "^7.0.0-alpha.20",
     "babel-standalone": "^6.26.0",
     "better-npm-run": "^0.1.0",
+    "cookie": "^0.3.1",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.7",
     "extract-text-webpack-plugin": "^3.0.0",
@@ -68,6 +70,7 @@
     "koa-static": "^4.0.1",
     "monaco-editor": "^0.10.0",
     "muse-ui": "^2.1.0",
+    "mysql2": "^1.4.2",
     "nodemon": "^1.12.0",
     "passport-github2": "^0.1.10",
     "postcss-loader": "^2.0.6",
