@@ -117,7 +117,7 @@ export default class Room implements IDisposable {
       if (this.clients.size === 0) {
         this.dispose();
       } else {
-        this.io.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => it.name));
+        this.io.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => ({ name: it.name, status: '' })));
       }
     });
   }
