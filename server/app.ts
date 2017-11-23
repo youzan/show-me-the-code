@@ -17,6 +17,7 @@ const resource = require('../config/resource');
 try {
     const app = new Koa();
     const server = http.createServer(app.callback());
+    const server2 = http.createServer(app.callback()); // for compatibility
     const io = socket(server);
 
     const manager = new SocketManager(io);
@@ -52,6 +53,7 @@ try {
     app.use(controller.allowedMethods());
 
     server.listen(config.port);
+    server2.listen(5000);
     console.log(`app listen on port ${config.port}`);
     
 } catch (error) {
