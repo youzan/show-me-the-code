@@ -1,6 +1,10 @@
 <template>
   <mu-paper class="client-list">
-    <div class="client-list-item" v-for="it in clients" :key="it.name">{{ it.name }} {{ it.status ? `- ${it.status}` : '' }}</div>
+    <div class="client-list-item" v-for="it in clients" :key="it.name">
+      {{ it.name }}
+      <span v-if="it.status === 'blur'" style="color: red;">{{ it.status }}</span>
+      <span v-else>{{ it.status }}</span>
+    </div>
   </mu-paper>
 </template>
 
@@ -23,7 +27,7 @@ export default class ClientList extends Vue {
 .client-list {
   position: fixed;
   right: 0;
-  top: 0;
+  bottom: 0;
   z-index: 100;
 
   &-item {
