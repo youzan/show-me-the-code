@@ -4,12 +4,12 @@
       <mu-select-field label="语言" v-model="language">
         <mu-menu-item v-for="language in languages" :key="language.value" :value="language.value" :title="language.title" />
       </mu-select-field>
-      <mu-raised-button label="Save" @click="$socket.emit('save')" />
       <mu-select-field label="字体大小" v-model.number="fontSize">
         <mu-menu-item v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it" :title="String(it)" />
       </mu-select-field>
       <!-- <div class="appbar-key">钥匙：{{ key }}</div> -->
       <v-connect-status :status="connect" />
+      <mu-raised-button label="Save" @click="$socket.emit('save')" />
     </mu-appbar>
     <div class="content">
       <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
