@@ -1,30 +1,32 @@
 <template>
   <div class="app">
-    <mu-appbar titleClass="appbar">
-      <mu-select-field label="语言" v-model="language">
-        <mu-menu-item v-for="language in languages" :key="language.value" :value="language.value" :title="language.title" />
-      </mu-select-field>
-      <mu-select-field label="字体大小" v-model.number="fontSize">
-        <mu-menu-item v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it" :title="String(it)" />
-      </mu-select-field>
-      <!-- <div class="appbar-key">钥匙：{{ key }}</div> -->
-      <v-connect-status :status="connect" />
-      <mu-raised-button label="Save" @click="$socket.emit('save')" />
-    </mu-appbar>
+    <i-menu mode="horizontal" class="appbar" theme="dark">
+      <menu-item name="language" class="appbar-language" v-model="language">
+        <i-select>
+          <i-option v-for="language in languages" :key="language.value" :value="language.value">{{ language.title }}</i-option>
+        </i-select>
+      </menu-item>
+      <menu-item name="fontSize">
+        <i-select>
+          <i-option v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it">{{ it }}</i-option>
+        </i-select>
+      </menu-item>
+      <menu-item name="connectStatus">
+        <v-connect-status :status="connect" />
+      </menu-item>
+      <menu-item name="save">
+        <i-button type="primary" @click="$socket.emit('save')">Save</i-button>
+      </menu-item>
+    </i-menu>
     <div class="content">
       <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
     </div>
-    <mu-dialog body-class="connect-loading" :open="connect !== 'connected'">
-      <mu-circular-progress :size="60" :strokeWidth="5" />
-      <div class="connect-loading-text">
-        Connecting...
-      </div>
-    </mu-dialog>
-    <mu-dialog :open="connect === 'connected' && !auth">
-      <mu-text-field label="用户名" v-model.trim="userName" :error-text="nameErr" />
-      <!-- <mu-text-field label="钥匙" v-model.trim="key" :error-text="err" /> -->
-      <mu-flat-button slot="actions" primary @click="doAuth" label="OK" />
-    </mu-dialog>
+    <modal :value="connect === 'connected' && !auth" :closable="false" :mask-closable="false">
+      <i-input label="用户名" v-model.trim="userName" :error-text="nameErr">
+        <span slot="prepend">用户名</span>
+      </i-input>
+      <i-button slot="footer" type="primary" @click="doAuth">OK</i-button>
+    </modal>
     <v-client-list :clients="clients" />
   </div>
 </template>
@@ -70,6 +72,13 @@ function getCreatorKeys() {
       editor.updateOptions({
         fontSize: value
       });
+    },
+    connect(value) {
+      if (value !== 'connected') {
+        this.$Spin.show();
+      } else {
+        this.$Spin.hide();
+      }
     }
   },
   sockets: {
@@ -242,6 +251,11 @@ body,
   display: flex;
   align-items: center;
   justify-content: space-around;
+  background-color: #1e1e1e;
+
+  &-language {
+    width: 200px;
+  }
 
   .mu-text-field {
     margin: 0;

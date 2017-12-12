@@ -13,7 +13,8 @@
     "dev-build": {
       "command": "webpack --watch --progress",
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "PUBLIC_PATH": "/show_me_the_code/dist/"
       }
     },
     "dev-server": {
@@ -62,6 +63,8 @@
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.7",
     "extract-text-webpack-plugin": "^3.0.0",
+    "file-loader": "^1.1.5",
+    "iview": "^2.7.4",
     "koa-bodyparser": "^4.2.0",
     "koa-mount": "^3.0.0",
     "koa-passport": "^3.0.0",
@@ -79,12 +82,12 @@
     "sequelize-auto": "^0.4.28",
     "socket.io-client": "^2.0.3",
     "uglifyjs-webpack-plugin": "^0.4.6",
-    "vue": "^2.4.2",
+    "vue": "^2.5.9",
     "vue-class-component": "^5.0.2",
     "vue-loader": "^13.0.4",
     "vue-monaco": "^0.1.5",
     "vue-socket.io": "^2.1.1-a",
-    "vue-template-compiler": "^2.4.2",
+    "vue-template-compiler": "^2.5.9",
     "webpack": "^3.5.6"
   },
   "dependencies": {
