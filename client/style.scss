@@ -1,0 +1,32 @@
+.ivu-btn {
+  border-radius: 0;
+}
+
+.ivu-select {
+  &-selection {
+    border-radius: 0;
+  }
+
+  &-dropdown {
+    border-radius: 0;
+  }
+
+  &-placeholder {
+    color: #333 !important;
+  }
+}
+
+.ivu-input-wrapper {
+  .ivu-input {
+    border-radius: 0;
+  }
+  .ivu-input-group-prepend {
+    border-radius: 0;
+  }
+}
+
+.ivu-modal {
+  &-content {
+    border-radius: 0;
+  }
+}

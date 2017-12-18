@@ -1,8 +1,9 @@
 import 'babel-polyfill';
 import Vue from 'vue';
-import MuseUI from 'muse-ui'
-import 'muse-ui/dist/muse-ui.css'
-import 'muse-ui/dist/theme-carbon.css'
+import iView from 'iview';
+import 'iview/dist/styles/iview.css';
+
+import '../style';
 
 import App from './App';
 
@@ -13,7 +14,7 @@ import App from './App';
 //   window.location.href = `${_global.url.base}/room/${roomId}`;
 // }
 
-Vue.use(MuseUI)
+Vue.use(iView)
 
 new Vue({
   el: '#app',

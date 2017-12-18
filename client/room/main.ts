@@ -2,10 +2,11 @@ import 'babel-polyfill';
 import Vue from 'vue';
 import VueSocketio from 'vue-socket.io';
 import io from 'socket.io-client';
-import MuseUI from 'muse-ui'
-import 'muse-ui/dist/muse-ui.css'
-import 'muse-ui/dist/theme-carbon.css'
+import iView from 'iview';
+import 'iview/dist/styles/iview.css';
 import { parse } from 'cookie';
+
+import '../style';
 
 import App from './App';
 
@@ -23,7 +24,7 @@ const socket = io(_global.url.socket, {
   path: `${_global.url.prefix}/socket.io`
 })
 
-Vue.use(MuseUI);
+Vue.use(iView);
 Vue.use(VueSocketio, socket);
 
 const vm = new Vue({
