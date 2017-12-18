@@ -75,7 +75,7 @@ const client = merge({}, base, {
   entry: {
     index: './client/index/main.ts',
     room: './client/room/main.ts',
-    vendor: ['vue', 'muse-ui', 'socket.io-client', 'vue-class-component', 'axios', 'vue-socket.io', 'vue-monaco']
+    vendor: ['vue', 'iview', 'socket.io-client', 'vue-class-component', 'axios', 'vue-socket.io', 'vue-monaco']
   },
   output: {
     path: path.resolve(__dirname, './static'),

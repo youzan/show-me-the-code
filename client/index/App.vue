@@ -1,8 +1,6 @@
 <template>
   <div class="app">
-    <!-- <mu-text-field label="ID" v-model.trim="id" />
-    <mu-text-field label="Key" v-model.trim="key" /> -->
-    <mu-raised-button :label="buttonText" @click="handleClick" />
+    <i-button type="primary" size="large" @click="handleClick">{{ buttonText }}</i-button>
   </div>
 </template>
 
