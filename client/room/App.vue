@@ -19,7 +19,7 @@
       </menu-item>
       <menu-item v-if="language === 'javascript'" name="run">
         <i-button type="success" @click="run = true">Run</i-button>
-        <modal class="run-modal" v-model="run" width="800" styles="">
+        <modal class="run-modal" v-model="run" width="800">
           <iframe v-if="run" :srcdoc="runContent" />
           <i-button slot="footer" @click="run = false">关闭</i-button>
         </modal>
