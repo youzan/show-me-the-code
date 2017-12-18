@@ -17,6 +17,13 @@
       <menu-item name="save">
         <i-button type="primary" @click="$socket.emit('save')">Save</i-button>
       </menu-item>
+      <menu-item v-if="language === 'javascript'" name="run">
+        <i-button type="success" @click="run = true">Run</i-button>
+        <modal class="run-modal" v-model="run" width="800" styles="">
+          <iframe v-if="run" :srcdoc="runContent" />
+          <i-button slot="footer" @click="run = false">关闭</i-button>
+        </modal>
+      </menu-item>
     </i-menu>
     <div class="content">
       <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
@@ -45,10 +52,11 @@ import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
 import ConnectStatus from './components/ConnectStatus';
 import ClientList from './components/ClientList';
+import getContent from './getContent';
 
 declare var _global: {
-  id: string,
-  userName: string
+  id: string;
+  userName: string;
 };
 
 function getCreatorKeys() {
@@ -57,7 +65,7 @@ function getCreatorKeys() {
     const obj = JSON.parse(str);
     return obj;
   }
-  return { };
+  return {};
 }
 
 @Component({
@@ -107,16 +115,24 @@ function getCreatorKeys() {
     },
     'code.change'(data: ISocketCodeChange) {
       this.syncing = true;
-      const editor: monaco.editor.IStandaloneCodeEditor = this.editor
-      editor.executeEdits('socket', data.event.changes.map((change, index) => ({
-        identifier: {
-          major: data.ident,
-          minor: index
-        },
-        range: new monaco.Range(change.range.startLineNumber, change.range.startColumn, change.range.endLineNumber, change.range.endColumn),
-        text: change.text,
-        forceMoveMarkers: true
-      })));
+      const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
+      editor.executeEdits(
+        'socket',
+        data.event.changes.map((change, index) => ({
+          identifier: {
+            major: data.ident,
+            minor: index
+          },
+          range: new monaco.Range(
+            change.range.startLineNumber,
+            change.range.startColumn,
+            change.range.endLineNumber,
+            change.range.endColumn
+          ),
+          text: change.text,
+          forceMoveMarkers: true
+        }))
+      );
       this.content = data.value;
       this.syncing = false;
     },
@@ -132,29 +148,34 @@ function getCreatorKeys() {
   }
 } as any)
 export default class App extends Vue {
-  content = ''
-  language = 'javascript'
-  languages = languages
-  userName = ''
-  auth = false
-  userNameSet = false
-  id = _global.id
-  key = ''
-  err = ''
-  syncing = false
-  clients: any[] = []
-  connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect'
-  editor: monaco.editor.IStandaloneCodeEditor
-  nameErr = ''
-  fontSize = 16
+  content = '';
+  language = 'javascript';
+  languages = languages;
+  userName = '';
+  auth = false;
+  userNameSet = false;
+  id = _global.id;
+  key = '';
+  err = '';
+  syncing = false;
+  clients: any[] = [];
+  connect: 'connected' | 'disconnect' | 'connecting' = 'disconnect';
+  editor: monaco.editor.IStandaloneCodeEditor;
+  nameErr = '';
+  fontSize = 16;
+  run = false;
 
   get title() {
     return `Welcome ${this.userName}`;
   }
 
+  get runContent() {
+    return getContent(this.content);
+  }
+
   monacoOptions = {
     fontSize: 16
-  }
+  };
 
   mounted() {
     window.addEventListener('keydown', event => {
@@ -163,11 +184,14 @@ export default class App extends Vue {
         (this as any).$socket.emit('save');
       }
     });
-    const query: { key?: string } = window.location.search.substring(1).split('&').reduce((pv, v) => {
-      const r = v.split('=');
-      pv[r[0]] = r[1];
-      return pv;
-    }, {});
+    const query: { key?: string } = window.location.search
+      .substring(1)
+      .split('&')
+      .reduce((pv, v) => {
+        const r = v.split('=');
+        pv[r[0]] = r[1];
+        return pv;
+      }, {});
     if (query.key) {
       this.key = query.key;
     }
@@ -204,16 +228,17 @@ export default class App extends Vue {
     if (this.syncing) {
       return;
     }
-    const selections: monaco.ISelection[] = this.editor.getSelections().map(it => ({
-      selectionStartLineNumber: it.selectionStartLineNumber,
-      selectionStartColumn: it.selectionStartColumn,
-      positionLineNumber: it.positionLineNumber,
-      positionColumn: it.positionColumn
-    }));
+    const selections: monaco.ISelection[] = this.editor
+      .getSelections()
+      .map(it => ({
+        selectionStartLineNumber: it.selectionStartLineNumber,
+        selectionStartColumn: it.selectionStartColumn,
+        positionLineNumber: it.positionLineNumber,
+        positionColumn: it.positionColumn
+      }));
     (this as any).$socket.emit('selection', selections);
   }
 }
-
 </script>
 
 <style lang="scss">
@@ -243,10 +268,6 @@ body,
   }
 }
 
-.mu-dropDown-menu-text-overflow {
-  color: white;
-}
-
 .appbar {
   display: flex;
   align-items: center;
@@ -255,10 +276,6 @@ body,
 
   &-language {
     width: 200px;
-  }
-
-  .mu-text-field {
-    margin: 0;
   }
 
   &-fontsize {
@@ -283,8 +300,24 @@ body,
   }
 }
 
-.mu-menu-list {
-  max-height: 500px;
+iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.run-modal {
+  .ivu-modal {
+    &-content {
+      display: flex;
+      flex-direction: column;
+      padding: 40px 16px 10px !important;
+      height: 600px;
+    }
+    &-body {
+      flex: 1 1;
+    }
+  }
 }
 </style>
 
