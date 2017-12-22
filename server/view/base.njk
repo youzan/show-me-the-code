@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <base href="{{ url.base }}">
+    <title>有赞－和我们一起enjoy工作和生活</title>
     <script>
         window._global = {
             id: '{{ id }}',
@@ -11,9 +12,14 @@
                 socket: '{{ url.websocket }}',
                 monaco: '{{ url.monaco }}/vs',
                 base: '{{ url.base }}',
-                prefix: '{{ url.prefix }}'
+                prefix: '{{ url.prefix }}',
+                babel: '{{ url.babel }}'
             },
-            userName: '{{ userName }}'
+            userName: '{{ userName }}',
+            resource: {
+                base: '{{ resource.base }}',
+                run: '{{ resource.js.run }}'
+            }
         };
     </script>
     {% block style %} {% endblock %}
