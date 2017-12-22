@@ -2,12 +2,12 @@
   <div class="app">
     <i-menu mode="horizontal" class="appbar" theme="dark">
       <menu-item name="language" class="appbar-language" v-model="language">
-        <i-select>
+        <i-select v-model="language">
           <i-option v-for="language in languages" :key="language.value" :value="language.value">{{ language.title }}</i-option>
         </i-select>
       </menu-item>
       <menu-item name="fontSize">
-        <i-select>
+        <i-select v-model="fontSize">
           <i-option v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it">{{ it }}</i-option>
         </i-select>
       </menu-item>
