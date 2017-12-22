@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const MinifyPlugin = require("babel-minify-webpack-plugin");
+const MinifyPlugin = require('babel-minify-webpack-plugin');
 const { merge } = require('lodash');
 
 const base = {
@@ -14,7 +14,7 @@ const base = {
     extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx', '.css', '.vue']
   },
   devtool: '#source-map'
-}
+};
 
 const node = merge({}, base, {
   entry: {
@@ -28,12 +28,15 @@ const node = merge({}, base, {
         options: {
           babelrc: false,
           presets: [
-            ['env', {
-              targets: {
-                node: "6.10"
-              },
-              modules: false
-            }],
+            [
+              'env',
+              {
+                targets: {
+                  node: '6.10'
+                },
+                modules: false
+              }
+            ],
             'stage-0',
             'typescript'
           ]
@@ -45,28 +48,33 @@ const node = merge({}, base, {
   node: {
     __dirname: false
   },
-  externals: [{
-    'socket.io': 'commonjs socket.io',
-    'any-promise': 'commonjs any-promise',
-    'fsevents': 'commonjs fsevents',
-    'lodash': 'commonjs lodash',
-    'uuid': 'commonjs uuid',
-    'randomstring': 'commonjs randomstring',
-    'sequelize': 'commonjs sequelize',
-    'koa': 'commonjs koa',
-    'koa-nunjucks-2': 'commonjs koa-nunjucks-2'
-  }, (context, request, done) => {
-    if (/\.\.\/config/.test(request)) {
-      done(null, `commonjs ${request}`);
-    } else {
-      done();
+  externals: [
+    {
+      'socket.io': 'commonjs socket.io',
+      'any-promise': 'commonjs any-promise',
+      fsevents: 'commonjs fsevents',
+      lodash: 'commonjs lodash',
+      uuid: 'commonjs uuid',
+      randomstring: 'commonjs randomstring',
+      sequelize: 'commonjs sequelize',
+      koa: 'commonjs koa',
+      'koa-nunjucks-2': 'commonjs koa-nunjucks-2'
+    },
+    (context, request, done) => {
+      if (/\.\.\/config/.test(request)) {
+        done(null, `commonjs ${request}`);
+      } else {
+        done();
+      }
     }
-  }],
+  ],
   plugins: [
-    new CopyPlugin([{
-      from: './server/view/**/*',
-      to: './view/[name].[ext]'
-    }]),
+    new CopyPlugin([
+      {
+        from: './server/view/**/*',
+        to: './view/[name].[ext]'
+      }
+    ]),
     new webpack.optimize.ModuleConcatenationPlugin()
   ]
 });
@@ -75,7 +83,16 @@ const client = merge({}, base, {
   entry: {
     index: './client/index/main.ts',
     room: './client/room/main.ts',
-    vendor: ['vue', 'iview', 'socket.io-client', 'vue-class-component', 'axios', 'vue-socket.io', 'vue-monaco']
+    run: './client/run/main.js',
+    vendor: [
+      'vue',
+      'iview',
+      'socket.io-client',
+      'vue-class-component',
+      'axios',
+      'vue-socket.io',
+      'vue-monaco'
+    ]
   },
   output: {
     path: path.resolve(__dirname, './static'),
@@ -83,27 +100,39 @@ const client = merge({}, base, {
     publicPath: process.env.PUBLIC_PATH || '/'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.(j|t)s?$/,
         loader: 'babel-loader',
         exclude: /node_modules/
-      }, {
-        test: /.vue$/,
+      },
+      {
+        test: /\.vue$/,
         loader: 'vue-loader',
         options: {
           loaders: {
             ts: 'babel-loader',
-            scss: ExtractTextPlugin.extract(['css-loader', 'postcss-loader', 'sass-loader'])
+            scss: ExtractTextPlugin.extract([
+              'css-loader',
+              'postcss-loader',
+              'sass-loader'
+            ])
           }
         }
-      }, {
+      },
+      {
         test: /\.(css|scss)$/,
-        use: ExtractTextPlugin.extract(['css-loader', 'postcss-loader', 'sass-loader'])
-      }, {
+        use: ExtractTextPlugin.extract([
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ])
+      },
+      {
         test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
         loader: 'file-loader'
-      }, {
+      },
+      {
         test: /\.(png|jpe?g|gif|svg)(\?\S*)?$/,
         loader: 'file-loader',
         query: {
@@ -119,7 +148,7 @@ const client = merge({}, base, {
   },
   plugins: [
     new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
+      name: 'vendor',
       minChunks: Infinity
     })
   ]
@@ -148,13 +177,20 @@ if (process.env.NODE_ENV === 'production') {
       'process.env': {
         NODE_ENV: '"production"'
       }
-    }))
+    })
+  );
 } else {
   client.plugins.push(
-    // new CopyPlugin([{
-    //   from: 'node_modules/monaco-editor/min/vs',
-    //   to: 'vs'
-    // }]),
+    // new CopyPlugin([
+    //   {
+    //     from: 'node_modules/monaco-editor/min/vs',
+    //     to: 'vs'
+    //   },
+    //   {
+    //     from: 'node_modules/babel.min.js',
+    //     to: '.'
+    //   }
+    // ]),
     new ExtractTextPlugin({
       filename: '[name].css',
       allChunks: true
