@@ -2,11 +2,13 @@
   <div class="app">
     <i-menu mode="horizontal" class="appbar" theme="dark">
       <menu-item name="language" class="appbar-language" v-model="language">
-        <i-select v-model="language">
+        语言
+        <i-select class="language-select" v-model="language">
           <i-option v-for="language in languages" :key="language.value" :value="language.value">{{ language.title }}</i-option>
         </i-select>
       </menu-item>
       <menu-item name="fontSize">
+        字体大小
         <i-select v-model="fontSize">
           <i-option v-for="it in [10, 12, 14, 16, 18, 20]" :key="it" :value="it">{{ it }}</i-option>
         </i-select>
@@ -15,18 +17,17 @@
         <v-connect-status :status="connect" />
       </menu-item>
       <menu-item name="save">
-        <i-button type="primary" @click="$socket.emit('save')">Save</i-button>
+        <i-button type="primary" @click="$socket.emit('save')">保存</i-button>
       </menu-item>
       <menu-item v-if="language === 'javascript'" name="run">
-        <i-button type="success" @click="run = true">Run</i-button>
-        <modal class="run-modal" v-model="run" width="800">
-          <iframe v-if="run" :srcdoc="runContent" />
-          <i-button slot="footer" @click="run = false">关闭</i-button>
-        </modal>
+        <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
     </i-menu>
     <div class="content">
-      <v-monaco v-if="auth" class="editor" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
+      <v-monaco class="editor" v-if="auth" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
+      <div v-if="language === 'javascript'" class="runner">
+        <iframe ref="iframe" :srcdoc="runContent" />
+      </div>
     </div>
     <modal :value="connect === 'connected' && !auth" :closable="false" :mask-closable="false">
       <i-input label="用户名" v-model.trim="userName" :error-text="nameErr">
@@ -46,12 +47,11 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import MonacoEditor from 'vue-monaco';
-import debounce from 'lodash/debounce';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
-import ConnectStatus from './components/ConnectStatus';
-import ClientList from './components/ClientList';
+import ConnectStatus from './components/ConnectStatus.vue';
+import ClientList from './components/ClientList.vue';
 import getContent from './getContent';
 
 declare var _global: {
@@ -87,6 +87,10 @@ function getCreatorKeys() {
       } else {
         this.$Spin.hide();
       }
+    },
+    language() {
+      const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
+      Vue.nextTick(() => editor.layout());
     }
   },
   sockets: {
@@ -163,14 +167,13 @@ export default class App extends Vue {
   editor: monaco.editor.IStandaloneCodeEditor;
   nameErr = '';
   fontSize = 16;
-  run = false;
 
   get title() {
     return `Welcome ${this.userName}`;
   }
 
   get runContent() {
-    return getContent(this.content);
+    return getContent('');
   }
 
   monacoOptions = {
@@ -238,6 +241,20 @@ export default class App extends Vue {
       }));
     (this as any).$socket.emit('selection', selections);
   }
+
+  runCurrentContent() {
+    const code = this.content.slice();
+    const iframe: HTMLIFrameElement = <any>this.$refs.iframe;
+    const win: any = iframe.contentWindow;
+    console.log(win.Babel);
+    const output = win.Babel.transform(code, {
+      presets: ['es2015', 'es2017', 'stage-0']
+    })
+    const doc = iframe.contentWindow.document;
+    const script = doc.createElement('script');
+    script.text = output.code;
+    doc.body.appendChild(script);
+  }
 }
 </script>
 
@@ -250,6 +267,7 @@ body,
   height: 100vh;
   margin: 0;
   overflow: hidden;
+  background-color: #1e1e1e;
 }
 
 .header {
@@ -264,15 +282,22 @@ body,
   flex-direction: row;
 
   .editor {
-    flex: 1 1 100%;
+    flex: 1 1 50%;
+    overflow: hidden;
+  }
+
+  .runner {
+    flex: 1 1 50%;
+    overflow: hidden;
   }
 }
 
 .appbar {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: space-around;
-  background-color: #1e1e1e;
+  box-shadow: 0px 1px 10px black;
+  background-color: rgb(33, 37, 43);
 
   &-language {
     width: 200px;
@@ -288,6 +313,14 @@ body,
 
   &-key {
     font-size: 16px;
+  }
+
+  .ivu-select {
+    width: initial !important;
+  }
+
+  .ivu-select.language-select {
+    width: 100px !important;
   }
 }
 

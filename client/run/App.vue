@@ -43,7 +43,6 @@ body {
 }
 
 .console {
-  background: black;
   color: #ccc;
   width: 100%;
   height: 100%;
