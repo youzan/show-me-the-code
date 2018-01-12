@@ -22,6 +22,9 @@
       <menu-item v-if="language === 'javascript'" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
+      <menu-item class="output" v-if="language === 'javascript'" name="run">
+        Output:
+      </menu-item>
     </i-menu>
     <div class="content">
       <v-monaco class="editor" v-if="auth" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
@@ -284,6 +287,8 @@ body,
   .editor {
     flex: 1 1 50%;
     overflow: hidden;
+    box-shadow: 1px 0px 10px black;
+    border-right: 1px solid black;
   }
 
   .runner {
@@ -298,6 +303,7 @@ body,
   align-items: center;
   box-shadow: 0px 1px 10px black;
   background-color: rgb(33, 37, 43);
+  position: relative;
 
   &-language {
     width: 200px;
@@ -321,6 +327,11 @@ body,
 
   .ivu-select.language-select {
     width: 100px !important;
+  }
+
+  .output {
+    position: absolute;
+    left: 50%;
   }
 }
 
