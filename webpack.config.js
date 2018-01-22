@@ -81,8 +81,8 @@ const node = merge({}, base, {
 
 const client = merge({}, base, {
   entry: {
-    index: './client/index/main.ts',
-    room: './client/room/main.ts',
+    index: './client/index/main.js',
+    room: './client/room/main.js',
     run: './client/run/main.js',
     vendor: [
       'vue',
