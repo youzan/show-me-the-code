@@ -25,6 +25,9 @@
       <menu-item class="output" v-if="language === 'javascript'" name="run">
         Output:
       </menu-item>
+      <menu-item>
+
+      </menu-item>
     </i-menu>
     <div class="content">
       <v-monaco class="editor" v-if="auth" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
@@ -53,8 +56,9 @@ import MonacoEditor from 'vue-monaco';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
-import ConnectStatus from './components/ConnectStatus.vue';
-import ClientList from './components/ClientList.vue';
+import ConnectStatus from './components/ConnectStatus';
+import ClientList from './components/ClientList';
+import Timer from './components/Timer';
 import getContent from './getContent';
 
 declare var _global: {
@@ -75,7 +79,8 @@ function getCreatorKeys() {
   components: {
     'v-monaco': MonacoEditor,
     'v-connect-status': ConnectStatus,
-    'v-client-list': ClientList
+    'v-client-list': ClientList,
+    'v-timer': Timer
   },
   watch: {
     fontSize(value) {

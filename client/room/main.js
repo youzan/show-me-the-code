@@ -1,6 +1,7 @@
 import 'babel-polyfill';
 import Vue from 'vue';
 import VueSocketio from 'vue-socket.io';
+import VueRx from 'vue-rx';
 import io from 'socket.io-client';
 import iView from 'iview';
 import 'iview/dist/styles/iview.css';
@@ -24,6 +25,7 @@ const socket = io(_global.url.socket, {
 
 Vue.use(iView);
 Vue.use(VueSocketio, socket);
+Vue.use(VueRx);
 
 const vm = new Vue({
   el: '#app',
