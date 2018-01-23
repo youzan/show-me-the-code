@@ -22,11 +22,11 @@
       <menu-item v-if="language === 'javascript'" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
+      <menu-item name="timer" v-if="creator">
+        <v-timer />
+      </menu-item>
       <menu-item class="output" v-if="language === 'javascript'" name="run">
         Output:
-      </menu-item>
-      <menu-item>
-
       </menu-item>
     </i-menu>
     <div class="content">
@@ -156,6 +156,9 @@ function getCreatorKeys() {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
       editor.setSelections(selections);
       this.syncing = false;
+    },
+    creator() {
+      this.creator = true;
     }
   }
 } as any)
@@ -175,6 +178,7 @@ export default class App extends Vue {
   editor: monaco.editor.IStandaloneCodeEditor;
   nameErr = '';
   fontSize = 16;
+  creator = true;
 
   get title() {
     return `Welcome ${this.userName}`;
@@ -310,7 +314,7 @@ body,
   position: relative;
 
   &-language {
-    width: 200px;
+    width: 160px;
   }
 
   &-fontsize {
@@ -323,6 +327,10 @@ body,
 
   &-key {
     font-size: 16px;
+  }
+
+  .ivu-menu-item {
+    padding: 0 10px;
   }
 
   .ivu-select {

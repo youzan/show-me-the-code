@@ -70,6 +70,7 @@ export default class Room implements IDisposable {
 
     if (isCreator) {
       this.creatorSocket = socket;
+      this.creatorSocket.emit('creator', true);
     }
 
     socket.broadcast.to(this.id).emit('room.clients', Array.from(this.clients.values()).map(it => ({ name: it.name, status: '' })));
