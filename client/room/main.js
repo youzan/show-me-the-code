@@ -8,9 +8,7 @@ import { parse } from 'cookie';
 
 import '../style';
 
-import App from './App';
-
-declare var _global: any;
+import App from './App.vue';
 
 const cookie = parse(document.cookie);
 
