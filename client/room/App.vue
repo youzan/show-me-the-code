@@ -22,6 +22,9 @@
       <menu-item v-if="language === 'javascript'" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
+      <menu-item name="timer" v-if="creator">
+        <v-timer />
+      </menu-item>
       <menu-item class="output" v-if="language === 'javascript'" name="run">
         Output:
       </menu-item>
@@ -53,8 +56,9 @@ import MonacoEditor from 'vue-monaco';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
-import ConnectStatus from './components/ConnectStatus.vue';
-import ClientList from './components/ClientList.vue';
+import ConnectStatus from './components/ConnectStatus';
+import ClientList from './components/ClientList';
+import Timer from './components/Timer';
 import getContent from './getContent';
 
 declare var _global: {
@@ -75,7 +79,8 @@ function getCreatorKeys() {
   components: {
     'v-monaco': MonacoEditor,
     'v-connect-status': ConnectStatus,
-    'v-client-list': ClientList
+    'v-client-list': ClientList,
+    'v-timer': Timer
   },
   watch: {
     fontSize(value) {
@@ -151,6 +156,9 @@ function getCreatorKeys() {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
       editor.setSelections(selections);
       this.syncing = false;
+    },
+    creator() {
+      this.creator = true;
     }
   }
 } as any)
@@ -170,6 +178,7 @@ export default class App extends Vue {
   editor: monaco.editor.IStandaloneCodeEditor;
   nameErr = '';
   fontSize = 16;
+  creator = false;
 
   get title() {
     return `Welcome ${this.userName}`;
@@ -305,7 +314,7 @@ body,
   position: relative;
 
   &-language {
-    width: 200px;
+    width: 160px;
   }
 
   &-fontsize {
@@ -318,6 +327,10 @@ body,
 
   &-key {
     font-size: 16px;
+  }
+
+  .ivu-menu-item {
+    padding: 0 10px;
   }
 
   .ivu-select {
