@@ -178,7 +178,7 @@ export default class App extends Vue {
   editor: monaco.editor.IStandaloneCodeEditor;
   nameErr = '';
   fontSize = 16;
-  creator = true;
+  creator = false;
 
   get title() {
     return `Welcome ${this.userName}`;
