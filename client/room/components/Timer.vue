@@ -35,21 +35,18 @@ export default {
     const timer$ = paused$.pipe(
       scan((acc, _) => !acc, true),
       startWith(true),
-      switchMap(
-        paused => paused ? empty() : interval(1000)
-      ),
+      switchMap(paused => (paused ? empty() : interval(1000))),
       mapTo(1)
     );
 
-    const time$ = merge(
-      timer$,
-      this.reset$.pipe(
-        mapTo(0)
-      )
-    ).pipe(
-      scan((acc, value) => (console.log(value), (value ? acc + 1 : 0)), 0),
+    const time$ = merge(timer$, this.reset$.pipe(mapTo(0))).pipe(
+      scan((acc, value) => (value ? acc + 1 : 0), 0),
       startWith(0),
-      map(time => `${Math.floor(time / 3600)}:${Math.floor((time % 3600) / 60)}:${time % 60}`)
+      map(
+        time =>
+          `${Math.floor(time / 3600)}:${Math.floor((time % 3600) / 60)}:${time %
+            60}`
+      )
     );
 
     return {
@@ -67,7 +64,7 @@ export default {
       this.paused = false;
     }
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -92,4 +89,3 @@ export default {
   }
 }
 </style>
-

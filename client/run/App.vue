@@ -25,7 +25,6 @@ class App extends Vue {
     console._log = console.log;
     console.log = (...rawArgs) => {
       const args = Array.prototype.slice.call(rawArgs);
-      console._log(args)
       this.data.push(...args);
       console._log.apply(console, args);
     };
