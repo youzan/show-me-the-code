@@ -1,6 +1,14 @@
 <template>
   <div class="timer">
-    {{ time }}
+    <poptip trigger="click" placement="bottom">
+      {{ formatTime(time) }}
+      <ul slot="content" class="timer-record">
+        <li v-for="(time, index) in record" :key="time">
+          {{ formatTime(time) }}
+          <span class="timer-record-plus" v-if="index !== 0">+ {{ formatTime(record[index] - record[index - 1]) }}</span>
+        </li>
+      </ul>
+    </poptip>
     <span @click="play">
       <icon type="play" v-if="paused"  />
     </span>
@@ -9,6 +17,9 @@
     </span>
     <span @click="reset">
       <icon type="android-refresh" />
+    </span>
+    <span @click="flag">
+      <icon type="flag" />
     </span>
   </div>
 </template>
@@ -28,7 +39,7 @@ import { switchMap } from 'rxjs/operators/switchMap';
 export default {
   name: 'timer',
   observableMethods: {
-    reset: 'reset$'
+    resetTimer: 'reset$'
   },
   subscriptions() {
     const paused$ = this.$watchAsObservable('paused');
@@ -41,12 +52,7 @@ export default {
 
     const time$ = merge(timer$, this.reset$.pipe(mapTo(0))).pipe(
       scan((acc, value) => (value ? acc + 1 : 0), 0),
-      startWith(0),
-      map(
-        time =>
-          `${Math.floor(time / 3600)}:${Math.floor((time % 3600) / 60)}:${time %
-            60}`
-      )
+      startWith(0)
     );
 
     return {
@@ -54,7 +60,8 @@ export default {
     };
   },
   data: () => ({
-    paused: true
+    paused: true,
+    record: []
   }),
   methods: {
     pause() {
@@ -62,6 +69,24 @@ export default {
     },
     play() {
       this.paused = false;
+    },
+    flag() {
+      this.record.push(this.time);
+    },
+    reset() {
+      this.record = [];
+      this.resetTimer();
+    },
+    formatSingle(time) {
+      const str = `00${time}`;
+      return str.substring(str.length - 2, str.length);
+    },
+    formatTime(time) {
+      const h = this.formatSingle(Math.floor(time / 3600));
+      const m = this.formatSingle(Math.floor((time % 3600) / 60));
+      const s = this.formatSingle(time % 60);
+
+      return `${h}:${m}:${s}`;
     }
   }
 };
@@ -73,7 +98,14 @@ export default {
 
   .ivu-icon {
     display: inline-block;
-    margin-left: 10px;
+    text-align: center;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+
+    &:hover {
+      background: white;
+    }
 
     &.ivu-icon-play {
       color: green;
@@ -83,9 +115,27 @@ export default {
       color: orange;
     }
 
-    &.ivu-icon-refresh {
-      color: aqua;
+    &.ivu-icon-android-refresh {
+      &:hover {
+        color: black;
+      }
     }
+
+    &.ivu-icon-flag {
+      color: aqua;
+
+      &:hover {
+        color: deepskyblue;
+      }
+    }
+  }
+}
+
+.timer-record {
+  color: black;
+  &-plus {
+    padding-left: 10px;
+    color: red;
   }
 }
 </style>
