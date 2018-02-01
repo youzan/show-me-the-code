@@ -91,7 +91,8 @@ const client = merge({}, base, {
       'vue-class-component',
       'axios',
       'vue-socket.io',
-      'vue-monaco'
+      'vue-monaco',
+      'moment'
     ]
   },
   output: {

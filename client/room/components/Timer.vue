@@ -1,6 +1,16 @@
 <template>
   <div class="timer">
-    {{ time }}
+    <poptip trigger="hover" placement="bottom">
+      <badge :count="record.length" dot>
+        {{ formatTime(time) }}
+      </badge>
+      <ul slot="content" class="timer-record">
+        <li v-for="(time, index) in record" :key="time">
+          {{ formatTime(time) }}
+          <span class="timer-record-plus" v-if="index !== 0">+ {{ formatTime(record[index] - record[index - 1]) }}</span>
+        </li>
+      </ul>
+    </poptip>
     <span @click="play">
       <icon type="play" v-if="paused"  />
     </span>
@@ -10,6 +20,9 @@
     <span @click="reset">
       <icon type="android-refresh" />
     </span>
+    <span @click="flag">
+      <icon type="flag" />
+    </span>
   </div>
 </template>
 
@@ -17,6 +30,7 @@
 import { duration } from 'moment';
 import { empty } from 'rxjs/observable/empty';
 import { interval } from 'rxjs/observable/interval';
+import { of } from 'rxjs/observable/of';
 import { merge } from 'rxjs/observable/merge';
 import { takeWhile } from 'rxjs/operators/takeWhile';
 import { mapTo } from 'rxjs/operators/mapTo';
@@ -24,40 +38,39 @@ import { map } from 'rxjs/operators/map';
 import { scan } from 'rxjs/operators/scan';
 import { startWith } from 'rxjs/operators/startWith';
 import { switchMap } from 'rxjs/operators/switchMap';
+import { delay } from 'rxjs/operators/delay';
 
 export default {
   name: 'timer',
   observableMethods: {
-    reset: 'reset$'
+    resetTimer: 'reset$'
   },
   subscriptions() {
     const paused$ = this.$watchAsObservable('paused');
     const timer$ = paused$.pipe(
       scan((acc, _) => !acc, true),
       startWith(true),
-      switchMap(
-        paused => paused ? empty() : interval(1000)
-      ),
+      switchMap(paused => (paused ? empty() : interval(1000))),
       mapTo(1)
     );
 
-    const time$ = merge(
-      timer$,
-      this.reset$.pipe(
-        mapTo(0)
-      )
-    ).pipe(
-      scan((acc, value) => (console.log(value), (value ? acc + 1 : 0)), 0),
-      startWith(0),
-      map(time => `${Math.floor(time / 3600)}:${Math.floor((time % 3600) / 60)}:${time % 60}`)
+    const blink$ = this.$watchAsObservable('record').pipe(
+      switchMap(() => of(false).pipe(delay(500), startWith(true)))
+    );
+
+    const time$ = merge(timer$, this.reset$.pipe(mapTo(0))).pipe(
+      scan((acc, value) => (value ? acc + 1 : 0), 0),
+      startWith(0)
     );
 
     return {
-      time: time$
+      time: time$,
+      blink: blink$
     };
   },
   data: () => ({
-    paused: true
+    paused: true,
+    record: []
   }),
   methods: {
     pause() {
@@ -65,18 +78,44 @@ export default {
     },
     play() {
       this.paused = false;
+    },
+    flag() {
+      this.record.push(this.time);
+    },
+    reset() {
+      this.record = [];
+      this.resetTimer();
+    },
+    formatSingle(time) {
+      const str = `00${time}`;
+      return str.substring(str.length - 2, str.length);
+    },
+    formatTime(time) {
+      const h = this.formatSingle(Math.floor(time / 3600));
+      const m = this.formatSingle(Math.floor((time % 3600) / 60));
+      const s = this.formatSingle(time % 60);
+
+      return `${h}:${m}:${s}`;
     }
   }
-}
+};
 </script>
 
 <style lang="scss">
 .timer {
   font-size: 16px;
+  user-select: none;
 
   .ivu-icon {
     display: inline-block;
-    margin-left: 10px;
+    text-align: center;
+    width: 25px;
+    height: 25px;
+    line-height: 25px;
+
+    &:hover {
+      background: white;
+    }
 
     &.ivu-icon-play {
       color: green;
@@ -86,10 +125,35 @@ export default {
       color: orange;
     }
 
-    &.ivu-icon-refresh {
-      color: aqua;
+    &.ivu-icon-android-refresh {
+      &:hover {
+        color: black;
+      }
     }
+
+    &.ivu-icon-flag {
+      color: aqua;
+
+      &:hover {
+        color: deepskyblue;
+      }
+    }
+  }
+
+  .ivu-badge-dot {
+    box-shadow: none;
+  }
+
+  .ivu-poptip-rel {
+    display: flex;
+  }
+}
+
+.timer-record {
+  color: black;
+  &-plus {
+    padding-left: 10px;
+    color: red;
   }
 }
 </style>
-

@@ -28,6 +28,9 @@
       <menu-item class="output" v-if="language === 'javascript'" name="run">
         Output:
       </menu-item>
+      <menu-item name="clear" class="clear">
+        <i-button type="info" @click="clearOutput">清除输出</i-button>
+      </menu-item>
     </i-menu>
     <div class="content">
       <v-monaco class="editor" v-if="auth" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
@@ -263,8 +266,20 @@ export default class App extends Vue {
     })
     const doc = iframe.contentWindow.document;
     const script = doc.createElement('script');
-    script.text = output.code;
+    script.text = `
+    try {
+      ${output.code}
+    } catch (e) {
+      window.__log(e);
+      console.error(e);
+    }
+    `;
     doc.body.appendChild(script);
+  }
+
+  clearOutput() {
+    const iframe: HTMLIFrameElement = <any>this.$refs.iframe;
+    (iframe.contentWindow as any).__clear();
   }
 }
 </script>
@@ -312,6 +327,9 @@ body,
   box-shadow: 0px 1px 10px black;
   background-color: rgb(33, 37, 43);
   position: relative;
+  height: 60px;
+  flex: 0 0 60px;
+
 
   &-language {
     width: 160px;
@@ -344,6 +362,11 @@ body,
   .output {
     position: absolute;
     left: 50%;
+  }
+
+  .clear {
+    position: absolute;
+    right: 0;
   }
 }
 
