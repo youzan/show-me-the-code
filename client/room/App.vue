@@ -327,6 +327,9 @@ body,
   box-shadow: 0px 1px 10px black;
   background-color: rgb(33, 37, 43);
   position: relative;
+  height: 60px;
+  flex: 0 0 60px;
+
 
   &-language {
     width: 160px;

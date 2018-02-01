@@ -1,7 +1,9 @@
 <template>
   <div class="timer">
-    <poptip trigger="click" placement="bottom">
-      {{ formatTime(time) }}
+    <poptip trigger="hover" placement="bottom">
+      <badge :count="record.length" dot>
+        {{ formatTime(time) }}
+      </badge>
       <ul slot="content" class="timer-record">
         <li v-for="(time, index) in record" :key="time">
           {{ formatTime(time) }}
@@ -28,6 +30,7 @@
 import { duration } from 'moment';
 import { empty } from 'rxjs/observable/empty';
 import { interval } from 'rxjs/observable/interval';
+import { of } from 'rxjs/observable/of';
 import { merge } from 'rxjs/observable/merge';
 import { takeWhile } from 'rxjs/operators/takeWhile';
 import { mapTo } from 'rxjs/operators/mapTo';
@@ -35,6 +38,7 @@ import { map } from 'rxjs/operators/map';
 import { scan } from 'rxjs/operators/scan';
 import { startWith } from 'rxjs/operators/startWith';
 import { switchMap } from 'rxjs/operators/switchMap';
+import { delay } from 'rxjs/operators/delay';
 
 export default {
   name: 'timer',
@@ -50,13 +54,18 @@ export default {
       mapTo(1)
     );
 
+    const blink$ = this.$watchAsObservable('record').pipe(
+      switchMap(() => of(false).pipe(delay(500), startWith(true)))
+    );
+
     const time$ = merge(timer$, this.reset$.pipe(mapTo(0))).pipe(
       scan((acc, value) => (value ? acc + 1 : 0), 0),
       startWith(0)
     );
 
     return {
-      time: time$
+      time: time$,
+      blink: blink$
     };
   },
   data: () => ({
@@ -95,6 +104,7 @@ export default {
 <style lang="scss">
 .timer {
   font-size: 16px;
+  user-select: none;
 
   .ivu-icon {
     display: inline-block;
@@ -128,6 +138,14 @@ export default {
         color: deepskyblue;
       }
     }
+  }
+
+  .ivu-badge-dot {
+    box-shadow: none;
+  }
+
+  .ivu-poptip-rel {
+    display: flex;
   }
 }
 
