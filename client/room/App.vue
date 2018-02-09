@@ -28,12 +28,27 @@
       <menu-item class="output" v-if="language === 'javascript'" name="run">
         Output:
       </menu-item>
-      <menu-item name="clear" class="clear">
+      <div class="right" />
+      <menu-item name="clear" v-if="language === 'javascript'">
         <i-button type="info" @click="clearOutput">清除输出</i-button>
+      </menu-item>
+      <menu-item name="powered-by" class="powered-by">
+        <p>Powered by 有赞前端</p>
       </menu-item>
     </i-menu>
     <div class="content">
-      <v-monaco class="editor" v-if="auth" v-model="content" :language="language" @change="handleCodeChange" @editorMount="handleEditorMount" @selection="handleSelection" @blur="$socket.emit('blur')" @focus="$socket.emit('focus')" :options="monacoOptions" theme="vs-dark" />
+      <v-monaco
+        class="editor"
+        v-if="auth"
+        v-model="content"
+        :language="language"
+        @change="handleCodeChange"
+        @editorMount="handleEditorMount"
+        @selection="handleSelection"
+        @blur="$socket.emit('blur')"
+        @focus="$socket.emit('focus')"
+        :options="monacoOptions"
+        theme="vs-dark" />
       <div v-if="language === 'javascript'" class="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
@@ -364,9 +379,13 @@ body,
     left: 50%;
   }
 
-  .clear {
-    position: absolute;
-    right: 0;
+  .right {
+    margin-left: auto;
+  }
+
+  .powered-by {
+    line-height: 20px;
+    text-align: center;
   }
 }
 
