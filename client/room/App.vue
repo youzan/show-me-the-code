@@ -276,20 +276,7 @@ export default class App extends Vue {
     const code = this.content.slice();
     const iframe: HTMLIFrameElement = <any>this.$refs.iframe;
     const win: any = iframe.contentWindow;
-    const output = win.Babel.transform(code, {
-      presets: ['es2015', 'es2017', 'stage-0']
-    })
-    const doc = iframe.contentWindow.document;
-    const script = doc.createElement('script');
-    script.text = `
-    try {
-      ${output.code}
-    } catch (e) {
-      window.__log(e);
-      console.error(e);
-    }
-    `;
-    doc.body.appendChild(script);
+    win.__run(code);
   }
 
   clearOutput() {

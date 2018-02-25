@@ -1,9 +1,8 @@
 <template>
   <div class="console">
-    <template v-for="(li, i) in list">
-      <div :key="`${i}-start`">{{ '>' }}</div>
-      <vue-json-pretty v-for="(it, j) in li" :key="`${i}-${j}`" :data="it" :style="getStyle(it)" />
-    </template>
+    <div v-for="(output, i) in outputs" :key="i" style="background: #333333; border-radius: 3px; padding: 3px; margin: 0 0 5px 0;">
+      <vue-json-pretty v-for="(it, j) in output" :key="`${i}-${j}`" :data="it" :style="getStyle(it)" />
+    </div>
   </div>
 </template>
 
@@ -11,6 +10,7 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
+import uniqueId from 'lodash/uniqueId';
 
 @Component({
   components: {
@@ -18,7 +18,7 @@ import VueJsonPretty from 'vue-json-pretty';
   }
 })
 class App extends Vue {
-  list = [];
+  outputs = [];
 
   mounted() {
     this.init();
@@ -36,15 +36,42 @@ class App extends Vue {
   init() {
     console._log = console.log;
     console.log = (...args) => {
-      this.list.push(args);
+      const output = Zone.current.get('output') || [];
+      if (!this.outputs.includes(output)) {
+        this.outputs.push(output);
+      }
+      output.push(...args);
       console._log.apply(console, args);
     };
     window.__log = (...args) => {
-      this.list.push(args);
+      const output = Zone.current.get('output') || [];
+      if (!this.outputs.includes(output)) {
+        this.outputs.push(output);
+      }
+      output.push(...args);
     };
     window.__clear = () => {
-      this.list = [];
-    }
+      this.outputs = [];
+    };
+    window.__run = code => {
+      const zone = Zone.current.fork({
+        name: uniqueId('RUN_'),
+        properties: {
+          output: []
+        }
+      });
+      zone.run(() => {
+        try {
+          const output = window.Babel.transform(code, {
+            presets: ['es2015', 'es2017', 'stage-0']
+          });
+          eval(output.code);
+        } catch (error) {
+          window.__log(error);
+          throw error;
+        }
+      });
+    };
   }
 }
 
