@@ -1,3 +1,5 @@
+import 'zone.js';
+
 import Vue from 'vue';
 
 import App from './App';
