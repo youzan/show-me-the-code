@@ -71,6 +71,8 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import MonacoEditor from 'vue-monaco';
+import { fromEvent } from 'rxjs/observable/fromEvent';
+import { debounceTime } from 'rxjs/operators/debounceTime';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
@@ -197,6 +199,7 @@ export default class App extends Vue {
   nameErr = '';
   fontSize = 16;
   creator = false;
+  subscription = null;
 
   get title() {
     return `Welcome ${this.userName}`;
@@ -230,6 +233,12 @@ export default class App extends Vue {
     }
   }
 
+  beforeDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
   doAuth() {
     if (!this.userName) {
       this.nameErr = '请输入你的用户名';
@@ -246,6 +255,11 @@ export default class App extends Vue {
 
   handleEditorMount(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
+    this.subscription = fromEvent(window, 'resize').pipe(
+      debounceTime(1000)
+    ).subscribe(() => {
+      editor.layout();
+    })
   }
 
   handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
