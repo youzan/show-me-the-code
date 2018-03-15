@@ -38,6 +38,7 @@
     </i-menu>
     <div class="content">
       <v-monaco
+        ref="editor"
         class="editor"
         v-if="auth"
         v-model="content"
@@ -49,7 +50,8 @@
         @focus="$socket.emit('focus')"
         :options="monacoOptions"
         theme="vs-dark" />
-      <div v-if="language === 'javascript'" class="runner">
+      <div v-if="language === 'javascript'" ref="slider" class="slider" v-stream:mousedown="mouseDown$" />
+      <div v-if="language === 'javascript'" class="runner" ref="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
     </div>
@@ -80,6 +82,10 @@ import ConnectStatus from './components/ConnectStatus';
 import ClientList from './components/ClientList';
 import Timer from './components/Timer';
 import getContent from './getContent';
+import { combineLatest } from 'rxjs/observable/combineLatest';
+import { merge } from 'rxjs/observable/merge';
+import { mapTo, map, filter, scan, switchMap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators/tap';
 
 declare var _global: {
   id: string;
@@ -102,6 +108,7 @@ function getCreatorKeys() {
     'v-client-list': ClientList,
     'v-timer': Timer
   },
+  domStreams: ['mouseDown$'],
   watch: {
     fontSize(value) {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
@@ -118,6 +125,11 @@ function getCreatorKeys() {
     },
     language() {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
+      if (this.language !== 'javascript') {
+        this.$refs.editor.$el.style.width = '100%';
+      } else {
+        this.$refs.editor.$el.style.width = '';
+      }
       Vue.nextTick(() => editor.layout());
     }
   },
@@ -231,6 +243,47 @@ export default class App extends Vue {
     if (query.key) {
       this.key = query.key;
     }
+    this.initSlide();
+  }
+
+  initSlide() {
+    const mouseDown$ = (<any>this).mouseDown$;
+    const mouseUp$ = merge(fromEvent(window, 'mouseup'));
+    const sliding$ = merge(
+      mouseDown$.pipe(
+        mapTo(true),
+      ),
+      mouseUp$.pipe(
+        mapTo(false)
+      )
+    )
+    sliding$.pipe(
+      debounceTime(1)
+    ).subscribe(sliding => {
+      const iframe = <HTMLIFrameElement>this.$refs.iframe;
+      if (iframe) {
+        if (sliding) {
+          iframe.style.pointerEvents = 'none';
+        } else {
+          iframe.style.pointerEvents = undefined;
+        }
+      }
+    })
+    const mouseMove$ = fromEvent(window, 'mousemove')
+    const start$ = mouseDown$.pipe(map(({ event }) => event.clientX))
+    const end$ = mouseMove$.pipe(map((event: MouseEvent) => event.clientX))
+    const delta$ = combineLatest(start$, end$, sliding$).pipe(
+      filter(([, , sliding]) => !!sliding),
+      map(([start, end]) => end)
+    ).subscribe(end => {
+      const slider = <HTMLDivElement>this.$refs.slider;
+      const editor = <HTMLDivElement>(<Vue>this.$refs.editor).$el;
+      const runner = <HTMLDivElement>this.$refs.runner;
+      slider.style.left = `${end}px`;
+      editor.style.width = `${end}px`;
+      runner.style.left = `${end + 5}px`;
+      this.editor.layout();
+    })
   }
 
   beforeDestroy() {
@@ -322,17 +375,35 @@ body,
   flex: 1 1 100%;
   display: flex;
   flex-direction: row;
+  position: relative;
 
   .editor {
-    flex: 1 1 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 61.8%;
     overflow: hidden;
     box-shadow: 1px 0px 10px black;
     border-right: 1px solid black;
   }
 
   .runner {
-    flex: 1 1 50%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: calc(61.8% + 5px);
     overflow: hidden;
+  }
+
+  .slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    left: 61.8%;
+    cursor: ew-resize;
   }
 }
 
@@ -403,20 +474,6 @@ iframe {
   width: 100%;
   height: 100%;
   border: 0;
-}
-
-.run-modal {
-  .ivu-modal {
-    &-content {
-      display: flex;
-      flex-direction: column;
-      padding: 40px 16px 10px !important;
-      height: 600px;
-    }
-    &-body {
-      flex: 1 1;
-    }
-  }
 }
 </style>
 

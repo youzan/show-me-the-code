@@ -10,6 +10,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/share';
+import 'rxjs/add/observable/fromEvent';
 import '../style';
 
 import App from './App.vue';
