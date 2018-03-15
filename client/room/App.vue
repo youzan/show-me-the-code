@@ -50,7 +50,7 @@
         @focus="$socket.emit('focus')"
         :options="monacoOptions"
         theme="vs-dark" />
-      <div v-if="language === 'javascript'" ref="slider" class="slider" v-stream:mousedown="mouseDown$" />
+      <div v-if="language === 'javascript'" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
       <div v-if="language === 'javascript'" class="runner" ref="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
@@ -353,7 +353,7 @@ export default class App extends Vue {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 body,
 .app {
   display: flex;
@@ -397,7 +397,7 @@ body,
     overflow: hidden;
   }
 
-  .slider {
+  .code-slider {
     position: absolute;
     top: 0;
     bottom: 0;
