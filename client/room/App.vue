@@ -78,9 +78,9 @@ import { debounceTime } from 'rxjs/operators/debounceTime';
 
 import { languages } from './config';
 import { adaptSelectionToISelection } from './utils';
-import ConnectStatus from './components/ConnectStatus';
-import ClientList from './components/ClientList';
-import Timer from './components/Timer';
+import ConnectStatus from './components/ConnectStatus.vue';
+import ClientList from './components/ClientList.vue';
+import Timer from './components/Timer.vue';
 import getContent from './getContent';
 import { combineLatest } from 'rxjs/observable/combineLatest';
 import { merge } from 'rxjs/observable/merge';

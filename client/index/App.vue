@@ -26,7 +26,7 @@ export default class App extends Vue {
   key = ''
 
   get roomURL() {
-    return `${_global.url.base}/room/${this.id}?key=${this.key}`;
+    return `${(<any>window)._global.url.base}/room/${this.id}?key=${this.key}`;
   }
 
   get buttonText() {
@@ -37,13 +37,13 @@ export default class App extends Vue {
   }
 
   handleClick() {
-    window.open(`${_global.url.base}/create`);
+    window.open(`${(<any>window)._global.url.base}/create`);
   }
 
   async handleCreate() {
     const { data } = await axios({
       method: 'post',
-      url: `${_global.url.base}/create`
+      url: `${(<any>window)._global.url.base}/create`
     });
     this.id = data.id;
     this.key = data.key;

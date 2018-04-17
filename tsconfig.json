@@ -15,5 +15,8 @@
         "build",
         "node_modules",
         "static"
+    ],
+    "include": [
+        "sfc.d.ts"
     ]
 }
