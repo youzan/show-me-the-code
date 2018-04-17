@@ -7,7 +7,6 @@ import * as bodyParser from 'koa-bodyparser';
 import * as session from 'koa-session';
 import * as Router from 'koa-router';
 
-import passport from './passport';
 import SocketManager from './socket/Manager';
 import controller from './controller';
 
@@ -31,8 +30,6 @@ try {
     app.use(bodyParser());
     app.keys = ['secret'];
     app.use(session({}, app));
-    app.use(passport.initialize());
-    app.use(passport.session());
 
     app.use(nunjucks({
         ext: 'njk',
@@ -53,7 +50,7 @@ try {
     app.use(controller.allowedMethods());
 
     server.listen(config.port);
-    server2.listen(5000);
+
     console.log(`app listen on port ${config.port}`);
     
 } catch (error) {

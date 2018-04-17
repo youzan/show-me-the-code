@@ -6,7 +6,7 @@ import * as uuid from 'uuid/v1';
 import * as models from '../models';
 import auth from './auth';
 
-const { APPLICATION, URL } = require('../config/config');
+const { URL } = require('../config/config');
 
 const router = new Router();
 
