@@ -49,9 +49,35 @@ module.exports = {
 }
 ```
 `db_config.js`:
-This is <a href="http://docs.sequelizejs.com">Sequelize</a>'s config.
+This is <a href="http://docs.sequelizejs.com">Sequelize</a> config, please read <a href="http://docs.sequelizejs.com">Sequelize</a> documentation.
+Following `define` is required:
+```js
+// ...
+    define: {
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
+    }
+// ...
+```
 
 ## Production Build
 ```
 npm run dist
+```
+
+## Example Database Table Creation
+The `coding_id` field is UUID, this is for `mysql`. For other databases with native UUID support, eg. `Postgresql`, you can use `uuid` instead of `CHAR(36)`.
+```sql
+CREATE TABLE `coding_room` (
+  `coding_id` CHAR(36) NOT NULL COMMENT 'id',
+  `coding_key` CHAR(4) NOT NULL COMMENT 'key',
+  `coding_content` TEXT NOT NULL COMMENT 'content',
+  `coding_language` CHAR(20) NOT NULL DEFAULT 'javascript' COMMENT 'language',
+  `coding_last_time` DATE NOT NULL COMMENT 'last time',
+  `created_at` DATE NOT NULL COMMENT 'created at',
+  `updated_at` DATE NOT NULL COMMENT 'updated at',
+  `creator_key` CHAR(36) NOT NULL COMMENT 'creator key',
+  PRIMARY KEY (`coding_id`)
+)
 ```
