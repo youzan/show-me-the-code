@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <base href="{{ url.base }}">
-    <title>有赞－和我们一起enjoy工作和生活</title>
+    <title>Code</title>
     <script>
         window._global = {
             id: '{{ id }}',
@@ -28,7 +28,7 @@
 <body>
     {% block content %} {% endblock %}
 
-    <script src="{{ resource.base }}{{ resource.js.vendor }}"></script>
+    <script src="{{ resource.base }}{{ resource.js.vendor }}" crossorigin="anonymous"></script>
     {% block script %} {% endblock %}
 </body>
 </html>

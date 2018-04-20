@@ -4,7 +4,6 @@ import * as Router from 'koa-router';
 import * as uuid from 'uuid/v1';
 
 import * as models from '../models';
-import auth from './auth';
 
 const { URL } = require('../config/config');
 
@@ -66,7 +65,5 @@ router.get('/create', async (ctx: Context) => {
 
     ctx.redirect(`${URL.base}/room/${room.id}?key=${key}`)
 });
-
-router.use('/auth', auth.routes(), auth.allowedMethods());
 
 export default router;

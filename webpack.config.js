@@ -98,7 +98,7 @@ const client = merge({}, base, {
   output: {
     path: path.resolve(__dirname, './static'),
     filename: '[name].js',
-    publicPath: process.env.PUBLIC_PATH || '/'
+    publicPath: process.env.PUBLIC_PATH || '/static/dist'
   },
   module: {
     rules: [
@@ -159,7 +159,9 @@ if (process.env.NODE_ENV === 'production') {
   client.output.path = path.resolve(__dirname, './dist');
   client.output.filename = '[name]_[chunkhash].js';
   client.plugins.push(
-    new MinifyPlugin(),
+    new MinifyPlugin({}, {
+      comments: false
+    }),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
