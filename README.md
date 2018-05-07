@@ -102,14 +102,14 @@ CREATE TABLE 'coding_room' (
 ```
 Example for postgres:
 ```sql
-CREATE TABLE 'coding_room' (
-  'coding_id' uuid NOT NULL DEFAULT uuid_generate_v1() COMMENT 'id',
-  'coding_key' CHAR(4) NOT NULL COMMENT 'key',
-  'coding_content' TEXT NOT NULL COMMENT 'content',
-  'coding_language' CHAR(20) NOT NULL DEFAULT 'javascript' COMMENT 'language',
-  'created_at' DATE NOT NULL COMMENT 'created at',
-  'updated_at' DATE NOT NULL COMMENT 'updated at',
-  'creator_key' uuid NOT NULL DEFAULT uuid_generate_v1() COMMENT 'creator key',
-  PRIMARY KEY ('coding_id')
-)
+CREATE TABLE "coding_room" (
+  "coding_id" uuid NOT NULL DEFAULT uuid_generate_v1(),
+  "coding_key" CHAR(4) NOT NULL,
+  "coding_content" TEXT NOT NULL,
+  "coding_language" CHAR(20) NOT NULL DEFAULT 'javascript',
+  "created_at" DATE NOT NULL,
+  "updated_at" DATE NOT NULL,
+  "creator_key" uuid NOT NULL DEFAULT uuid_generate_v1(),
+  PRIMARY KEY ("coding_id")
+);
 ```
