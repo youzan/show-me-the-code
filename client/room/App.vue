@@ -343,7 +343,7 @@ export default class App extends Vue {
     const code = this.content.slice();
     const iframe: HTMLIFrameElement = <any>this.$refs.iframe;
     const win: any = iframe.contentWindow;
-    win.__run(code);
+    win.__run(code, this.language);
   }
 
   clearOutput() {
