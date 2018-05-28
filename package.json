@@ -25,7 +25,7 @@
       }
     },
     "dist": {
-      "command": "webpack --progress",
+      "command": "node --max-old-space-size=4096 node_modules/.bin/webpack --progress",
       "env": {
         "NODE_ENV": "production"
       }
