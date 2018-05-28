@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import 'zone.js';
 
 import Vue from 'vue';

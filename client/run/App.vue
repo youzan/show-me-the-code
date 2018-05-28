@@ -11,11 +11,15 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import uniqueId from 'lodash/uniqueId';
+// import Babel from '@babel/core';
+import * as Babel from '@babel/standalone';
 
-async function exec(input) {
-  const babel = await import('@babel/standalone');
-  return babel.transform(code, {
-    presets: ['es2015', 'es2017', 'typescript', 'stage-0']
+function compile(input) {
+  return Babel.transform(input, {
+    presets: ['es2015', 'es2017', 'typescript', 'stage-0'],
+    test: undefined,
+    include: undefined,
+    exclude: undefined
   }).code;
 }
 
@@ -67,9 +71,9 @@ class App extends Vue {
           output: []
         }
       });
-      zone.run(async () => {
+      zone.run(() => {
         try {
-          const output = await compile(code);
+          const output = compile(code);
           eval(output);
         } catch (error) {
           window.__log(error);

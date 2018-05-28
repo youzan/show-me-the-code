@@ -19,7 +19,7 @@
       <menu-item name="save">
         <i-button type="primary" @click="$socket.emit('save')">保存</i-button>
       </menu-item>
-      <menu-item v-if="language === 'javascript' || language === 'typescript'" name="run">
+      <menu-item v-if="language === 'typescript' || language === 'javascript'" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
       <menu-item name="timer" v-if="creator">
@@ -50,8 +50,8 @@
         @focus="$socket.emit('focus')"
         :options="monacoOptions"
         theme="vs-dark" />
-      <div v-if="language === 'javascript'" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
-      <div v-if="language === 'javascript'" class="runner" ref="runner">
+      <div v-if="language === 'typescript' || language === 'javascript'" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
+      <div v-if="language === 'typescript' || language === 'javascript'" class="runner" ref="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
     </div>
