@@ -19,17 +19,17 @@
       <menu-item name="save">
         <i-button type="primary" @click="$socket.emit('save')">保存</i-button>
       </menu-item>
-      <menu-item v-if="language === 'typescript' || language === 'javascript'" name="run">
+      <menu-item v-if="isRunnable" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
       <menu-item name="timer" v-if="creator">
         <v-timer />
       </menu-item>
-      <menu-item class="output" v-if="language === 'javascript'" name="run">
+      <menu-item class="output" v-if="isRunnable" name="run">
         Output:
       </menu-item>
       <div class="right" />
-      <menu-item name="clear" v-if="language === 'javascript'">
+      <menu-item name="clear" v-if="isRunnable">
         <i-button type="info" @click="clearOutput">清除输出</i-button>
       </menu-item>
       <menu-item name="powered-by" class="powered-by">
@@ -50,8 +50,8 @@
         @focus="$socket.emit('focus')"
         :options="monacoOptions"
         theme="vs-dark" />
-      <div v-if="language === 'typescript' || language === 'javascript'" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
-      <div v-if="language === 'typescript' || language === 'javascript'" class="runner" ref="runner">
+      <div v-if="isRunnable" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
+      <div v-if="isRunnable" class="runner" ref="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
     </div>
@@ -219,6 +219,10 @@ export default class App extends Vue {
 
   get runContent() {
     return getContent('');
+  }
+
+  get isRunnable() {
+    return this.language === 'typescript' || this.language === 'javascript';
   }
 
   monacoOptions = {
