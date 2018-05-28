@@ -2,7 +2,6 @@ function getContent(code) {
   return `
 <!DOCTYPE html>
 <head>
-  <script src="${_global.url.babel}"></script>
   <style>
   body {
     width: 100vw;
@@ -22,7 +21,7 @@ function getContent(code) {
 </head>
 <body>
   <div id="app"></div>
-  <script src="/${_global.resource.base}${_global.resource.vendor}"></script>
+  <script src="${_global.resource.base}${_global.resource.vendor}"></script>
   <script src="${_global.resource.base}${_global.resource.run}"></script>
 </body>
   `

@@ -12,6 +12,13 @@ import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import uniqueId from 'lodash/uniqueId';
 
+async function exec(input) {
+  const babel = await import('@babel/standalone');
+  return babel.transform(code, {
+    presets: ['es2015', 'es2017', 'typescript', 'stage-0']
+  }).code;
+}
+
 @Component({
   components: {
     VueJsonPretty
@@ -60,12 +67,10 @@ class App extends Vue {
           output: []
         }
       });
-      zone.run(() => {
+      zone.run(async () => {
         try {
-          const output = window.Babel.transform(code, {
-            presets: ['es2015', 'es2017', 'stage-0']
-          });
-          eval(output.code);
+          const output = await compile(code);
+          eval(output);
         } catch (error) {
           window.__log(error);
           throw error;

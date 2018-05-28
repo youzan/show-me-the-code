@@ -19,7 +19,7 @@
       <menu-item name="save">
         <i-button type="primary" @click="$socket.emit('save')">保存</i-button>
       </menu-item>
-      <menu-item v-if="language === 'javascript'" name="run">
+      <menu-item v-if="language === 'javascript' || language === 'typescript'" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
       <menu-item name="timer" v-if="creator">

@@ -1,4 +1,7 @@
 {
+  "plugins": [
+    "syntax-dynamic-import"
+  ],
   "presets": [
     ["env", {
       "targets": {
