@@ -125,7 +125,7 @@ function getCreatorKeys() {
     },
     language() {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
-      if (this.language !== 'javascript') {
+      if (!this.isRunnable) {
         this.$refs.editor.$el.style.width = '100%';
       } else {
         this.$refs.editor.$el.style.width = '';
