@@ -1,0 +1,13 @@
+[package]
+name = "show-me-the-code"
+version = "0.1.0"
+authors = ["intellild <jinzhixin@youzan.com>"]
+
+[dependencies]
+actix = "^0.5.8"
+actix-web = "^0.6"
+dotenv = "*"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+uuid = { version = "0.6", features = ["serde"] }
