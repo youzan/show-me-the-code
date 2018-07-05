@@ -19,17 +19,17 @@
       <menu-item name="save">
         <i-button type="primary" @click="$socket.emit('save')">保存</i-button>
       </menu-item>
-      <menu-item v-if="language === 'javascript'" name="run">
+      <menu-item v-if="isRunnable" name="run">
         <i-button type="success" @click="runCurrentContent">运行</i-button>
       </menu-item>
       <menu-item name="timer" v-if="creator">
         <v-timer />
       </menu-item>
-      <menu-item class="output" v-if="language === 'javascript'" name="run">
+      <menu-item class="output" v-if="isRunnable" name="run">
         Output:
       </menu-item>
       <div class="right" />
-      <menu-item name="clear" v-if="language === 'javascript'">
+      <menu-item name="clear" v-if="isRunnable">
         <i-button type="info" @click="clearOutput">清除输出</i-button>
       </menu-item>
       <menu-item name="powered-by" class="powered-by">
@@ -50,8 +50,8 @@
         @focus="$socket.emit('focus')"
         :options="monacoOptions"
         theme="vs-dark" />
-      <div v-if="language === 'javascript'" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
-      <div v-if="language === 'javascript'" class="runner" ref="runner">
+      <div v-if="isRunnable" ref="slider" class="code-slider" v-stream:mousedown="mouseDown$" />
+      <div v-if="isRunnable" class="runner" ref="runner">
         <iframe ref="iframe" :srcdoc="runContent" />
       </div>
     </div>
@@ -125,7 +125,7 @@ function getCreatorKeys() {
     },
     language() {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
-      if (this.language !== 'javascript') {
+      if (!this.isRunnable) {
         this.$refs.editor.$el.style.width = '100%';
       } else {
         this.$refs.editor.$el.style.width = '';
@@ -219,6 +219,10 @@ export default class App extends Vue {
 
   get runContent() {
     return getContent('');
+  }
+
+  get isRunnable() {
+    return this.language === 'typescript' || this.language === 'javascript';
   }
 
   monacoOptions = {
@@ -343,7 +347,7 @@ export default class App extends Vue {
     const code = this.content.slice();
     const iframe: HTMLIFrameElement = <any>this.$refs.iframe;
     const win: any = iframe.contentWindow;
-    win.__run(code);
+    win.__run(code, this.language);
   }
 
   clearOutput() {

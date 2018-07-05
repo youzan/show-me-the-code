@@ -11,6 +11,21 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import VueJsonPretty from 'vue-json-pretty';
 import uniqueId from 'lodash/uniqueId';
+import * as Babel from 'babel-standalone';
+import ts from 'typescript';
+
+function compile(input, type) {
+  switch (type) {
+    case 'javascript':
+        return Babel.transform(input, {
+    presets: ['es2015', 'es2017', 'stage-0']
+  }).code;
+    case 'typescript':
+      return ts.transpile(input);  
+    default:
+      break;
+  }
+}
 
 @Component({
   components: {
@@ -53,7 +68,7 @@ class App extends Vue {
     window.__clear = () => {
       this.outputs = [];
     };
-    window.__run = code => {
+    window.__run = (code, type) => {
       const zone = Zone.current.fork({
         name: uniqueId('RUN_'),
         properties: {
@@ -62,10 +77,8 @@ class App extends Vue {
       });
       zone.run(() => {
         try {
-          const output = window.Babel.transform(code, {
-            presets: ['es2015', 'es2017', 'stage-0']
-          });
-          eval(output.code);
+          const output = compile(code, type);
+          eval(output);
         } catch (error) {
           window.__log(error);
           throw error;

@@ -25,7 +25,7 @@
       }
     },
     "dist": {
-      "command": "webpack --progress",
+      "command": "node --max-old-space-size=4096 node_modules/.bin/webpack --progress",
       "env": {
         "NODE_ENV": "production"
       }
@@ -34,6 +34,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/standalone": "^7.0.0-beta.49",
     "@types/cookie": "^0.3.1",
     "@types/debug": "0.0.30",
     "@types/koa": "^2.0.39",
@@ -52,6 +53,7 @@
     "babel-core": "^7.0.0-alpha.20",
     "babel-loader": "^7.1.2",
     "babel-minify-webpack-plugin": "^0.2.0",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "babel-plugin-transform-runtime": "^7.0.0-alpha.20",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^2.0.0-alpha.20",
@@ -80,6 +82,7 @@
     "sass-loader": "^6.0.6",
     "sequelize-auto": "^0.4.28",
     "socket.io-client": "^2.0.3",
+    "typescript": "^2.8.3",
     "uglifyjs-webpack-plugin": "^0.4.6",
     "vue": "^2.5.9",
     "vue-class-component": "^5.0.2",
