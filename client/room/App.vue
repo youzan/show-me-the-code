@@ -33,7 +33,9 @@
         <i-button type="info" @click="clearOutput">清除输出</i-button>
       </menu-item>
       <menu-item name="powered-by" class="powered-by">
-        <p>Powered by 有赞前端</p>
+        <a class="github" href="//github.com/youzan/show-me-the-code" target="_blank" rel="noopener noreferrer">
+          <icon type="logo-github" />sPowered by 有赞前端
+        </a>
       </menu-item>
     </i-menu>
     <div class="content">
@@ -106,14 +108,14 @@ function getCreatorKeys() {
     'v-monaco': MonacoEditor,
     'v-connect-status': ConnectStatus,
     'v-client-list': ClientList,
-    'v-timer': Timer
+    'v-timer': Timer,
   },
   domStreams: ['mouseDown$'],
   watch: {
     fontSize(value) {
       const editor: monaco.editor.IStandaloneCodeEditor = this.editor;
       editor.updateOptions({
-        fontSize: value
+        fontSize: value,
       });
     },
     connect(value) {
@@ -131,7 +133,7 @@ function getCreatorKeys() {
         this.$refs.editor.$el.style.width = '';
       }
       Vue.nextTick(() => editor.layout());
-    }
+    },
   },
   sockets: {
     connect() {
@@ -165,17 +167,17 @@ function getCreatorKeys() {
         data.event.changes.map((change, index) => ({
           identifier: {
             major: data.ident,
-            minor: index
+            minor: index,
           },
           range: new monaco.Range(
             change.range.startLineNumber,
             change.range.startColumn,
             change.range.endLineNumber,
-            change.range.endColumn
+            change.range.endColumn,
           ),
           text: change.text,
-          forceMoveMarkers: true
-        }))
+          forceMoveMarkers: true,
+        })),
       );
       this.content = data.value;
       this.syncing = false;
@@ -191,8 +193,8 @@ function getCreatorKeys() {
     },
     creator() {
       this.creator = true;
-    }
-  }
+    },
+  },
 } as any)
 export default class App extends Vue {
   content = '';
@@ -226,7 +228,7 @@ export default class App extends Vue {
   }
 
   monacoOptions = {
-    fontSize: 16
+    fontSize: 16,
   };
 
   mounted() {
@@ -253,17 +255,8 @@ export default class App extends Vue {
   initSlide() {
     const mouseDown$ = (<any>this).mouseDown$;
     const mouseUp$ = merge(fromEvent(window, 'mouseup'));
-    const sliding$ = merge(
-      mouseDown$.pipe(
-        mapTo(true),
-      ),
-      mouseUp$.pipe(
-        mapTo(false)
-      )
-    )
-    sliding$.pipe(
-      debounceTime(1)
-    ).subscribe(sliding => {
+    const sliding$ = merge(mouseDown$.pipe(mapTo(true)), mouseUp$.pipe(mapTo(false)));
+    sliding$.pipe(debounceTime(1)).subscribe(sliding => {
       const iframe = <HTMLIFrameElement>this.$refs.iframe;
       if (iframe) {
         if (sliding) {
@@ -272,22 +265,21 @@ export default class App extends Vue {
           iframe.style.pointerEvents = undefined;
         }
       }
-    })
-    const mouseMove$ = fromEvent(window, 'mousemove')
-    const start$ = mouseDown$.pipe(map(({ event }) => event.clientX))
-    const end$ = mouseMove$.pipe(map((event: MouseEvent) => event.clientX))
-    const delta$ = combineLatest(start$, end$, sliding$).pipe(
-      filter(([, , sliding]) => !!sliding),
-      map(([start, end]) => end)
-    ).subscribe(end => {
-      const slider = <HTMLDivElement>this.$refs.slider;
-      const editor = <HTMLDivElement>(<Vue>this.$refs.editor).$el;
-      const runner = <HTMLDivElement>this.$refs.runner;
-      slider.style.left = `${end}px`;
-      editor.style.width = `${end}px`;
-      runner.style.left = `${end + 5}px`;
-      this.editor.layout();
-    })
+    });
+    const mouseMove$ = fromEvent(window, 'mousemove');
+    const start$ = mouseDown$.pipe(map(({ event }) => event.clientX));
+    const end$ = mouseMove$.pipe(map((event: MouseEvent) => event.clientX));
+    const delta$ = combineLatest(start$, end$, sliding$)
+      .pipe(filter(([, , sliding]) => !!sliding), map(([start, end]) => end))
+      .subscribe(end => {
+        const slider = <HTMLDivElement>this.$refs.slider;
+        const editor = <HTMLDivElement>(<Vue>this.$refs.editor).$el;
+        const runner = <HTMLDivElement>this.$refs.runner;
+        slider.style.left = `${end}px`;
+        editor.style.width = `${end}px`;
+        runner.style.left = `${end + 5}px`;
+        this.editor.layout();
+      });
   }
 
   beforeDestroy() {
@@ -306,24 +298,24 @@ export default class App extends Vue {
       id: this.id,
       key: this.key,
       userName: this.userName,
-      creatorKey: keys[_global.id] || ''
+      creatorKey: keys[_global.id] || '',
     });
   }
 
   handleEditorMount(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editor = editor;
-    this.subscription = fromEvent(window, 'resize').pipe(
-      debounceTime(1000)
-    ).subscribe(() => {
-      editor.layout();
-    })
+    this.subscription = fromEvent(window, 'resize')
+      .pipe(debounceTime(1000))
+      .subscribe(() => {
+        editor.layout();
+      });
   }
 
   handleCodeChange(value: string, e: monaco.editor.IModelContentChangedEvent) {
     if (!this.syncing) {
       (this as any).$socket.emit('code.change', {
         value,
-        event: e
+        event: e,
       });
     }
   }
@@ -332,14 +324,12 @@ export default class App extends Vue {
     if (this.syncing) {
       return;
     }
-    const selections: monaco.ISelection[] = this.editor
-      .getSelections()
-      .map(it => ({
-        selectionStartLineNumber: it.selectionStartLineNumber,
-        selectionStartColumn: it.selectionStartColumn,
-        positionLineNumber: it.positionLineNumber,
-        positionColumn: it.positionColumn
-      }));
+    const selections: monaco.ISelection[] = this.editor.getSelections().map(it => ({
+      selectionStartLineNumber: it.selectionStartLineNumber,
+      selectionStartColumn: it.selectionStartColumn,
+      positionLineNumber: it.positionLineNumber,
+      positionColumn: it.positionColumn,
+    }));
     (this as any).$socket.emit('selection', selections);
   }
 
@@ -421,7 +411,6 @@ body,
   height: 60px;
   flex: 0 0 60px;
 
-
   &-language {
     width: 160px;
   }
@@ -478,6 +467,10 @@ iframe {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+.github {
+  color: inherit;
 }
 </style>
 
