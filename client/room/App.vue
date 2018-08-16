@@ -34,7 +34,7 @@
       </menu-item>
       <menu-item name="powered-by" class="powered-by">
         <a class="github" href="//github.com/youzan/show-me-the-code" target="_blank" rel="noopener noreferrer">
-          <icon type="logo-github" />sPowered by 有赞前端
+          <icon type="logo-github" />Powered by 有赞前端
         </a>
       </menu-item>
     </i-menu>
