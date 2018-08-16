@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const MinifyPlugin = require('babel-minify-webpack-plugin');
+// const MinifyPlugin = require('babel-minify-webpack-plugin');
 const { merge } = require('lodash');
 
 const base = {
@@ -159,9 +159,7 @@ if (process.env.NODE_ENV === 'production') {
   client.output.path = path.resolve(__dirname, './dist');
   client.output.filename = '[name]_[chunkhash].js';
   client.plugins.push(
-    new MinifyPlugin({}, {
-      comments: false
-    }),
+    new webpack.optimize.UglifyJsPlugin(),
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
