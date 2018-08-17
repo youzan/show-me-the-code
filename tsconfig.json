@@ -1,22 +1,17 @@
 {
-    "compilerOptions": {
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true,
-        "allowJs": true,
-        "jsx": "preserve",
-        "target": "es5",
-        "lib": [
-            "dom",
-            "es2017"
-        ]
-    },
-    "exclude": [
-        ".vscode",
-        "build",
-        "node_modules",
-        "static"
-    ],
-    "include": [
-        "sfc.d.ts"
-    ]
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./client",
+    "module": "esnext",
+    "strict": true,
+    "moduleResolution": "node",
+    "target": "es2017",
+    "jsx": "react",
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2017", "dom"]
+  },
+  "awesomeTypescriptLoaderOptions": {
+    "useCache": true,
+    "reportFiles": ["src/**/*.{ts,tsx}"]
+  }
 }

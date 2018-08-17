@@ -1,202 +1,142 @@
 const path = require('path');
+
 const webpack = require('webpack');
-const CopyPlugin = require('copy-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-// const MinifyPlugin = require('babel-minify-webpack-plugin');
-const { merge } = require('lodash');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const HtmlPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 
-const base = {
-  output: {
-    path: path.resolve(__dirname, './build'),
-    filename: '[name].js'
-  },
-  resolve: {
-    extensions: ['.ts', '.scss', '.js', '.vue', '.jsx', '.tsx', '.css', '.vue']
-  },
-  devtool: '#source-map'
-};
+const isDev = process.env.NODE_ENV === 'development';
 
-const node = merge({}, base, {
+const vendors = [
+  'react',
+  'react-dom',
+  'monaco-editor',
+  'immutable',
+  'redux',
+  'react-redux',
+  'zone.js',
+  'dexie',
+  'resize-observer-polyfill',
+  'react-json-tree',
+];
+
+const config = {
+  mode: process.env.NODE_ENV,
   entry: {
-    server: './server/main.ts'
-  },
-  module: {
-    loaders: [
-      {
-        test: /.(j|t)s$/,
-        loader: 'babel-loader',
-        options: {
-          babelrc: false,
-          presets: [
-            [
-              'env',
-              {
-                targets: {
-                  node: '6.10'
-                },
-                modules: false
-              }
-            ],
-            'stage-0',
-            'typescript'
-          ]
-        }
-      }
-    ]
-  },
-  target: 'node',
-  node: {
-    __dirname: false
-  },
-  externals: [
-    {
-      'socket.io': 'commonjs socket.io',
-      'any-promise': 'commonjs any-promise',
-      fsevents: 'commonjs fsevents',
-      lodash: 'commonjs lodash',
-      uuid: 'commonjs uuid',
-      randomstring: 'commonjs randomstring',
-      sequelize: 'commonjs sequelize',
-      koa: 'commonjs koa',
-      'koa-nunjucks-2': 'commonjs koa-nunjucks-2'
-    },
-    (context, request, done) => {
-      if (/\.\.\/config/.test(request)) {
-        done(null, `commonjs ${request}`);
-      } else {
-        done();
-      }
-    }
-  ],
-  plugins: [
-    new CopyPlugin([
-      {
-        from: './server/view/**/*',
-        to: './view/[name].[ext]'
-      }
-    ]),
-    new webpack.optimize.ModuleConcatenationPlugin()
-  ]
-});
-
-const client = merge({}, base, {
-  entry: {
-    index: './client/index/main.js',
-    room: './client/room/main.js',
-    run: './client/run/main.js',
-    vendor: [
-      'vue',
-      'iview',
-      'socket.io-client',
-      'vue-class-component',
-      'axios',
-      'vue-socket.io',
-      'vue-monaco',
-      'moment'
-    ]
+    vendors,
+    app: './client/main.tsx',
   },
   output: {
-    path: path.resolve(__dirname, './static'),
-    filename: '[name].js',
-    publicPath: process.env.PUBLIC_PATH || '/static/dist'
+    filename: isDev ? '[name].js' : '[name].[chunkhash].js',
+    path: path.resolve(__dirname, 'static'),
   },
   module: {
     rules: [
       {
-        test: /\.(j|t)s?$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          loaders: {
-            ts: 'babel-loader',
-            scss: ExtractTextPlugin.extract([
-              'css-loader',
-              'postcss-loader',
-              'sass-loader'
-            ])
-          }
-        }
+        test: /\.s?css$/,
+        use: [isDev ? 'style-loader' : MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
       {
-        test: /\.(css|scss)$/,
-        use: ExtractTextPlugin.extract([
-          'css-loader',
-          'postcss-loader',
-          'sass-loader'
-        ])
-      },
-      {
-        test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
-        loader: 'file-loader'
-      },
-      {
-        test: /\.(png|jpe?g|gif|svg)(\?\S*)?$/,
+        test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
         loader: 'file-loader',
-        query: {
-          name: '[name].[ext]?[hash]'
-        }
-      }
-    ]
+      },
+    ],
   },
-  resolve: {
-    alias: {
-      'socket.io-client': 'socket.io-client/dist/socket.io.js'
-    }
+  watchOptions: {
+    ignored: /(node_modules|src|target)/,
+  },
+  optimization: {
+    minimizer: [],
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          chunks: 'initial',
+          name: 'vendors',
+          test: 'vendors',
+          enforce: true,
+        },
+      },
+    },
   },
   plugins: [
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'vendor',
-      minChunks: Infinity
-    })
-  ]
-});
-
-if (process.env.NODE_ENV === 'production') {
-  client.output.path = path.resolve(__dirname, './dist');
-  client.output.filename = '[name]_[chunkhash].js';
-  client.plugins.push(
-    new webpack.optimize.UglifyJsPlugin(),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
-      }
+    new webpack.ProgressPlugin(),
+    new MonacoWebpackPlugin(),
+    new webpack.ContextReplacementPlugin(
+      /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
+      __dirname,
+    ),
+    new HtmlPlugin({
+      template: './client/index.html',
+      cache: true,
     }),
-    new ExtractTextPlugin({
-      filename: '[name]_[contenthash].css',
-      allChunks: true
-    }),
-    new webpack.optimize.ModuleConcatenationPlugin()
-  );
-  client.devtool = false;
-
-  node.plugins.push(
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
+    new webpack.NamedChunksPlugin(chunk => {
+      if (chunk.name) {
+        return chunk.name;
       }
-    })
+      const regex = /(.+)monaco\-editor\/esm\/(.*)/;
+      for (const m of chunk._modules) {
+        if (regex.test(m.context)) {
+          return m.context.replace(regex, '$2');
+        }
+      }
+      return null;
+    }),
+    new CleanWebpackPlugin(['static']),
+    // new HardSourceWebpackPlugin(),
+    // new BundleAnalyzerPlugin(),
+  ],
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+    modules: [path.resolve(__dirname, 'client'), 'node_modules'],
+  },
+  devServer: {
+    proxy: {
+      '/ws': {
+        target: 'ws://127.0.0.1:8086',
+        ws: true,
+      },
+    },
+  },
+  stats: {
+    all: undefined,
+    colors: true,
+    children: false,
+    chunks: false,
+  },
+  performance: { hints: false },
+  devtool: false,
+};
+
+if (!isDev) {
+  config.plugins.push(
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+    }),
+    new webpack.HashedModuleIdsPlugin({
+      hashFunction: 'sha256',
+      hashDigest: 'hex',
+      hashDigestLength: 20,
+    }),
   );
-} else {
-  client.plugins.push(
-    // new CopyPlugin([
-    //   {
-    //     from: 'node_modules/monaco-editor/min/vs',
-    //     to: 'vs'
-    //   },
-    //   {
-    //     from: 'node_modules/babel.min.js',
-    //     to: '.'
-    //   }
-    // ]),
-    new ExtractTextPlugin({
-      filename: '[name].css',
-      allChunks: true
-    })
+  config.optimization.minimizer.push(
+    new UglifyJsPlugin({
+      uglifyOptions: {
+        ecma: 7,
+      },
+      parallel: true,
+    }),
+    new OptimizeCssAssetsPlugin(),
   );
 }
 
-module.exports = [node, client];
+module.exports = config;
