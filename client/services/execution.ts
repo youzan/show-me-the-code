@@ -92,7 +92,7 @@ class Executor implements IDisposable {
         }),
         switchMap(() =>
           race(
-            of(1).pipe(delay(30000)),
+            of(1).pipe(delay(5000)),
             this.message$.pipe(
               filter(({ type }) => type === 'pong'),
               mapTo(0),
@@ -102,7 +102,7 @@ class Executor implements IDisposable {
       )
       .subscribe(value => {
         if (value > 0) {
-          this.executionService.kill(this.id, 'Execution not responding');
+          this.executionService.kill(this.id, 'Executor not responding');
         }
       });
   }
@@ -135,7 +135,7 @@ export class ExecutionService implements IDisposable {
       const executor = new Executor(this, id, type, code);
       this.executors.set(id, executor);
     } catch (error) {
-      toast(`Can not execute ${type}`);
+      toast.error(`Can not execute ${type}`);
     }
   }
 
@@ -170,7 +170,7 @@ export class ExecutionService implements IDisposable {
     this.executors.delete(id);
     executor.dispose();
     executor.kill();
-    toast(reason);
+    toast.error(reason);
   }
 
   killAll() {

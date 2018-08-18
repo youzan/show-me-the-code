@@ -60,7 +60,7 @@ if ((module as any).hot) {
 
 const App = ({ clientId }: { clientId: string }) => (
   <>
-    {clientId || (
+    {!clientId && (
       <Dimmer active>
         <Loader size="massive">Loading</Loader>
       </Dimmer>
