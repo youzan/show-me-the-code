@@ -40,3 +40,7 @@ export type ConnectedAction = {
   type: 'CONNECTED';
   id: string;
 };
+
+export type StopExecutionAction = {
+  type: 'STOP_EXECUTION';
+};

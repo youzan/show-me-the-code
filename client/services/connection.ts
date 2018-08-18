@@ -53,7 +53,6 @@ class ServerConnection implements IDisposable {
   };
 
   constructor() {
-    this.connect();
     this.heartbeatSubscription = this.initHeartbeat();
   }
 
@@ -115,6 +114,10 @@ export class Connection implements IDisposable {
 
   init() {
     this.disposers.push(this.serverConnection.dispose.bind(this.serverConnection));
+  }
+
+  connect() {
+    this.serverConnection.connect();
   }
 
   dispose() {

@@ -7,6 +7,7 @@ import thunk from 'redux-thunk';
 import { BehaviorSubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Loader, Dimmer } from 'semantic-ui-react';
+import { ToastContainer } from 'react-toastify';
 
 import { model } from 'services/code';
 import Editor from 'components/editor';
@@ -16,16 +17,22 @@ import { CodeDatabase } from 'services/storage';
 import { epic, Dependencies, EpicType } from 'epics';
 import reducer, { State } from 'reducer';
 import { Connection } from 'services/connection';
+import { ExecutionService } from 'services/execution';
 
 import './style.scss';
 
 const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
+export const db = new CodeDatabase();
+export const connection = new Connection();
+export const executionService = new ExecutionService();
+
 const epicMiddleware = createEpicMiddleware<Action<any>, Action<any>, State, Dependencies>({
   dependencies: {
     textModel: model,
-    db: new CodeDatabase(),
-    connection: new Connection(),
+    db,
+    connection,
+    executionService,
   },
 });
 
@@ -58,6 +65,7 @@ const App = ({ clientId }: { clientId: string }) => (
         <Loader size="massive">Loading</Loader>
       </Dimmer>
     )}
+    <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
     <Header />
     <Editor model={model} />
     <Output />

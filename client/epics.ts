@@ -10,20 +10,22 @@ import {
   ExecutionAction,
   ExecutionOutputAction,
   ConnectedAction,
+  StopExecutionAction,
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
 import { Dispatch } from 'redux';
 import { Connection } from 'services/connection';
-// import { ws$ } from 'services/connection';
+import { ExecutionService } from 'services/execution';
 
 export type Dependencies = {
   textModel: monaco.editor.ITextModel;
   db: CodeDatabase;
   connection: Connection;
+  executionService: ExecutionService;
 };
 
-export type InputAction = ChangeLanguageAction | SaveAxtion | ExecutionAction | ConnectedAction;
+export type InputAction = ChangeLanguageAction | SaveAxtion | ExecutionAction | ConnectedAction | StopExecutionAction;
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
 export type EpicType = Epic<InputAction, any, State, Dependencies>;
@@ -88,10 +90,18 @@ const connectionEpic: EpicType = (action$, state$, { connection }) =>
     })),
   );
 
+const stopExecutionEpic: EpicType = (action$, state$, { executionService }) =>
+  action$.pipe(
+    ofType('STOP_EXECUTION'),
+    tap(executionService.killAll.bind(executionService)),
+    ignoreElements(),
+  );
+
 export const epic = combineEpics<any, any, State, Dependencies>(
   changeLanguageEpic,
   languageDidChangeEpic,
   saveEpic,
   executionEpic,
   connectionEpic,
+  stopExecutionEpic,
 );
