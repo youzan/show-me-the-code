@@ -80,6 +80,7 @@ const config = {
     new HtmlPlugin({
       template: './client/index.html',
       cache: true,
+      excludeChunks: ['javascript.executor']
     }),
     new webpack.NamedChunksPlugin(chunk => {
       if (chunk.name) {

@@ -1,17 +1,17 @@
 import { Subject, interval, merge, Subscription, never, race, of } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
-import { mapTo, delay, tap, switchMap, filter, scan, startWith, retry } from 'rxjs/operators';
+import { mapTo, delay, tap, switchMap, filter, scan, startWith, retry, distinctUntilChanged } from 'rxjs/operators';
 import { IDisposable } from 'monaco-editor';
 
 import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
 
 export type SocketMessage =
   | {
-      type: 'ping';
-    }
+    type: 'ping';
+  }
   | {
-      type: 'pong';
-    };
+    type: 'pong';
+  };
 
 export class ServerConnection implements IDisposable {
   url = SOCKET_URL;
@@ -38,7 +38,6 @@ export class ServerConnection implements IDisposable {
   };
 
   constructor() {
-    this.initHeartbeat();
     this.connect();
     this.heartbeatSubscription = this.initHeartbeat();
   }
@@ -46,7 +45,14 @@ export class ServerConnection implements IDisposable {
   initHeartbeat() {
     return merge(this.open$.pipe(mapTo(true)), this.closing$.pipe(mapTo(false)))
       .pipe(
-        switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL).pipe(startWith(1)) : never())),
+        distinctUntilChanged(),
+        switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL) : never())),
+        tap(() => {
+          console.log('sending ping')
+          this.ws$.next({
+            type: 'ping'
+          })
+        }),
         switchMap(() =>
           race(
             of(1).pipe(delay(HEARTBEAT_INTERVAL)),
@@ -55,11 +61,6 @@ export class ServerConnection implements IDisposable {
               mapTo(0),
             ),
           ),
-        ),
-        tap(() =>
-          this.ws$.next({
-            type: 'ping',
-          }),
         ),
         scan((count, v) => count + v, 0),
       )
