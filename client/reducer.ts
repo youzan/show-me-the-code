@@ -6,9 +6,11 @@ import {
   ExecutionAction,
   ExecutionOutputAction,
   ClearAction,
+  ConnectedAction,
 } from './actions';
 
 export type State = {
+  clientId: string;
   codeId: string;
   language: string;
   fontSize: number;
@@ -16,13 +18,20 @@ export type State = {
 };
 
 const INITIAL_STATE: State = {
+  clientId: '',
   codeId: '',
   language: 'javascript',
   fontSize: 12,
   output: OrderedMap(),
 };
 
-type Action = LanguageDidChangeAction | FontSizeChangeAction | ExecutionAction | ExecutionOutputAction | ClearAction;
+type Action =
+  | LanguageDidChangeAction
+  | FontSizeChangeAction
+  | ExecutionAction
+  | ExecutionOutputAction
+  | ClearAction
+  | ConnectedAction;
 
 export function reducer(state: State = INITIAL_STATE, action: Action): State {
   switch (action.type) {
@@ -53,6 +62,11 @@ export function reducer(state: State = INITIAL_STATE, action: Action): State {
       return {
         ...state,
         output: OrderedMap(),
+      };
+    case 'CONNECTED':
+      return {
+        ...state,
+        clientId: action.id,
       };
     default:
       return state;

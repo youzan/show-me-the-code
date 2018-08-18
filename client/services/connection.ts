@@ -1,24 +1,39 @@
-import { Subject, interval, merge, Subscription, never, race, of } from 'rxjs';
+import { Subject, interval, merge, Subscription, never, race, of, BehaviorSubject, Observable } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
-import { mapTo, delay, tap, switchMap, filter, scan, startWith, retry, distinctUntilChanged } from 'rxjs/operators';
+import {
+  mapTo,
+  delay,
+  tap,
+  switchMap,
+  filter,
+  scan,
+  startWith,
+  retry,
+  distinctUntilChanged,
+  pluck,
+} from 'rxjs/operators';
 import { IDisposable } from 'monaco-editor';
 
 import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
 
 export type SocketMessage =
   | {
-    type: 'ping';
-  }
+      type: 'ping';
+    }
   | {
-    type: 'pong';
-  };
+      type: 'pong';
+    }
+  | {
+      type: 'connected';
+      id: string;
+    };
 
-export class ServerConnection implements IDisposable {
-  url = SOCKET_URL;
+class ServerConnection implements IDisposable {
+  private readonly url = SOCKET_URL;
   open$ = new Subject<Event>();
   closing$ = new Subject<void>();
   close$ = new Subject<CloseEvent>();
-  ws$ = webSocket<SocketMessage>({
+  private ws$ = webSocket<SocketMessage>({
     url: this.url,
     openObserver: this.open$,
     closeObserver: this.close$,
@@ -26,14 +41,14 @@ export class ServerConnection implements IDisposable {
   });
   fetal$ = new Subject<any>();
   message$ = new Subject<SocketMessage>();
-  subscription: Subscription | null = null;
-  heartbeatSubscription: Subscription;
+  private subscription: Subscription | null = null;
+  private heartbeatSubscription: Subscription;
 
-  subscriber = (message: SocketMessage) => {
+  private subscriber = (message: SocketMessage) => {
     this.message$.next(message);
   };
 
-  errorHandler = (error: any) => {
+  private errorHandler = (error: any) => {
     this.fetal$.next(error);
   };
 
@@ -42,16 +57,15 @@ export class ServerConnection implements IDisposable {
     this.heartbeatSubscription = this.initHeartbeat();
   }
 
-  initHeartbeat() {
+  private initHeartbeat() {
     return merge(this.open$.pipe(mapTo(true)), this.closing$.pipe(mapTo(false)))
       .pipe(
         distinctUntilChanged(),
-        switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL) : never())),
+        switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL).pipe(startWith(1)) : never())),
         tap(() => {
-          console.log('sending ping')
           this.ws$.next({
-            type: 'ping'
-          })
+            type: 'ping',
+          });
         }),
         switchMap(() =>
           race(
@@ -83,5 +97,27 @@ export class ServerConnection implements IDisposable {
   dispose() {
     this.subscription && this.subscription.unsubscribe();
     this.heartbeatSubscription.unsubscribe();
+  }
+}
+
+export class Connection implements IDisposable {
+  connection$: Observable<string>;
+  private serverConnection = new ServerConnection();
+  private disposers: Array<() => void> = [];
+
+  constructor() {
+    this.connection$ = this.serverConnection.message$.pipe(
+      filter(({ type }) => type === 'connected'),
+      pluck('id'),
+    );
+    this.init();
+  }
+
+  init() {
+    this.disposers.push(this.serverConnection.dispose.bind(this.serverConnection));
+  }
+
+  dispose() {
+    this.disposers.forEach(disposer => disposer());
   }
 }

@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader';
 import { createStore, applyMiddleware, compose, Action } from 'redux';
+import { connect } from 'react-redux';
 import { createEpicMiddleware } from 'redux-observable';
-import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
 import { BehaviorSubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { Loader, Dimmer } from 'semantic-ui-react';
 
 import { model } from 'services/code';
 import Editor from 'components/editor';
@@ -14,7 +15,7 @@ import Output from 'components/output';
 import { CodeDatabase } from 'services/storage';
 import { epic, Dependencies, EpicType } from 'epics';
 import reducer, { State } from 'reducer';
-import { ServerConnection } from 'services/connection';
+import { Connection } from 'services/connection';
 
 import './style.scss';
 
@@ -24,7 +25,7 @@ const epicMiddleware = createEpicMiddleware<Action<any>, Action<any>, State, Dep
   dependencies: {
     textModel: model,
     db: new CodeDatabase(),
-    serverConnection: new ServerConnection()
+    connection: new Connection(),
   },
 });
 
@@ -50,12 +51,21 @@ if ((module as any).hot) {
   });
 }
 
-const App = () => (
+const App = ({ clientId }: { clientId: string }) => (
   <>
+    {clientId || (
+      <Dimmer active>
+        <Loader size="massive">Loading</Loader>
+      </Dimmer>
+    )}
     <Header />
     <Editor model={model} />
     <Output />
   </>
 );
 
-export default hot(module)(App);
+export default hot(module)(
+  connect((state: State) => ({
+    clientId: state.clientId,
+  }))(App),
+);

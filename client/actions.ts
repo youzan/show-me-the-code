@@ -34,4 +34,9 @@ export type SaveSuccessAction = {
 
 export type ClearAction = {
   type: 'CLEAR_OUTPUT';
-}
+};
+
+export type ConnectedAction = {
+  type: 'CONNECTED';
+  id: string;
+};
