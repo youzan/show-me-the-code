@@ -1,4 +1,4 @@
-import { NoopExecutor } from './common';
+import { NoopExecutor, isExecutionZone } from './common';
 // @ts-check
 class JavaScriptExecutor extends NoopExecutor {
   constructor() {
@@ -17,10 +17,13 @@ class JavaScriptExecutor extends NoopExecutor {
       const originMethod = console[method];
       const patchedMethod = (...args) => {
         originMethod(...args);
+        if (!Zone.current.get(isExecutionZone)) {
+          return;
+        }
         if (method === 'error') {
-          this.stderr(args);
+          this.stderr(...args);
         } else {
-          this.stdout(args);
+          this.stdout(...args);
         }
       }
       patchedMethod[original] = originMethod;

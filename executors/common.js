@@ -1,14 +1,25 @@
 import 'zone.js';
 
+export const isExecutionZone = Symbol();
+
+function getString(e) {
+  if (e instanceof Error) {
+    return e.message;
+  }
+  if (typeof e === 'symbol') {
+    return e.toString();
+  }
+  try {
+    return JSON.stringify(e);
+  } catch (error) {
+    return '' + e;
+  }
+}
+
 export class NoopExecutor {
   constructor() {
-    this._hasTask = true;
+    this._hasTask = false;
     this._endReached = false;
-    setInterval(() => {
-      postMessage({
-        type: 'ping',
-      });
-    }, 30000);
     onmessage = e => {
       const { data } = e;
       switch (data.type) {
@@ -17,23 +28,28 @@ export class NoopExecutor {
         case 'execution':
           this.onExecute(data.code);
           break;
+        case 'ping':
+          postMessage({
+            type: 'pong',
+          });
+          break;
         default:
           break;
       }
-    }
+    };
   }
 
-  stdout(data) {
+  stdout(...data) {
     postMessage({
       type: 'stdout',
-      data: JSON.stringify(data),
+      data: data.map(getString),
     });
   }
 
-  stderr(data) {
+  stderr(...data) {
     postMessage({
       type: 'stderr',
-      data: JSON.stringify(data),
+      data: data.map(getString),
     });
   }
 
@@ -43,12 +59,21 @@ export class NoopExecutor {
 
   doExec(f) {
     const zone = Zone.current.fork({
-      onHasTask(parentZoneDelegate, currentZone, targetZone, hasTaskState) {
-        if (hasTaskState.eventTask + hasTaskState.macroTask + hasTaskState.microTask === 0) {
+      onHasTask: (parentZoneDelegate, currentZone, targetZone, hasTaskState) => {
+        if (hasTaskState.eventTask || hasTaskState.macroTask || hasTaskState.microTask) {
+          this._hasTask = true;
+        } else {
           this._hasTask = false;
         }
         this._end();
       },
+      onHandleError: error => {
+        this.stderr(error);
+        return true;
+      },
+      properties: {
+        [isExecutionZone]: true
+      }
     });
     zone.run(f);
     this._endReached = true;
@@ -56,7 +81,7 @@ export class NoopExecutor {
   }
 
   _end() {
-    if (!this.hasTask && this.endReached) {
+    if (!this._hasTask && this._endReached) {
       postMessage({
         type: 'close',
       });

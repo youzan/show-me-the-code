@@ -15,15 +15,32 @@ type WorkerMessage =
     }
   | {
       type: 'close';
+    }
+  | {
+      type: 'stdout';
+      data: string[];
+    }
+  | {
+      type: 'stderr';
+      data: string[];
+    }
+  | {
+      type: 'execution';
+      code: string;
     };
+
+function fromString(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch (error) {
+    return s;
+  }
+}
 
 class Executor implements IDisposable {
   private worker: Worker;
-  private timeoutCount = 0;
-  private timtoutTimer = 0;
-  private intervalTimer = 0;
   private message$ = new Subject<WorkerMessage>();
-  private subscriptions: Subscription[] = [];
+  private subscriptions: Subscription[];
 
   constructor(
     private readonly executionService: ExecutionService,
@@ -39,40 +56,55 @@ class Executor implements IDisposable {
     this.worker.onmessage = e => {
       this.message$.next(e.data);
     };
-    this.subscriptions.push(
-      this.message$.subscribe(data => {
-        switch (data.type) {
-          case 'close':
-            this.executionService.stop(this.id);
-            break;
-          default:
-            break;
-        }
-      }),
-      interval(HEARTBEAT_INTERVAL)
-        .pipe(
-          startWith(1),
-          tap(() => {
-            this.worker.postMessage({
-              type: 'ping',
-            });
-          }),
-          switchMap(() =>
-            race(
-              of(1).pipe(delay(30000)),
-              this.message$.pipe(
-                filter(({ type }) => type === 'pong'),
-                mapTo(0),
-              ),
+    this.subscriptions = [this.handleMessage(), this.heartbeat()];
+    this.worker.postMessage({
+      type: 'execution',
+      code,
+    });
+  }
+
+  handleMessage() {
+    return this.message$.subscribe(data => {
+      switch (data.type) {
+        case 'close':
+          this.executionService.stop(this.id);
+          break;
+        case 'stdout':
+          this.executionService.stdout(this.id, data.data.map(fromString));
+          break;
+        case 'stderr':
+          this.executionService.stderr(this.id, data.data.map(fromString));
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  heartbeat() {
+    return interval(HEARTBEAT_INTERVAL)
+      .pipe(
+        startWith(1),
+        tap(() => {
+          this.worker.postMessage({
+            type: 'ping',
+          });
+        }),
+        switchMap(() =>
+          race(
+            of(1).pipe(delay(30000)),
+            this.message$.pipe(
+              filter(({ type }) => type === 'pong'),
+              mapTo(0),
             ),
           ),
-        )
-        .subscribe(value => {
-          if (value > 0) {
-            this.executionService.kill(this.id, 'Execution not responding');
-          }
-        }),
-    );
+        ),
+      )
+      .subscribe(value => {
+        if (value > 0) {
+          this.executionService.kill(this.id, 'Execution not responding');
+        }
+      });
   }
 
   kill() {
@@ -88,17 +120,37 @@ class Executor implements IDisposable {
   }
 }
 
-export class ExecutionService implements IDisposable {
-  executors = new Map<string, Executor>();
+export type Output<T = any> = {
+  data: T[];
+  id: string;
+};
 
-  execute(type: string, code: string) {
-    const id = uuid();
+export class ExecutionService implements IDisposable {
+  private executors = new Map<string, Executor>();
+  stdout$ = new Subject<Output>();
+  stderr$ = new Subject<Output<Error>>();
+
+  execute(id: string, type: string, code: string) {
     try {
       const executor = new Executor(this, id, type, code);
       this.executors.set(id, executor);
     } catch (error) {
       toast(`Can not execute ${type}`);
     }
+  }
+
+  stdout(id: string, data: any[]) {
+    this.stdout$.next({
+      id,
+      data,
+    });
+  }
+
+  stderr(id: string, data: string[]) {
+    this.stderr$.next({
+      id,
+      data: data.map(it => new Error(it)),
+    });
   }
 
   stop(id: string) {

@@ -30,7 +30,6 @@ const config = {
   entry: {
     vendors,
     app: './client/main.tsx',
-    'javascript.executor': './executors/javascript.js'
   },
   output: {
     filename: isDev ? '[name].js' : '[name].[chunkhash].js',
@@ -51,7 +50,7 @@ const config = {
       {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
         loader: 'file-loader',
-      }
+      },
     ],
   },
   watchOptions: {
@@ -80,7 +79,6 @@ const config = {
     new HtmlPlugin({
       template: './client/index.html',
       cache: true,
-      excludeChunks: ['javascript.executor']
     }),
     new webpack.NamedChunksPlugin(chunk => {
       if (chunk.name) {
@@ -142,4 +140,16 @@ if (!isDev) {
   );
 }
 
-module.exports = config;
+const executors = {
+  mode: isDev ? 'development' : 'production',
+  target: 'webworker',
+  entry: {
+    javascript: './executors/javascript.worker.js',
+  },
+  output: {
+    path: path.resolve(__dirname, 'static'),
+    filename: '[name].executor.js',
+  },
+};
+
+module.exports = [config, executors];

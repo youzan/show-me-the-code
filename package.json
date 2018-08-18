@@ -55,6 +55,7 @@
     "webpack-bundle-analyzer": "^2.13.1",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5",
+    "worker-loader": "^2.0.0",
     "zone.js": "^0.8.26"
   }
 }

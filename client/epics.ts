@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable } from 'rxjs';
+import { from, Observable, merge } from 'rxjs';
 import { tap, ignoreElements, withLatestFrom, switchMap, mapTo, map } from 'rxjs/operators';
 import * as monaco from 'monaco-editor';
 
@@ -25,7 +25,14 @@ export type Dependencies = {
   executionService: ExecutionService;
 };
 
-export type InputAction = ChangeLanguageAction | SaveAxtion | ExecutionAction | ConnectedAction | StopExecutionAction;
+export type InputAction =
+  | ChangeLanguageAction
+  | SaveAxtion
+  | ExecutionAction
+  | ConnectedAction
+  | StopExecutionAction
+  | ExecutionAction;
+
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
 export type EpicType = Epic<InputAction, any, State, Dependencies>;
@@ -67,21 +74,6 @@ const saveEpic: EpicType = (action$, state$, { db, textModel }) =>
     }),
   );
 
-const executionEpic: EpicType = (action$, state$, { textModel }) =>
-  action$.pipe(
-    ofType('EXECUTION'),
-    map(({ id }: ExecutionAction) => (dispatch: Dispatch<ExecutionOutputAction>) => {
-      function onOutput(...args: any[]) {
-        dispatch({
-          type: 'EXECUTUON_OUTPUT',
-          id,
-          data: args,
-        });
-      }
-      // exec(onOutput, id, textModel.getValue());
-    }),
-  );
-
 const connectionEpic: EpicType = (action$, state$, { connection }) =>
   connection.connection$.pipe(
     map(id => ({
@@ -97,11 +89,31 @@ const stopExecutionEpic: EpicType = (action$, state$, { executionService }) =>
     ignoreElements(),
   );
 
+const executionEpic: EpicType = (action$, state$, { executionService, textModel }) =>
+  action$.pipe(
+    ofType('EXECUTION'),
+    withLatestFrom(state$),
+    tap(([{ id }, state]: [ExecutionAction, State]) => {
+      executionService.execute(id, state.language, textModel.getValue());
+    }),
+    ignoreElements(),
+  );
+
+const outputEpic: EpicType = (action$, state$, { executionService }) =>
+  merge(executionService.stdout$, executionService.stderr$).pipe(
+    map(({ id, data }) => ({
+      type: 'EXECUTUON_OUTPUT',
+      id,
+      data,
+    })),
+  );
+
 export const epic = combineEpics<any, any, State, Dependencies>(
   changeLanguageEpic,
   languageDidChangeEpic,
   saveEpic,
-  executionEpic,
   connectionEpic,
   stopExecutionEpic,
+  outputEpic,
+  executionEpic,
 );
