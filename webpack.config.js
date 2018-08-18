@@ -9,6 +9,7 @@ const HtmlPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+const { PUBLIC_PATH } = require('./config');
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -19,7 +20,6 @@ const vendors = [
   'immutable',
   'redux',
   'react-redux',
-  'zone.js',
   'dexie',
   'resize-observer-polyfill',
   'react-json-tree',
@@ -30,10 +30,12 @@ const config = {
   entry: {
     vendors,
     app: './client/main.tsx',
+    'javascript.executor': './executors/javascript.js'
   },
   output: {
     filename: isDev ? '[name].js' : '[name].[chunkhash].js',
     path: path.resolve(__dirname, 'static'),
+    publicPath: PUBLIC_PATH,
   },
   module: {
     rules: [
@@ -49,7 +51,7 @@ const config = {
       {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
         loader: 'file-loader',
-      },
+      }
     ],
   },
   watchOptions: {

@@ -12,7 +12,7 @@ import {
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { exec } from 'services/exec';
+import { Executor } from 'services/execution';
 import { Dispatch } from 'redux';
 import { ServerConnection } from 'services/connection';
 // import { ws$ } from 'services/connection';
@@ -76,7 +76,7 @@ const executionEpic: EpicType = (action$, state$, { textModel }) =>
           data: args,
         });
       }
-      exec(onOutput, id, textModel.getValue());
+      // exec(onOutput, id, textModel.getValue());
     }),
   );
 

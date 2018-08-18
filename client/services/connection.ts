@@ -3,6 +3,8 @@ import { webSocket } from 'rxjs/webSocket';
 import { mapTo, delay, tap, switchMap, filter, scan, startWith, retry } from 'rxjs/operators';
 import { IDisposable } from 'monaco-editor';
 
+import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
+
 export type SocketMessage =
   | {
       type: 'ping';
@@ -11,10 +13,8 @@ export type SocketMessage =
       type: 'pong';
     };
 
-const URL = `${window.location.origin.replace(/^http(s?):/, 'ws$1:')}/ws`;
-
 export class ServerConnection implements IDisposable {
-  url = URL;
+  url = SOCKET_URL;
   open$ = new Subject<Event>();
   closing$ = new Subject<void>();
   close$ = new Subject<CloseEvent>();
@@ -46,20 +46,20 @@ export class ServerConnection implements IDisposable {
   initHeartbeat() {
     return merge(this.open$.pipe(mapTo(true)), this.closing$.pipe(mapTo(false)))
       .pipe(
-        switchMap(connected => (connected ? interval(30000).pipe(startWith(1)) : never())),
-        tap(() =>
-          this.ws$.next({
-            type: 'ping',
-          }),
-        ),
+        switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL).pipe(startWith(1)) : never())),
         switchMap(() =>
           race(
-            of(1).pipe(delay(30000)),
+            of(1).pipe(delay(HEARTBEAT_INTERVAL)),
             this.ws$.pipe(
               filter(msg => msg.type === 'pong'),
               mapTo(0),
             ),
           ),
+        ),
+        tap(() =>
+          this.ws$.next({
+            type: 'ping',
+          }),
         ),
         scan((count, v) => count + v, 0),
       )
