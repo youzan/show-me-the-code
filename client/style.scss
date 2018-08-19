@@ -55,3 +55,14 @@ body {
     flex-wrap: wrap;
   }
 }
+
+.index-modal {
+  .content {
+    display: flex !important;
+
+    .form,
+    .list {
+      flex: 1 1 50%;
+    }
+  }
+}

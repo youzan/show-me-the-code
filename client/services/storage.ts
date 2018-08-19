@@ -14,7 +14,7 @@ export class CodeDatabase extends Dexie {
   constructor() {
     super(NAME);
     this.version(1).stores({
-      code: "++id, language, content"
+      code: "++id, name, language, content"
     });
     this.code = (this as any).code;
   }

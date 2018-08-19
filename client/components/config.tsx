@@ -3,8 +3,10 @@ import { Component } from 'react';
 import { connect } from 'react-redux';
 import { Segment, Dropdown, Button, Icon, Popup, DropdownProps, DropdownItemProps } from 'semantic-ui-react';
 
+import { LANGUAGE } from '../../config';
+
 import { State } from '../reducer';
-import { LANGUAGES, FONT_SIZE } from '../constants';
+import { FONT_SIZE } from '../constants';
 import { ChangeLanguageAction, FontSizeChangeAction } from '../actions';
 
 type ConfigProps = {
@@ -17,6 +19,11 @@ type ConfigProps = {
 type ConfigState = {
   searchQuery: number | '';
 };
+
+const options = LANGUAGE.LIST.map(lang => ({
+  value: lang,
+  text: LANGUAGE.DISPLAY[lang],
+}));
 
 class Config extends Component<ConfigProps, ConfigState> {
   state: ConfigState = {
@@ -69,7 +76,7 @@ class Config extends Component<ConfigProps, ConfigState> {
         on="click"
         position="bottom left"
       >
-        <Dropdown selection search options={LANGUAGES} onChange={onLanguageChange} value={language} />
+        <Dropdown selection search options={options} onChange={onLanguageChange} value={language} />
         <Dropdown
           selection
           search
