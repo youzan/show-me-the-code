@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader';
 import { createStore, applyMiddleware, compose, Action } from 'redux';
-import { connect } from 'react-redux';
 import { createEpicMiddleware } from 'redux-observable';
 import thunk from 'redux-thunk';
 import { BehaviorSubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { Loader, Dimmer, TransitionablePortal } from 'semantic-ui-react';
 import { ToastContainer } from 'react-toastify';
 
 import { model } from 'services/code';
@@ -14,7 +12,8 @@ import Editor from 'components/editor';
 import Header from 'components/header';
 import Output from 'components/output';
 import IndexModal from 'components/index-modal';
-import { CodeDatabase } from 'services/storage';
+import Loading from 'components/loading';
+import { CodeDatabase, StorageContext } from 'services/storage';
 import { epic, Dependencies, EpicType } from 'epics';
 import reducer, { State } from 'reducer';
 import { Connection } from 'services/connection';
@@ -59,23 +58,15 @@ if ((module as any).hot) {
   });
 }
 
-const App = ({ clientId }: { clientId: string }) => (
-  <>
-    <TransitionablePortal open={!clientId} transition={{ animation: 'fade' }}>
-      <Dimmer active>
-        <Loader size="massive">Loading</Loader>
-      </Dimmer>
-    </TransitionablePortal>
+const App = () => (
+  <StorageContext.Provider value={db}>
+    <Loading />
     <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
     <Header />
     <Editor model={model} />
     <Output />
     <IndexModal />
-  </>
+  </StorageContext.Provider>
 );
 
-export default hot(module)(
-  connect((state: State) => ({
-    clientId: state.clientId,
-  }))(App),
-);
+export default hot(module)(App);

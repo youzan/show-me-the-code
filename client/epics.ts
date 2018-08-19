@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable, merge } from 'rxjs';
+import { from, Observable, merge, never } from 'rxjs';
 import { tap, ignoreElements, withLatestFrom, switchMap, mapTo, map } from 'rxjs/operators';
 import * as monaco from 'monaco-editor';
 
@@ -60,14 +60,18 @@ const saveEpic: EpicType = (action$, state$, { db, textModel }) =>
   action$.pipe(
     ofType('SAVE'),
     withLatestFrom(state$),
-    switchMap(([_, state]) =>
-      from(
-        db.code.add({
-          id: state.codeId,
-          content: textModel.getValue(),
-          language: state.language,
-        }),
-      ),
+    switchMap(
+      ([_, state]) =>
+        state.codeId && state.codeName
+          ? from(
+              db.code.add({
+                id: state.codeId,
+                name: state.codeName,
+                content: textModel.getValue(),
+                language: state.language,
+              }),
+            )
+          : never(),
     ),
     mapTo({
       type: 'SAVE_SUCCESS',

@@ -44,3 +44,7 @@ export type ConnectedAction = {
 export type StopExecutionAction = {
   type: 'STOP_EXECUTION';
 };
+
+export type CreateAction = {
+  type: 'CREATE';
+};

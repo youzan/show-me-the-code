@@ -7,19 +7,24 @@ import {
   ExecutionOutputAction,
   ClearAction,
   ConnectedAction,
+  CreateAction,
 } from './actions';
 
 export type State = {
-  clientId: string;
-  codeId: string;
+  clientId: string | null;
+  codeId: string | null;
+  codeName: string | null;
+  clientType: 'host' | 'guest' | null;
   language: string;
   fontSize: number;
   output: OrderedMap<string, any[][]>;
 };
 
 const INITIAL_STATE: State = {
-  clientId: '',
-  codeId: '',
+  clientId: null,
+  codeId: null,
+  codeName: null,
+  clientType: null,
   language: 'javascript',
   fontSize: 12,
   output: OrderedMap(),
@@ -31,7 +36,8 @@ type Action =
   | ExecutionAction
   | ExecutionOutputAction
   | ClearAction
-  | ConnectedAction;
+  | ConnectedAction
+  | CreateAction;
 
 export function reducer(state: State = INITIAL_STATE, action: Action): State {
   switch (action.type) {
@@ -67,6 +73,11 @@ export function reducer(state: State = INITIAL_STATE, action: Action): State {
       return {
         ...state,
         clientId: action.id,
+      };
+    case 'CREATE':
+      return {
+        ...state,
+        clientType: 'host',
       };
     default:
       return state;

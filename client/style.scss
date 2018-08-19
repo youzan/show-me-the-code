@@ -59,10 +59,17 @@ body {
 .index-modal {
   .content {
     display: flex !important;
+    height: 80vh;
 
     .form,
     .list {
       flex: 1 1 50%;
+    }
+
+    .form {
+      .button {
+        width: 100px;
+      }
     }
   }
 }
