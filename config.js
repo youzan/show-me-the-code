@@ -6,13 +6,21 @@ function getSocketURL() {
   }
 }
 
+function getExecutors() {
+  try {
+    return require('./executors.assets');
+  } catch (error) {
+    return {
+      javascript: 'javascript.executor.js',
+    };
+  }
+}
+
 module.exports = {
   SOCKET_URL: getSocketURL(),
   HEARTBEAT_INTERVAL: 30000,
-  PUBLIC_PATH: '/',
-  EXECUTORS: {
-    javascript: 'javascript.executor.js',
-  },
+  PUBLIC_PATH: '',
+  EXECUTORS: getExecutors(),
   LANGUAGE: {
     LIST: [
       'typescript',

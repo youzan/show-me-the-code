@@ -2,8 +2,22 @@
   "name": "show-me-the-code",
   "version": "0.0.0",
   "scripts": {
-    "dev": "NODE_ENV=development webpack-dev-server --hot",
-    "prod": "NODE_ENV=production webpack"
+    "dev": "better-npm-run dev",
+    "prod": "better-npm-run prod"
+  },
+  "betterScripts": {
+    "dev": {
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "command": "webpack-dev-server --hot"
+    },
+    "prod": {
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "command": "webpack --config webpack.executors.js && webpack --config webpack.app.js"
+    }
   },
   "private": true,
   "dependencies": {
@@ -16,7 +30,9 @@
     "@types/react-redux": "^6.0.6",
     "@types/react-toastify": "^4.0.1",
     "@types/uuid": "^3.4.3",
+    "assets-webpack-plugin": "^3.9.5",
     "autodll-webpack-plugin": "^0.4.2",
+    "better-npm-run": "^0.1.1",
     "classnames": "^2.2.6",
     "clean-webpack-plugin": "^0.1.19",
     "css-loader": "^1.0.0",
@@ -25,6 +41,7 @@
     "hard-source-webpack-plugin": "^0.12.0",
     "html-webpack-plugin": "^3.2.0",
     "immutable": "^3.8.2",
+    "lodash": "^4.17.10",
     "mini-css-extract-plugin": "^0.4.1",
     "monaco-editor": "^0.14.1",
     "monaco-editor-webpack-plugin": "^1.5.1",

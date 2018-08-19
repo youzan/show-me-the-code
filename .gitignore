@@ -64,3 +64,4 @@ generateModel.js
 config
 dist
 target
+executors.assets.js
