@@ -18,6 +18,19 @@ pub enum Message {
     from: Option<Uuid>,
     request_id: String,
   },
+  JoinResponse {
+    to: Uuid,
+    from: Option<Uuid>,
+    request_id: Uuid,
+    ok: bool,
+    code_id: Uuid,
+    code_name: String,
+    code_content: String,
+    language: String,
+  },
+  Offline {
+    client_id: Uuid,
+  },
   Connected {
     id: Uuid,
   },
@@ -53,8 +66,7 @@ impl Actor for WsSession {
       .signal_server_addr
       .send(server::Connect {
         addr: addr.recipient(),
-      })
-      .into_actor(self)
+      }).into_actor(self)
       .then(|res, act, ctx| {
         match res {
           Ok(res) => {
@@ -64,8 +76,7 @@ impl Actor for WsSession {
           Err(_) => ctx.stop(),
         }
         fut::ok(())
-      })
-      .wait(ctx);
+      }).wait(ctx);
   }
 
   fn stopping(&mut self, ctx: &mut Self::Context) -> Running {
@@ -83,7 +94,12 @@ impl Handler<server::Message> for WsSession {
   type Result = ();
   fn handle(&mut self, server::Message(from, msg): server::Message, ctx: &mut Self::Context) {
     match msg {
-      Message::Join { to, name, from: _, request_id } => {
+      Message::Join {
+        to,
+        name,
+        from: _,
+        request_id,
+      } => {
         ctx.text(
           to_string::<Message>(&Message::Join {
             from: Some(from),
@@ -122,8 +138,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
                     ctx.stop();
                   }
                   fut::ok(())
-                })
-                .wait(ctx);
+                }).wait(ctx);
             }
           }
           Err(_) => ctx.text(

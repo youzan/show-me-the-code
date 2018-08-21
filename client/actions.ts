@@ -47,4 +47,13 @@ export type StopExecutionAction = {
 
 export type CreateAction = {
   type: 'CREATE';
+  userName: string;
+  codeId: string;
+  codeName: string;
 };
+
+export type JoinAction = {
+  type: 'JOIN';
+  userName: string;
+  codeId: string;
+}

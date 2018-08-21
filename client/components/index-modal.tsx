@@ -1,8 +1,20 @@
 import * as React from 'react';
-import { PureComponent } from 'react';
-import { Modal, Divider, Form, List, Label, CheckboxProps, ListItemProps } from 'semantic-ui-react';
+import { Component, PureComponent } from 'react';
+import { connect } from 'react-redux';
+import {
+  Modal,
+  Divider,
+  Form,
+  List,
+  Label,
+  CheckboxProps,
+  ListItemProps,
+  InputProps,
+  TransitionablePortal,
+} from 'semantic-ui-react';
 import { CodeDatabase, StorageContext, Code } from 'services/storage';
 import { LANGUAGE } from '../../config';
+import { State } from 'reducer';
 
 const EMPTY = 'empty';
 
@@ -57,32 +69,56 @@ class StoredList extends PureComponent<StoredListProps, StoredListState> {
   }
 }
 
+type IndexModalProps = {
+  open: boolean;
+};
+
 type IndexModalState = {
   type: 'create' | 'join';
   userName: string;
   codeName: string;
-  join: string;
+  sharedId: string;
   selected: string;
   copy: boolean;
+  errors: string[];
 };
 
-export class IndexModal extends PureComponent<{}, IndexModalState> {
+export class IndexModal extends Component<IndexModalProps, IndexModalState> {
   state: IndexModalState = {
     type: 'join',
     userName: '',
     codeName: '',
-    join: '',
+    sharedId: '',
     selected: EMPTY,
     copy: false,
+    errors: [],
   };
 
-  onSubmit = (event: React.FormEvent<HTMLFormElement>, data: any) => {
-    console.log(event, data);
+  onSubmit = () => {
+    const { type, userName, codeName, sharedId, selected, copy } = this.state;
   };
 
   onTypeChange = (event: React.FormEvent<HTMLInputElement>, { checked, name }: CheckboxProps) => {
     this.setState({
       type: (name || 'join') as 'join' | 'create',
+    });
+  };
+
+  onUserNameChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+    this.setState({
+      userName: value,
+    });
+  };
+
+  onCodeNameChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+    this.setState({
+      codeName: value,
+    });
+  };
+
+  onSharedIdChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+    this.setState({
+      sharedId: value,
     });
   };
 
@@ -99,41 +135,54 @@ export class IndexModal extends PureComponent<{}, IndexModalState> {
   };
 
   render() {
-    const { type, userName, codeName, join, selected, copy } = this.state;
+    const { type, userName, codeName, sharedId, selected, copy } = this.state;
 
     return (
-      <Modal className="index-modal" size="large" open>
-        <Modal.Content>
-          <Form onSubmit={this.onSubmit}>
-            <Form.Group>
-              <Form.Radio
-                name="join"
-                label="Join someone's great work"
-                checked={type === 'join'}
-                onChange={this.onTypeChange}
-              />
-              <Form.Radio
-                name="create"
-                label="Create your own great work"
-                checked={type === 'create'}
-                onChange={this.onTypeChange}
-              />
-            </Form.Group>
-            <Form.Input required label="Who are you ?" />
-            {type === 'create' && <Form.Input required label="Name of your great work" />}
-            {type === 'join' && <Form.Input required label="Shared ID" />}
-            {type === 'create' &&
-              selected !== EMPTY && <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />}
-            <Form.Button primary>Go</Form.Button>
-          </Form>
-          <Divider vertical />
-          <StorageContext.Consumer>
-            {db => <StoredList db={db} selected={selected} onSelect={this.onSelect} />}
-          </StorageContext.Consumer>
-        </Modal.Content>
-      </Modal>
+      <TransitionablePortal transition={{ animation: 'fade down' }} open>
+        <Modal className="index-modal" size="large" open>
+          <Modal.Content>
+            <Form onSubmit={this.onSubmit}>
+              <Form.Group>
+                <Form.Radio
+                  name="join"
+                  label="Join someone's great work"
+                  checked={type === 'join'}
+                  onChange={this.onTypeChange}
+                />
+                <Form.Radio
+                  name="create"
+                  label="Create your own great work"
+                  checked={type === 'create'}
+                  onChange={this.onTypeChange}
+                />
+              </Form.Group>
+              <Form.Input required label="Who are you ?" value={userName} onChange={this.onUserNameChange} />
+              {type === 'create' && (
+                <Form.Input
+                  required
+                  label="Name of your great work"
+                  value={codeName}
+                  onChange={this.onCodeNameChange}
+                />
+              )}
+              {type === 'join' && (
+                <Form.Input required label="Shared ID" value={sharedId} onChange={this.onSharedIdChange} />
+              )}
+              {type === 'create' &&
+                selected !== EMPTY && <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />}
+              <Form.Button primary>Go</Form.Button>
+            </Form>
+            <Divider vertical />
+            <StorageContext.Consumer>
+              {db => <StoredList db={db} selected={selected} onSelect={this.onSelect} />}
+            </StorageContext.Consumer>
+          </Modal.Content>
+        </Modal>
+      </TransitionablePortal>
     );
   }
 }
 
-export default IndexModal;
+export default connect((state: State) => ({
+  open: !state.codeId,
+}))(IndexModal);

@@ -8,12 +8,14 @@ import {
   ClearAction,
   ConnectedAction,
   CreateAction,
+  JoinAction,
 } from './actions';
 
 export type State = {
   clientId: string | null;
   codeId: string | null;
   codeName: string | null;
+  userName: string;
   clientType: 'host' | 'guest' | null;
   language: string;
   fontSize: number;
@@ -24,6 +26,7 @@ const INITIAL_STATE: State = {
   clientId: null,
   codeId: null,
   codeName: null,
+  userName: '',
   clientType: null,
   language: 'javascript',
   fontSize: 12,
@@ -37,7 +40,8 @@ type Action =
   | ExecutionOutputAction
   | ClearAction
   | ConnectedAction
-  | CreateAction;
+  | CreateAction
+  | JoinAction;
 
 export function reducer(state: State = INITIAL_STATE, action: Action): State {
   switch (action.type) {
@@ -78,6 +82,16 @@ export function reducer(state: State = INITIAL_STATE, action: Action): State {
       return {
         ...state,
         clientType: 'host',
+        codeId: action.codeId,
+        codeName: action.codeName,
+        userName: action.userName,
+      };
+    case 'JOIN':
+      return {
+        ...state,
+        clientType: 'guest',
+        codeName: action.codeId,
+        userName: action.userName,
       };
     default:
       return state;
