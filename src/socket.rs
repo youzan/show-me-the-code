@@ -40,19 +40,23 @@ pub enum Message {
   },
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct SendMessage {
-  from: Uuid,
-  msg: Box<Message>,
-}
+// #[derive(Serialize, Deserialize)]
+// pub struct SendMessage {
+//   from: Uuid,
+//   msg: Box<Message>,
+// }
 
 pub struct WsSession {
-  id: Option<Uuid>,
+  id: Uuid,
+  host_id: Option<Uuid>,
 }
 
 impl Default for WsSession {
   fn default() -> WsSession {
-    WsSession { id: None }
+    WsSession {
+      id: Uuid::new_v4(),
+      host_id: None,
+    }
   }
 }
 
@@ -64,14 +68,12 @@ impl Actor for WsSession {
     ctx
       .state()
       .signal_server_addr
-      .send(server::Connect {
-        addr: addr.recipient(),
-      }).into_actor(self)
+      .send(server::Connect(self.id, addr.recipient()))
+      .into_actor(self)
       .then(|res, act, ctx| {
         match res {
-          Ok(res) => {
-            ctx.text(to_string(&Message::Connected { id: res }).expect("error sending connected"));
-            act.id = Some(res)
+          Ok(_) => {
+            ctx.text(to_string(&Message::Connected { id: act.id }).expect("Error sending message"));
           }
           Err(_) => ctx.stop(),
         }
@@ -80,37 +82,18 @@ impl Actor for WsSession {
   }
 
   fn stopping(&mut self, ctx: &mut Self::Context) -> Running {
-    if let Some(id) = self.id {
-      ctx
-        .state()
-        .signal_server_addr
-        .do_send(server::Disconnect { id });
-    }
+    ctx
+      .state()
+      .signal_server_addr
+      .do_send(server::Disconnect(self.id, self.host_id));
     Running::Stop
   }
 }
 
 impl Handler<server::Message> for WsSession {
   type Result = ();
-  fn handle(&mut self, server::Message(from, msg): server::Message, ctx: &mut Self::Context) {
-    match msg {
-      Message::Join {
-        to,
-        name,
-        from: _,
-        request_id,
-      } => {
-        ctx.text(
-          to_string::<Message>(&Message::Join {
-            from: Some(from),
-            to,
-            name,
-            request_id,
-          }).expect("error sending message"),
-        );
-      }
-      _ => {}
-    }
+  fn handle(&mut self, server::Message(_, _, msg): server::Message, ctx: &mut Self::Context) {
+    ctx.text(to_string(&msg).expect("error sending message"));
   }
 }
 
@@ -126,20 +109,34 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
             ctx.text(to_string::<Message>(&Message::Pong).expect("error sending pong"))
           }
           Ok(Message::Pong) => {}
-          Ok(msg) => {
-            if let Some(id) = self.id {
-              ctx
-                .state()
-                .signal_server_addr
-                .send(server::Message(id, msg))
-                .into_actor(self)
-                .then(|res, _, ctx| {
-                  if let Err(_) = res {
-                    ctx.stop();
-                  }
-                  fut::ok(())
-                }).wait(ctx);
-            }
+          Ok(Message::Join {
+            from: _,
+            to,
+            name,
+            request_id,
+          }) => {
+            ctx
+              .state()
+              .signal_server_addr
+              .send(server::Message(
+                self.id,
+                Some(to),
+                Message::Join {
+                  from: Some(self.id),
+                  to,
+                  name,
+                  request_id,
+                },
+              )).into_actor(self)
+              .then(|res, _, ctx| {
+                if let Err(_) = res {
+                  ctx.stop();
+                }
+                fut::ok(())
+              }).wait(ctx);
+          }
+          Ok(_) => {
+            println!("Unsupported message received");
           }
           Err(_) => ctx.text(
             to_string::<Message>(&Message::Error {
