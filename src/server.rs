@@ -36,10 +36,11 @@ impl actix::Message for Disconnect {
 }
 
 type Sessions = HashMap<Uuid, Recipient<Syn, Message>>;
+type Groups = HashMap<Uuid, HashSet<Uuid>>;
 
 pub struct SignalServer {
     sessions: Sessions,
-    groups: HashMap<Uuid, HashSet<Uuid>>,
+    groups: Groups,
 }
 
 impl Default for SignalServer {
@@ -68,22 +69,38 @@ impl Handler<Disconnect> for SignalServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
-        if let Some(host_id) = msg.1 {
-            let groups = &mut self.groups;
-            if let Some(set) = groups.get_mut(&host_id) {
+        let groups = &mut self.groups;
+        let sessions = &mut self.sessions;
+        sessions.remove(&msg.0);
+        msg.1
+            .and_then(|host_id| groups.get_mut(&host_id))
+            .into_iter()
+            .flat_map(|set| {
                 set.remove(&msg.0);
-                for val in set.iter() {
-                    if let Some(addr) = self.sessions.get(&val) {
-                        let _ = addr.do_send(Message(
-                            msg.0,
-                            None,
-                            socket::Message::Offline { client_id: msg.0 },
-                        ));
-                    }
-                }
-            }
-        }
-        self.sessions.remove(&msg.0);
+                set.iter()
+            }).flat_map(|id| sessions.get(&id))
+            .for_each(|addr| {
+                let _ = addr.do_send(Message(
+                    msg.0,
+                    None,
+                    socket::Message::Offline { client_id: msg.0 },
+                ));
+            });
+        // if let Some(host_id) = msg.1 {
+        //     let groups = &mut self.groups;
+        //     if let Some(set) = groups.get_mut(&host_id) {
+        //         set.remove(&msg.0);
+        //         for val in set.iter() {
+        //             if let Some(addr) = self.sessions.get(&val) {
+        //                 let _ = addr.do_send(Message(
+        //                     msg.0,
+        //                     None,
+        //                     socket::Message::Offline { client_id: msg.0 },
+        //                 ));
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 
