@@ -2,11 +2,18 @@
   "name": "show-me-the-code",
   "version": "0.0.0",
   "scripts": {
+    "serve": "better-npm-run dev",
     "dev": "better-npm-run dev",
     "prod": "better-npm-run prod"
   },
   "betterScripts": {
     "dev": {
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "command": "webpack -w"
+    },
+    "serve": {
       "env": {
         "NODE_ENV": "development"
       },

@@ -64,7 +64,7 @@ impl Actor for WsSession {
   type Context = ws::WebsocketContext<Self, State>;
 
   fn started(&mut self, ctx: &mut Self::Context) {
-    let addr: Addr<Syn, _> = ctx.address();
+    let addr = ctx.address();
     ctx
       .state()
       .signal_server_addr

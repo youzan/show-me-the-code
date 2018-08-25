@@ -19,7 +19,7 @@ function getExecutors() {
 module.exports = {
   SOCKET_URL: getSocketURL(),
   HEARTBEAT_INTERVAL: 30000,
-  PUBLIC_PATH: '',
+  PUBLIC_PATH: '/static/',
   EXECUTORS: getExecutors(),
   LANGUAGE: {
     LIST: [

@@ -18,7 +18,7 @@ impl actix::Message for Message {
     type Result = ();
 }
 
-pub struct Connect(pub Uuid, pub Recipient<Syn, Message>);
+pub struct Connect(pub Uuid, pub Recipient<Message>);
 
 impl actix::Message for Connect {
     type Result = ();
@@ -35,7 +35,7 @@ impl actix::Message for Disconnect {
     type Result = ();
 }
 
-type Sessions = HashMap<Uuid, Recipient<Syn, Message>>;
+type Sessions = HashMap<Uuid, Recipient<Message>>;
 type Groups = HashMap<Uuid, HashSet<Uuid>>;
 
 pub struct SignalServer {
