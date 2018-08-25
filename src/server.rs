@@ -68,7 +68,7 @@ impl Handler<Connect> for SignalServer {
 impl Handler<Disconnect> for SignalServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
+    fn handle<'a>(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
         let groups = &mut self.groups;
         let sessions = &mut self.sessions;
         sessions.remove(&msg.0);
@@ -86,6 +86,20 @@ impl Handler<Disconnect> for SignalServer {
                     socket::Message::Offline { client_id: msg.0 },
                 ));
             });
+        // msg.1
+        //     .iter()
+        //     .flat_map(|host_id| groups.get_mut(&host_id))
+        //     .flat_map(|set| {
+        //         set.remove(&msg.0);
+        //         set.iter()
+        //     }).flat_map(|id| sessions.get(&id))
+        //     .map(|addr| {
+        //         addr.do_send(Message(
+        //             msg.0,
+        //             None,
+        //             socket::Message::Offline { client_id: msg.0 },
+        //         ))
+        //     });
         // if let Some(host_id) = msg.1 {
         //     let groups = &mut self.groups;
         //     if let Some(set) = groups.get_mut(&host_id) {
@@ -108,10 +122,15 @@ impl Handler<Message> for SignalServer {
     type Result = ();
 
     fn handle(&mut self, msg: Message, _: &mut Context<Self>) -> Self::Result {
-        if let Some(id) = msg.1 {
-            if let Some(addr) = self.sessions.get(&id) {
-                let _ = addr.do_send(msg);
+        match msg {
+            Message(from, Some(to), socket::Message::JoinResponse { ok: true, .. }) => {
+                self.groups.entry(from).or_default().insert(to);
             }
+            _ => {}
         }
+
+        msg.1
+            .and_then(|id| self.sessions.get(&id))
+            .map(|addr| addr.do_send(msg));
     }
 }
