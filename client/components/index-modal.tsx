@@ -11,10 +11,14 @@ import {
   ListItemProps,
   InputProps,
   TransitionablePortal,
+  FormProps,
 } from 'semantic-ui-react';
-import { CodeDatabase, StorageContext, Code } from 'services/storage';
-import { LANGUAGE } from '../../config';
+import * as uuid from 'uuid/v1';
+
+import { CodeDatabase, Code } from 'services/storage';
 import { State } from 'reducer';
+import { CreateAction } from 'actions';
+import { LANGUAGE } from '../../config';
 
 const EMPTY = 'empty';
 
@@ -41,7 +45,7 @@ class StoredList extends PureComponent<StoredListProps, StoredListState> {
     });
   }
 
-  onClick = (event: React.MouseEvent<HTMLAnchorElement>, { id }: ListItemProps) => {
+  onClick = (_event: React.MouseEvent<HTMLAnchorElement>, { id }: ListItemProps) => {
     this.props.onSelect(id);
   };
 
@@ -71,6 +75,8 @@ class StoredList extends PureComponent<StoredListProps, StoredListState> {
 
 type IndexModalProps = {
   open: boolean;
+  db: CodeDatabase;
+  onCreate(userName: string, codeId: string, codeName: string, content?: string): void;
 };
 
 type IndexModalState = {
@@ -94,29 +100,41 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
     errors: [],
   };
 
-  onSubmit = () => {
-    const { type, userName, codeName, sharedId, selected, copy } = this.state;
+  onSubmit = async (event: React.FormEvent<HTMLFormElement>, _data: FormProps) => {
+    console.log('onSubmit');
+    const { type, userName, codeName, selected, copy } = this.state;
+    const { db, onCreate } = this.props;
+    event.preventDefault();
+    if (type === 'create' && selected === EMPTY) {
+      onCreate(userName, uuid(), codeName, '');
+    } else if (type === 'create' && selected !== EMPTY) {
+      const from = (await db.code.where('id').equals(selected).toArray())[0];
+      if (!from) {
+        throw new Error();
+      }
+      onCreate(userName, copy ? uuid() : from.id, codeName, from.content);
+    }
   };
 
-  onTypeChange = (event: React.FormEvent<HTMLInputElement>, { checked, name }: CheckboxProps) => {
+  onTypeChange = (_event: React.FormEvent<HTMLInputElement>, { name }: CheckboxProps) => {
     this.setState({
       type: (name || 'join') as 'join' | 'create',
     });
   };
 
-  onUserNameChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+  onUserNameChange = (_event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
     this.setState({
       userName: value,
     });
   };
 
-  onCodeNameChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+  onCodeNameChange = (_event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
     this.setState({
       codeName: value,
     });
   };
 
-  onSharedIdChange = (event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
+  onSharedIdChange = (_event: React.FormEvent<HTMLInputElement>, { value }: InputProps) => {
     this.setState({
       sharedId: value,
     });
@@ -128,7 +146,7 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
     });
   };
 
-  onCopyChange = (event: React.FormEvent<HTMLInputElement>, { checked }: CheckboxProps) => {
+  onCopyChange = (_event: React.FormEvent<HTMLInputElement>, { checked }: CheckboxProps) => {
     this.setState({
       copy: !!checked,
     });
@@ -136,10 +154,11 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
 
   render() {
     const { type, userName, codeName, sharedId, selected, copy } = this.state;
+    const { db, open } = this.props;
 
     return (
-      <TransitionablePortal transition={{ animation: 'fade down' }} open>
-        <Modal className="index-modal" size="large" open>
+      <TransitionablePortal transition={{ animation: 'fade down' }} open={open}>
+        <Modal className="index-modal" size="large" open={open}>
           <Modal.Content>
             <Form onSubmit={this.onSubmit}>
               <Form.Group>
@@ -173,9 +192,7 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
               <Form.Button primary>Go</Form.Button>
             </Form>
             <Divider vertical />
-            <StorageContext.Consumer>
-              {db => <StoredList db={db} selected={selected} onSelect={this.onSelect} />}
-            </StorageContext.Consumer>
+            <StoredList db={db} selected={selected} onSelect={this.onSelect} />
           </Modal.Content>
         </Modal>
       </TransitionablePortal>
@@ -183,6 +200,19 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
   }
 }
 
-export default connect((state: State) => ({
-  open: !state.codeId,
-}))(IndexModal);
+export default connect(
+  (state: State) => ({
+    open: !state.codeId,
+  }),
+  {
+    onCreate(userName: string, codeId: string, codeName: string, content = ''): CreateAction {
+      return {
+        type: 'CREATE',
+        userName,
+        codeId,
+        codeName,
+        content,
+      };
+    },
+  },
+)(IndexModal);

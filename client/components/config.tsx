@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Component } from 'react';
 import { connect } from 'react-redux';
-import { Segment, Dropdown, Button, Icon, Popup, DropdownProps, DropdownItemProps } from 'semantic-ui-react';
+import { Dropdown, Button, Icon, Popup, DropdownProps, DropdownItemProps } from 'semantic-ui-react';
 
 import { LANGUAGE } from '../../config';
 
@@ -32,7 +32,7 @@ class Config extends Component<ConfigProps, ConfigState> {
 
   fontSizeList = FONT_SIZE.map(value => ({ value, text: value }));
 
-  onSearchChange = (event: React.SyntheticEvent<HTMLElement>, { searchQuery }: DropdownProps) => {
+  onSearchChange = (_event: React.SyntheticEvent<HTMLElement>, { searchQuery }: DropdownProps) => {
     if (searchQuery === '') {
       this.setState({
         searchQuery,
@@ -97,13 +97,13 @@ export default connect(
     fontSize: state.fontSize,
   }),
   {
-    onLanguageChange(e: React.SyntheticEvent<HTMLElement>, data: DropdownProps): ChangeLanguageAction {
+    onLanguageChange(_e: React.SyntheticEvent<HTMLElement>, data: DropdownProps): ChangeLanguageAction {
       return {
         type: 'LANGUAGE_CHANGE',
         language: data.value as string,
       };
     },
-    onFontSizeChange(e: React.SyntheticEvent<HTMLElement>, data: DropdownProps): FontSizeChangeAction {
+    onFontSizeChange(_e: React.SyntheticEvent<HTMLElement>, data: DropdownProps): FontSizeChangeAction {
       return {
         type: 'FONT_SIZE_CHANGE',
         fontSize: data.value as number,

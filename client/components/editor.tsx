@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Component, createContext, createRef } from 'react';
+import { Component, createRef } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
 import { connect } from 'react-redux';
 

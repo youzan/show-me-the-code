@@ -9,7 +9,7 @@ extern crate serde_json;
 extern crate uuid;
 
 use std::env;
-use std::path::PathBuf;
+// use std::path::PathBuf;
 
 use actix::*;
 use actix_web::*;
@@ -21,10 +21,10 @@ pub struct State {
     pub signal_server_addr: Addr<server::SignalServer>,
 }
 
-fn index(_: &HttpRequest<State>) -> Result<fs::NamedFile> {
-    let path = PathBuf::from("./static/index.html");
-    Ok(fs::NamedFile::open(path)?)
-}
+// fn index(_: &HttpRequest<State>) -> Result<fs::NamedFile> {
+//     let path = PathBuf::from("./static/index.html");
+//     Ok(fs::NamedFile::open(path)?)
+// }
 
 fn ws_route(req: &HttpRequest<State>) -> Result<HttpResponse, Error> {
     ws::start(
@@ -49,12 +49,12 @@ fn main() {
         };
 
         App::with_state(state)
+            .resource("/ws", |r| r.route().f(ws_route))
             .handler(
-                "/static",
+                "/",
                 fs::StaticFiles::new("./static").expect("serve static").index_file("index.html"),
             )
-            .resource("/ws", |r| r.route().f(ws_route))
-            .default_resource(|r| r.get().f(index))
+            // .default_resource(|r| r.get().f(index))
     }).bind(address.clone())
         .unwrap()
         .start();

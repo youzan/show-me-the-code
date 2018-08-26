@@ -13,7 +13,7 @@ import Header from 'components/header';
 import Output from 'components/output';
 import IndexModal from 'components/index-modal';
 import Loading from 'components/loading';
-import { CodeDatabase, StorageContext } from 'services/storage';
+import { CodeDatabase } from 'services/storage';
 import { epic, Dependencies, EpicType } from 'epics';
 import reducer, { State } from 'reducer';
 import { Connection } from 'services/connection';
@@ -59,14 +59,14 @@ if ((module as any).hot) {
 }
 
 const App = () => (
-  <StorageContext.Provider value={db}>
+  <>
     <Loading />
     <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
     <Header />
     <Editor model={model} />
     <Output />
-    <IndexModal />
-  </StorageContext.Provider>
+    <IndexModal db={db} />
+  </>
 );
 
 export default hot(module)(App);

@@ -50,6 +50,7 @@ export type CreateAction = {
   userName: string;
   codeId: string;
   codeName: string;
+  content: string;
 };
 
 export type JoinAction = {

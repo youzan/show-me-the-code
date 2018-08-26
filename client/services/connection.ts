@@ -1,4 +1,4 @@
-import { Subject, interval, merge, Subscription, never, race, of, BehaviorSubject, Observable } from 'rxjs';
+import { Subject, interval, merge, Subscription, never, race, of, Observable } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import {
   mapTo,
@@ -181,15 +181,15 @@ export class Connection implements IDisposable {
     });
   }
 
-  private reply(response: Response) {
-    const resolver = this.callMap.get(response.requestId);
-    if (!resolver) {
-      return;
-    }
-    if (response.ok) {
-      resolver.resolve(response);
-    } else {
-      resolver.reject(response);
-    }
-  }
+  // private reply(response: Response) {
+  //   const resolver = this.callMap.get(response.requestId);
+  //   if (!resolver) {
+  //     return;
+  //   }
+  //   if (response.ok) {
+  //     resolver.resolve(response);
+  //   } else {
+  //     resolver.reject(response);
+  //   }
+  // }
 }

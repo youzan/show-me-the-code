@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { PureComponent, StatelessComponent } from 'react';
 import { OrderedMap } from 'immutable';
-import { array } from 'prop-types';
 import { connect } from 'react-redux';
 import JSONTree from 'react-json-tree';
 import cx from 'classnames';
@@ -46,7 +45,7 @@ const THEME = {
 };
 
 const OutputItem: StatelessComponent<ItemProps> = ({ data }) => {
-  function labelRenderer([name, parent]: [string, string]): JSX.Element {
+  function labelRenderer([name, _parent]: [string, string]): JSX.Element {
     if (name === 'root') {
       return <span>{data.constructor.name || 'Object'}</span>;
     }

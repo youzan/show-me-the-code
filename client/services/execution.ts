@@ -1,4 +1,3 @@
-import * as uuid from 'uuid/v1';
 import { Subject, Subscription, interval, of, race } from 'rxjs';
 import { startWith, switchMap, delay, filter, mapTo, tap } from 'rxjs/operators';
 import { toast } from 'react-toastify';

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
 import { Segment } from 'semantic-ui-react';
 
 import Config from './config';

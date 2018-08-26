@@ -8,13 +8,12 @@ import {
   LanguageDidChangeAction,
   SaveAxtion,
   ExecutionAction,
-  ExecutionOutputAction,
   ConnectedAction,
   StopExecutionAction,
+  CreateAction,
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Dispatch } from 'redux';
 import { Connection } from 'services/connection';
 import { ExecutionService } from 'services/execution';
 
@@ -31,20 +30,21 @@ export type InputAction =
   | ExecutionAction
   | ConnectedAction
   | StopExecutionAction
-  | ExecutionAction;
+  | ExecutionAction
+  | CreateAction;
 
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
 export type EpicType = Epic<InputAction, any, State, Dependencies>;
 
-const changeLanguageEpic: EpicType = (action$, state$, { textModel }) =>
+const changeLanguageEpic: EpicType = (action$, _state$, { textModel }) =>
   action$.pipe(
     ofType('LANGUAGE_CHANGE'),
     tap(({ language }: ChangeLanguageAction) => monaco.editor.setModelLanguage(textModel, language)),
     ignoreElements(),
   );
 
-const languageDidChangeEpic: EpicType = (action$, state$, { textModel }) => {
+const languageDidChangeEpic: EpicType = (_action$, _state$, { textModel }) => {
   return new Observable<LanguageDidChangeAction>(observer => {
     const disposer = textModel.onDidChangeLanguage(e => {
       observer.next({
@@ -78,7 +78,7 @@ const saveEpic: EpicType = (action$, state$, { db, textModel }) =>
     }),
   );
 
-const connectionEpic: EpicType = (action$, state$, { connection }) =>
+const connectionEpic: EpicType = (_action$, _state$, { connection }) =>
   connection.connection$.pipe(
     map(id => ({
       type: 'CONNECTED',
@@ -86,7 +86,7 @@ const connectionEpic: EpicType = (action$, state$, { connection }) =>
     })),
   );
 
-const stopExecutionEpic: EpicType = (action$, state$, { executionService }) =>
+const stopExecutionEpic: EpicType = (action$, _state$, { executionService }) =>
   action$.pipe(
     ofType('STOP_EXECUTION'),
     tap(executionService.killAll.bind(executionService)),
@@ -103,13 +103,20 @@ const executionEpic: EpicType = (action$, state$, { executionService, textModel 
     ignoreElements(),
   );
 
-const outputEpic: EpicType = (action$, state$, { executionService }) =>
+const outputEpic: EpicType = (_action$, _state$, { executionService }) =>
   merge(executionService.stdout$, executionService.stderr$).pipe(
     map(({ id, data }) => ({
       type: 'EXECUTUON_OUTPUT',
       id,
       data,
     })),
+  );
+
+const createEpic: EpicType = (action$, _state$, { textModel }) =>
+  action$.pipe(
+    ofType('CREATE'),
+    tap(({ content }: CreateAction) => textModel.setValue(content)),
+    ignoreElements()
   );
 
 export const epic = combineEpics<any, any, State, Dependencies>(
@@ -120,4 +127,5 @@ export const epic = combineEpics<any, any, State, Dependencies>(
   stopExecutionEpic,
   outputEpic,
   executionEpic,
+  createEpic
 );
