@@ -7,6 +7,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 // const CleanWebpackPlugin = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const { PUBLIC_PATH } = require('./config');
@@ -93,7 +94,7 @@ const config = {
       return null;
     }),
     // new CleanWebpackPlugin(['static']),
-    // new HardSourceWebpackPlugin(),
+    new HardSourceWebpackPlugin(),
     // new BundleAnalyzerPlugin(),
   ],
   resolve: {
