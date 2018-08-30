@@ -5,7 +5,7 @@ import { createEpicMiddleware } from 'redux-observable';
 import thunk from 'redux-thunk';
 import { BehaviorSubject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, ToastPosition } from 'react-toastify';
 
 import { model } from 'services/code';
 import Editor from 'components/editor';
@@ -61,7 +61,7 @@ if ((module as any).hot) {
 const App = () => (
   <>
     <Loading />
-    <ToastContainer position="top-right" autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
+    <ToastContainer position={ToastPosition.TOP_RIGHT} autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
     <Header />
     <Editor model={model} />
     <Output />
