@@ -5,14 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "node",
+      "type": "lldb",
       "request": "launch",
-      "name": "Launch Program",
-      "env": {
-        "NODE_ENV": "development",
-        "DEBUG": "*,-not_this"
-      },
-      "program": "${workspaceRoot}/build/server.js"
+      "name": "Launch",
+      "program": "${workspaceFolder}/target/debug/${workspaceRootFolderName}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "cargo build",
+      "sourceLanguages": [
+        "rust"
+      ]
     }
   ]
 }
