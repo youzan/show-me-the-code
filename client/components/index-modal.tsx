@@ -17,7 +17,7 @@ import * as uuid from 'uuid/v1';
 
 import { CodeDatabase, Code } from 'services/storage';
 import { State } from 'reducer';
-import { CreateAction } from 'actions';
+import { CreateAction, JoinAction } from 'actions';
 import { LANGUAGE } from '../../config';
 
 const EMPTY = 'empty';
@@ -74,9 +74,11 @@ class StoredList extends PureComponent<StoredListProps, StoredListState> {
 }
 
 type IndexModalProps = {
-  open: boolean;
+  open?: boolean;
   db: CodeDatabase;
+  loading?: boolean;
   onCreate(userName: string, codeId: string, codeName: string, content?: string): void;
+  onJoin(userName: string, hostId: string): void;
 };
 
 type IndexModalState = {
@@ -100,19 +102,42 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
     errors: [],
   };
 
-  onSubmit = async (event: React.FormEvent<HTMLFormElement>, _data: FormProps) => {
-    console.log('onSubmit');
+  async create() {
+    const { onCreate, db } = this.props;
     const { type, userName, codeName, selected, copy } = this.state;
-    const { db, onCreate } = this.props;
-    event.preventDefault();
-    if (type === 'create' && selected === EMPTY) {
+    if (type !== 'create' || !userName || !codeName) {
+      return;
+    }
+    if (selected === EMPTY) {
       onCreate(userName, uuid(), codeName, '');
-    } else if (type === 'create' && selected !== EMPTY) {
-      const from = (await db.code.where('id').equals(selected).toArray())[0];
+    } else if (selected !== EMPTY) {
+      const from = (await db.code
+        .where('id')
+        .equals(selected)
+        .toArray())[0];
       if (!from) {
         throw new Error();
       }
       onCreate(userName, copy ? uuid() : from.id, codeName, from.content);
+    }
+  }
+
+  async join() {
+    const { onJoin } = this.props;
+    const { type, userName, sharedId } = this.state;
+    if (type !== 'join' || !userName || !sharedId) {
+      return;
+    }
+    onJoin(userName, sharedId);
+  }
+
+  onSubmit = async (e: React.FormEvent<HTMLFormElement>, _data: FormProps) => {
+    const { type } = this.state;
+    e.preventDefault();
+    if (type === 'create') {
+      this.create();
+    } else if (type === 'join') {
+      this.join();
     }
   };
 
@@ -154,7 +179,7 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
 
   render() {
     const { type, userName, codeName, sharedId, selected, copy } = this.state;
-    const { db, open } = this.props;
+    const { db, open, loading } = this.props;
 
     return (
       <TransitionablePortal transition={{ animation: 'fade down' }} open={open}>
@@ -189,7 +214,9 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
               )}
               {type === 'create' &&
                 selected !== EMPTY && <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />}
-              <Form.Button primary>Go</Form.Button>
+              <Form.Button primary loading={loading}>
+                Go
+              </Form.Button>
             </Form>
             <Divider vertical />
             <StoredList db={db} selected={selected} onSelect={this.onSelect} />
@@ -203,6 +230,7 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
 export default connect(
   (state: State) => ({
     open: !state.codeId,
+    loading: state.clientType === 'guest' && !state.codeId,
   }),
   {
     onCreate(userName: string, codeId: string, codeName: string, content = ''): CreateAction {
@@ -212,6 +240,13 @@ export default connect(
         codeId,
         codeName,
         content,
+      };
+    },
+    onJoin(userName: string, sharedId: string): JoinAction {
+      return {
+        type: 'JOIN',
+        userName,
+        hostId: sharedId,
       };
     },
   },

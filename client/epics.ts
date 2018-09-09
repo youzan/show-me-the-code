@@ -1,6 +1,16 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable, merge, never } from 'rxjs';
-import { tap, ignoreElements, withLatestFrom, switchMap, mapTo, map } from 'rxjs/operators';
+import { from, Observable, merge, never, of } from 'rxjs';
+import {
+  tap,
+  ignoreElements,
+  withLatestFrom,
+  switchMap,
+  mapTo,
+  map,
+  catchError,
+  mergeMap,
+  filter,
+} from 'rxjs/operators';
 import * as monaco from 'monaco-editor';
 
 import {
@@ -11,11 +21,15 @@ import {
   ConnectedAction,
   StopExecutionAction,
   CreateAction,
+  JoinAction,
+  JoinAcceptedAction,
+  JoinRejectAction,
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Connection } from 'services/connection';
+import { Connection, Response, JoinResponse, JoinCall } from 'services/connection';
 import { ExecutionService } from 'services/execution';
+import { confirmJoin } from 'notify';
 
 export type Dependencies = {
   textModel: monaco.editor.ITextModel;
@@ -31,7 +45,8 @@ export type InputAction =
   | ConnectedAction
   | StopExecutionAction
   | ExecutionAction
-  | CreateAction;
+  | CreateAction
+  | JoinAction;
 
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
@@ -116,7 +131,76 @@ const createEpic: EpicType = (action$, _state$, { textModel }) =>
   action$.pipe(
     ofType('CREATE'),
     tap(({ content }: CreateAction) => textModel.setValue(content)),
-    ignoreElements()
+    ignoreElements(),
+  );
+
+const joinRequestEpic: EpicType = (action$, _state$, { connection }) =>
+  action$.pipe(
+    ofType('JOIN'),
+    switchMap(({ hostId, userName }: JoinAction) =>
+      from(
+        connection.call<JoinResponse>({
+          type: 'join',
+          to: hostId,
+          name: userName,
+        }),
+      ),
+    ),
+    tap(res =>
+      connection.send({
+        type: 'joinAck',
+        to: res.from as string,
+        requestId: res.requestId,
+        ok: true,
+      }),
+    ),
+    map<JoinResponse, JoinAcceptedAction>(res => ({
+      type: 'JOIN_ACCEPT',
+      codeId: res.codeId,
+      codeContent: res.codeContent,
+      codeName: res.codeName,
+      language: res.language,
+    })),
+    catchError<void, JoinRejectAction>(() =>
+      of({
+        type: 'JOIN_REJECT',
+      }),
+    ),
+  );
+
+const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =>
+  connection.message$.pipe(
+    filter(msg => msg.type === 'join'),
+    withLatestFrom(state$),
+    mergeMap(([msg, state]: [JoinCall, State]) => {
+      if (!msg.from) {
+        return never();
+      }
+      return from(confirmJoin(msg.name)).pipe(
+        mapTo(true),
+        catchError(() => of(false)),
+        tap(
+          ok =>
+            msg.from &&
+            msg.requestId &&
+            connection.send({
+              type: 'joinResponse',
+              to: msg.from,
+              requestId: msg.requestId,
+              ok,
+              codeId: state.codeId,
+              codeName: state.codeName,
+              codeContent: textModel.getValue(),
+              language: state.language,
+            }),
+        ),
+        switchMap(() =>
+          connection.message$.pipe(
+            filter((res: Response) => res.type === 'joinAck' && res.requestId === msg.requestId),
+          ),
+        ),
+      );
+    }),
   );
 
 export const epic = combineEpics<any, any, State, Dependencies>(
@@ -127,5 +211,7 @@ export const epic = combineEpics<any, any, State, Dependencies>(
   stopExecutionEpic,
   outputEpic,
   executionEpic,
-  createEpic
+  createEpic,
+  joinRequestEpic,
+  joinHandleEpic,
 );

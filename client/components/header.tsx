@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Segment } from 'semantic-ui-react';
 
 import Config from './config';
-import ExecPanel from './exec';
+import Toolbar from './toolbar';
 
 const Header = () => (
   <>
@@ -10,7 +10,7 @@ const Header = () => (
       <Config />
     </Segment>
     <Segment inverted className="app-header app-header-right">
-      <ExecPanel />
+      <Toolbar />
     </Segment>
   </>
 );

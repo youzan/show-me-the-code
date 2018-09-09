@@ -35,7 +35,7 @@ if (process.env.NODE_ENV === 'production') {
         `;
       },
     }),
-    new CleanPlugin(['static']),
+    // new CleanPlugin(['static']),
     new webpack.ProgressPlugin()
   ],
 };

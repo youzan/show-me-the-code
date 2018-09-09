@@ -56,5 +56,17 @@ export type CreateAction = {
 export type JoinAction = {
   type: 'JOIN';
   userName: string;
+  hostId: string;
+};
+
+export type JoinAcceptedAction = {
+  type: 'JOIN_ACCEPT';
   codeId: string;
-}
+  codeName: string;
+  codeContent: string;
+  language: string;
+};
+
+export type JoinRejectAction = {
+  type: 'JOIN_REJECT';
+};

@@ -35,9 +35,12 @@ body {
   }
 }
 
-.exec-panel {
+.toolbar {
   i.icon {
     margin: 0 !important;
+  }
+  .copy {
+    user-select: text;
   }
 }
 

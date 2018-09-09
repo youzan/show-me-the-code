@@ -17,14 +17,17 @@ import * as uuid from 'uuid/v1';
 
 import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
 
-export type Call = {
+export type JoinCall = {
   type: 'join';
   to: string;
+  name: string;
   from?: string;
-  requestId: string;
+  requestId?: string;
 };
 
-export type Response = {
+export type Call = JoinCall;
+
+export type JoinResponse = {
   type: 'joinResponse';
   to: string;
   from?: string;
@@ -36,7 +39,17 @@ export type Response = {
   language: string;
 };
 
-type SocketMessage =
+export type JoinAck = {
+  type: 'joinAck';
+  from?: string;
+  to: string;
+  requestId: string;
+  ok: true;
+};
+
+export type Response = JoinResponse | JoinAck;
+
+export type SocketMessage =
   | Call
   | Response
   | {
@@ -49,6 +62,8 @@ type SocketMessage =
       type: 'connected';
       id: string;
     };
+
+export type Message = SocketMessage;
 
 class ServerConnection implements IDisposable {
   private readonly url = SOCKET_URL;
@@ -126,14 +141,15 @@ class ServerConnection implements IDisposable {
 }
 
 type Resolver = {
-  resolve(response: Response): void;
-  reject(response: Response): void;
+  resolve(response: any): void;
+  reject(response: any): void;
 };
 
 const bindSubscription = (s: Subscription) => s.unsubscribe.bind(s);
 
 export class Connection implements IDisposable {
   connection$: Observable<string>;
+  message$: Observable<Message>;
   private serverConnection = new ServerConnection();
   private disposers: Array<() => void>;
   private callMap = new Map<string, Resolver>();
@@ -143,6 +159,7 @@ export class Connection implements IDisposable {
       filter(({ type }) => type === 'connected'),
       pluck('id'),
     );
+    this.message$ = this.serverConnection.message$;
     this.disposers = this.init();
   }
 
@@ -153,6 +170,7 @@ export class Connection implements IDisposable {
         this.serverConnection.message$.subscribe(msg => {
           switch (msg.type) {
             case 'joinResponse':
+              this.reply(msg);
               break;
             default:
               break;
@@ -170,26 +188,30 @@ export class Connection implements IDisposable {
     this.disposers.forEach(disposer => disposer());
   }
 
-  call(call: Call): Promise<Response> {
+  send(t: Call | Response) {
+    this.serverConnection.send(t);
+  }
+
+  call<T = Response>(call: Call): Promise<T> {
     call.requestId = call.requestId || uuid();
     return new Promise((resolve, reject) => {
-      this.callMap.set(call.requestId, {
+      this.callMap.set(call.requestId as string, {
         resolve,
         reject,
       });
-      this.serverConnection.send(call);
+      this.send(call);
     });
   }
 
-  // private reply(response: Response) {
-  //   const resolver = this.callMap.get(response.requestId);
-  //   if (!resolver) {
-  //     return;
-  //   }
-  //   if (response.ok) {
-  //     resolver.resolve(response);
-  //   } else {
-  //     resolver.reject(response);
-  //   }
-  // }
+  private reply(response: Response) {
+    const resolver = this.callMap.get(response.requestId);
+    if (!resolver) {
+      return;
+    }
+    if (response.ok) {
+      resolver.resolve(response);
+    } else {
+      resolver.reject(response);
+    }
+  }
 }

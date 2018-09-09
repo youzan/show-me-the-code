@@ -1,4 +1,4 @@
-import { OrderedMap } from 'immutable';
+import { OrderedMap, Record } from 'immutable';
 
 import {
   LanguageDidChangeAction,
@@ -9,29 +9,35 @@ import {
   ConnectedAction,
   CreateAction,
   JoinAction,
+  JoinAcceptedAction,
+  JoinRejectAction,
 } from './actions';
 
-export type State = {
+type IState = {
   clientId: string | null;
-  codeId: string | null;
-  codeName: string | null;
+  codeId: string | '';
+  codeName: string | '';
   userName: string;
+  hostId: string | null;
   clientType: 'host' | 'guest' | null;
   language: string;
   fontSize: number;
   output: OrderedMap<string, any[][]>;
 };
 
-const INITIAL_STATE: State = {
+export type State = Record<IState> & Readonly<IState>;
+
+const StateRecord = Record<IState>({
   clientId: null,
-  codeId: null,
-  codeName: null,
+  codeId: '',
+  codeName: '',
   userName: '',
+  hostId: null,
   clientType: null,
   language: 'javascript',
   fontSize: 12,
   output: OrderedMap(),
-};
+});
 
 type Action =
   | LanguageDidChangeAction
@@ -41,58 +47,48 @@ type Action =
   | ClearAction
   | ConnectedAction
   | CreateAction
-  | JoinAction;
+  | JoinAction
+  | JoinAcceptedAction
+  | JoinRejectAction;
 
-export function reducer(state: State = INITIAL_STATE, action: Action): State {
+export function reducer(state = StateRecord(), action: Action): State {
   switch (action.type) {
     case 'LANGUAGE_DID_CHANGE':
-      return {
-        ...state,
-        language: action.language,
-      };
+      return state.set('language', action.language);
     case 'FONT_SIZE_CHANGE':
-      return {
-        ...state,
-        fontSize: action.fontSize,
-      };
+      return state.set('fontSize', action.fontSize);
     case 'EXECUTION':
-      return {
-        ...state,
-        output: state.output.set(action.id, []),
-      };
+      return state.update('output', output => output.set(action.id, []));
     case 'EXECUTUON_OUTPUT':
       if (!state.output.has(action.id)) {
         return state;
       }
-      return {
-        ...state,
-        output: state.output.update(action.id, data => [...data, action.data]),
-      };
+      return state.updateIn(['output', action.id], data => [...data, action.data]);
     case 'CLEAR_OUTPUT':
-      return {
-        ...state,
-        output: OrderedMap(),
-      };
+      return state.set('output', OrderedMap());
     case 'CONNECTED':
-      return {
-        ...state,
-        clientId: action.id,
-      };
+      return state.set('clientId', action.id);
     case 'CREATE':
-      return {
-        ...state,
+      return state.merge({
         clientType: 'host',
+        hostId: state.clientId,
         codeId: action.codeId,
         codeName: action.codeName,
         userName: action.userName,
-      };
+      });
     case 'JOIN':
-      return {
-        ...state,
+      return state.merge({
         clientType: 'guest',
-        codeName: action.codeId,
         userName: action.userName,
-      };
+      });
+    case 'JOIN_ACCEPT':
+      return state.merge({
+        codeId: action.codeId,
+      });
+    case 'JOIN_REJECT':
+      return state.merge({
+        clientId: null,
+      });
     default:
       return state;
   }

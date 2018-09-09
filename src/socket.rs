@@ -7,17 +7,18 @@ use super::server;
 use super::State;
 
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum Message {
   Ping,
   Pong,
+  #[serde(rename_all = "camelCase")]
   Join {
     to: Uuid,
     name: String,
     from: Option<Uuid>,
-    request_id: String,
+    request_id: Uuid,
   },
+  #[serde(rename_all = "camelCase")]
   JoinResponse {
     to: Uuid,
     from: Option<Uuid>,
@@ -28,23 +29,25 @@ pub enum Message {
     code_content: String,
     language: String,
   },
+  JoinAck {
+    from: Option<Uuid>,
+    to: Uuid,
+    request_id: Uuid,
+    ok: bool,
+  },
+  #[serde(rename_all = "camelCase")]
   Offline {
     client_id: Uuid,
   },
   Connected {
     id: Uuid,
   },
+  #[serde(rename_all = "camelCase")]
   Error {
-    request_id: Option<String>,
+    request_id: Option<Uuid>,
     reason: String,
   },
 }
-
-// #[derive(Serialize, Deserialize)]
-// pub struct SendMessage {
-//   from: Uuid,
-//   msg: Box<Message>,
-// }
 
 pub struct WsSession {
   id: Uuid,
@@ -135,15 +138,78 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
                 fut::ok(())
               }).wait(ctx);
           }
-          Ok(_) => {
-            println!("Unsupported message received");
+          Ok(Message::JoinResponse {
+            to,
+            from: _,
+            request_id,
+            ok,
+            code_id,
+            code_name,
+            code_content,
+            language,
+          }) => {
+            ctx
+              .state()
+              .signal_server_addr
+              .send(server::Message(
+                self.id,
+                Some(to),
+                Message::JoinResponse {
+                  from: Some(self.id),
+                  to,
+                  request_id,
+                  ok,
+                  code_id,
+                  code_name,
+                  code_content,
+                  language,
+                },
+              )).into_actor(self)
+              .then(|res, _, ctx| {
+                if let Err(_) = res {
+                  ctx.stop();
+                }
+                fut::ok(())
+              }).wait(ctx);
           }
-          Err(_) => ctx.text(
-            to_string::<Message>(&Message::Error {
-              reason: "invalid request".to_owned(),
-              request_id: None,
-            }).expect("fatal sending error"),
-          ),
+          Ok(Message::JoinAck {
+            from: _,
+            to,
+            request_id,
+            ok,
+          }) => {
+            ctx
+              .state()
+              .signal_server_addr
+              .send(server::Message(
+                self.id,
+                Some(to),
+                Message::JoinAck {
+                  from: Some(self.id),
+                  to,
+                  request_id,
+                  ok,
+                },
+              )).into_actor(self)
+              .then(|res, _, ctx| {
+                if let Err(_) = res {
+                  ctx.stop();
+                }
+                fut::ok(())
+              }).wait(ctx);
+          }
+          Ok(_) => {
+            println!("Unimplemented message received");
+          }
+          Err(e) => {
+            println!("{:?}", e);
+            ctx.text(
+              to_string::<Message>(&Message::Error {
+                reason: "invalid request".to_owned(),
+                request_id: None,
+              }).expect("fatal sending error"),
+            )
+          }
         }
       }
       ws::Message::Binary(_) => println!("Unexpected binary"),
