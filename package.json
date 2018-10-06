@@ -38,6 +38,7 @@
     "@types/react-toastify": "^4.0.1",
     "@types/uuid": "^3.4.3",
     "assets-webpack-plugin": "^3.9.6",
+    "awesome-typescript-loader": "^5.2.1",
     "better-npm-run": "^0.1.1",
     "classnames": "^2.2.6",
     "clean-webpack-plugin": "^0.1.19",

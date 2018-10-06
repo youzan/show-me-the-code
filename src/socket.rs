@@ -29,6 +29,7 @@ pub enum Message {
     code_content: String,
     language: String,
   },
+  #[serde(rename_all = "camelCase")]
   JoinAck {
     from: Option<Uuid>,
     to: Uuid,

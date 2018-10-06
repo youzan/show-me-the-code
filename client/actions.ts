@@ -53,8 +53,8 @@ export type CreateAction = {
   content: string;
 };
 
-export type JoinAction = {
-  type: 'JOIN';
+export type JoinStartAction = {
+  type: 'JOIN_START';
   userName: string;
   hostId: string;
 };
@@ -69,4 +69,10 @@ export type JoinAcceptedAction = {
 
 export type JoinRejectAction = {
   type: 'JOIN_REJECT';
+};
+
+export type JoinAckAction = {
+  type: 'JOIN_ACK';
+  id: string;
+  name: string;
 };

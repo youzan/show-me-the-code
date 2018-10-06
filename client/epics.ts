@@ -21,9 +21,10 @@ import {
   ConnectedAction,
   StopExecutionAction,
   CreateAction,
-  JoinAction,
+  JoinStartAction,
   JoinAcceptedAction,
   JoinRejectAction,
+  JoinAckAction,
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
@@ -46,7 +47,7 @@ export type InputAction =
   | StopExecutionAction
   | ExecutionAction
   | CreateAction
-  | JoinAction;
+  | JoinStartAction;
 
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
@@ -136,8 +137,8 @@ const createEpic: EpicType = (action$, _state$, { textModel }) =>
 
 const joinRequestEpic: EpicType = (action$, _state$, { connection }) =>
   action$.pipe(
-    ofType('JOIN'),
-    switchMap(({ hostId, userName }: JoinAction) =>
+    ofType('JOIN_START'),
+    switchMap(({ hostId, userName }: JoinStartAction) =>
       from(
         connection.call<JoinResponse>({
           type: 'join',
@@ -197,6 +198,11 @@ const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =
         switchMap(() =>
           connection.message$.pipe(
             filter((res: Response) => res.type === 'joinAck' && res.requestId === msg.requestId),
+            mapTo<any, JoinAckAction>({
+              type: 'JOIN_ACK',
+              id: msg.from as string,
+              name: msg.name,
+            }),
           ),
         ),
       );

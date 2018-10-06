@@ -1,4 +1,4 @@
-import { OrderedMap, Record } from 'immutable';
+import { OrderedMap, Record, Map } from 'immutable';
 
 import {
   LanguageDidChangeAction,
@@ -8,10 +8,23 @@ import {
   ClearAction,
   ConnectedAction,
   CreateAction,
-  JoinAction,
+  JoinStartAction,
   JoinAcceptedAction,
   JoinRejectAction,
+  JoinAckAction,
 } from './actions';
+
+export type IClient = {
+  id: string;
+  name: string;
+  status: string;
+};
+
+class Client extends Record<IClient>({
+  id: '',
+  name: '',
+  status: '',
+}) {}
 
 type IState = {
   clientId: string | null;
@@ -22,6 +35,7 @@ type IState = {
   clientType: 'host' | 'guest' | null;
   language: string;
   fontSize: number;
+  clients: Map<string, Client>;
   output: OrderedMap<string, any[][]>;
 };
 
@@ -36,6 +50,7 @@ const StateRecord = Record<IState>({
   clientType: null,
   language: 'javascript',
   fontSize: 12,
+  clients: Map(),
   output: OrderedMap(),
 });
 
@@ -47,9 +62,10 @@ type Action =
   | ClearAction
   | ConnectedAction
   | CreateAction
-  | JoinAction
+  | JoinStartAction
   | JoinAcceptedAction
-  | JoinRejectAction;
+  | JoinRejectAction
+  | JoinAckAction;
 
 export function reducer(state = StateRecord(), action: Action): State {
   switch (action.type) {
@@ -76,7 +92,7 @@ export function reducer(state = StateRecord(), action: Action): State {
         codeName: action.codeName,
         userName: action.userName,
       });
-    case 'JOIN':
+    case 'JOIN_START':
       return state.merge({
         clientType: 'guest',
         userName: action.userName,
@@ -89,6 +105,14 @@ export function reducer(state = StateRecord(), action: Action): State {
       return state.merge({
         clientId: null,
       });
+    case 'JOIN_ACK':
+      return state.setIn(
+        ['clients', action.id],
+        new Client({
+          id: action.id,
+          name: action.name,
+        }),
+      );
     default:
       return state;
   }

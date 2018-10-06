@@ -17,7 +17,7 @@ import * as uuid from 'uuid/v1';
 
 import { CodeDatabase, Code } from 'services/storage';
 import { State } from 'reducer';
-import { CreateAction, JoinAction } from 'actions';
+import { CreateAction, JoinStartAction } from 'actions';
 import { LANGUAGE } from '../../config';
 
 const EMPTY = 'empty';
@@ -242,9 +242,9 @@ export default connect(
         content,
       };
     },
-    onJoin(userName: string, sharedId: string): JoinAction {
+    onJoin(userName: string, sharedId: string): JoinStartAction {
       return {
-        type: 'JOIN',
+        type: 'JOIN_START',
         userName,
         hostId: sharedId,
       };
