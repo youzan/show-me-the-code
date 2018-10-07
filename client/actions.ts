@@ -24,7 +24,7 @@ export type ExecutionOutputAction = {
   data: any[];
 };
 
-export type SaveAxtion = {
+export type SaveAction = {
   type: 'SAVE';
 };
 

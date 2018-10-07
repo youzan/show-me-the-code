@@ -2,14 +2,15 @@ import * as React from 'react';
 import { Component, createRef } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
 import { connect } from 'react-redux';
+import * as monaco from 'monaco-editor';
+import { Subject, Subscription } from 'rxjs';
 
 import { State } from '../reducer';
-
-import * as monaco from 'monaco-editor';
 
 export type Props = {
   model: monaco.editor.ITextModel;
   fontSize: number;
+  undo$: Subject<string>;
 };
 
 class Editor extends Component<Props> {
@@ -18,6 +19,13 @@ class Editor extends Component<Props> {
   resizeObserver = new ResizeObserver(() => {
     this.editor && this.editor.layout();
   });
+  undoSubscription: Subscription | null = null;
+
+  initUndo() {
+    this.undoSubscription = this.props.undo$.subscribe(source => {
+      (this.editor as monaco.editor.IStandaloneCodeEditor).trigger(source, 'undo', '');
+    });
+  }
 
   componentDidMount() {
     if (!this.containerRef.current) {
@@ -29,6 +37,7 @@ class Editor extends Component<Props> {
       fontSize: 12,
     });
     this.resizeObserver.observe(this.containerRef.current);
+    this.initUndo();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -43,6 +52,10 @@ class Editor extends Component<Props> {
         fontSize: this.props.fontSize,
       });
     }
+    if (this.props.undo$ !== prevProps.undo$) {
+      this.undoSubscription && this.undoSubscription.unsubscribe();
+      this.initUndo();
+    }
   }
 
   componentWillUnmount() {
@@ -50,6 +63,7 @@ class Editor extends Component<Props> {
     if (!this.editor) {
       throw new Error('Fetal');
     }
+    this.undoSubscription && this.undoSubscription.unsubscribe();
     this.editor.dispose();
   }
 

@@ -33,6 +33,7 @@ export type JoinResponse = {
   from?: string;
   requestId: string;
   ok: boolean;
+  name: string;
   codeId: string;
   codeName: string;
   codeContent: string;

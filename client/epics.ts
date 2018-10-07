@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable, merge, never, of } from 'rxjs';
+import { from, Observable, merge, never, of, Subject } from 'rxjs';
 import {
   tap,
   ignoreElements,
@@ -16,7 +16,7 @@ import * as monaco from 'monaco-editor';
 import {
   ChangeLanguageAction,
   LanguageDidChangeAction,
-  SaveAxtion,
+  SaveAction,
   ExecutionAction,
   ConnectedAction,
   StopExecutionAction,
@@ -28,7 +28,7 @@ import {
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Connection, Response, JoinResponse, JoinCall } from 'services/connection';
+import { Connection, JoinResponse } from 'services/connection';
 import { ExecutionService } from 'services/execution';
 import { confirmJoin } from 'notify';
 
@@ -37,11 +37,12 @@ export type Dependencies = {
   db: CodeDatabase;
   connection: Connection;
   executionService: ExecutionService;
+  undo$: Subject<string>;
 };
 
 export type InputAction =
   | ChangeLanguageAction
-  | SaveAxtion
+  | SaveAction
   | ExecutionAction
   | ConnectedAction
   | StopExecutionAction
@@ -51,12 +52,12 @@ export type InputAction =
 
 export type OutputAction = InputAction | LanguageDidChangeAction;
 
-export type EpicType = Epic<InputAction, any, State, Dependencies>;
+export type EpicType = Epic<any, any, State, Dependencies>;
 
 const changeLanguageEpic: EpicType = (action$, _state$, { textModel }) =>
   action$.pipe(
     ofType('LANGUAGE_CHANGE'),
-    tap(({ language }: ChangeLanguageAction) => monaco.editor.setModelLanguage(textModel, language)),
+    tap<ChangeLanguageAction>(({ language }) => monaco.editor.setModelLanguage(textModel, language)),
     ignoreElements(),
   );
 
@@ -162,10 +163,10 @@ const joinRequestEpic: EpicType = (action$, _state$, { connection }) =>
       codeName: res.codeName,
       language: res.language,
     })),
-    catchError<void, JoinRejectAction>(() =>
+    catchError<any, JoinRejectAction>(() =>
       of({
         type: 'JOIN_REJECT',
-      }),
+      }) as any,
     ),
   );
 
@@ -173,7 +174,7 @@ const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =
   connection.message$.pipe(
     filter(msg => msg.type === 'join'),
     withLatestFrom(state$),
-    mergeMap(([msg, state]: [JoinCall, State]) => {
+    mergeMap<any, any>(([msg, state]) => {
       if (!msg.from) {
         return never();
       }
@@ -193,11 +194,11 @@ const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =
               codeName: state.codeName,
               codeContent: textModel.getValue(),
               language: state.language,
-            }),
+            } as any),
         ),
         switchMap(() =>
           connection.message$.pipe(
-            filter((res: Response) => res.type === 'joinAck' && res.requestId === msg.requestId),
+            filter((res: any) => res.type === 'joinAck' && res.requestId === msg.requestId),
             mapTo<any, JoinAckAction>({
               type: 'JOIN_ACK',
               id: msg.from as string,

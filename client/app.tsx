@@ -3,7 +3,7 @@ import { hot } from 'react-hot-loader';
 import { createStore, applyMiddleware, compose, Action } from 'redux';
 import { createEpicMiddleware } from 'redux-observable';
 import thunk from 'redux-thunk';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ToastContainer, ToastPosition } from 'react-toastify';
 
@@ -26,6 +26,7 @@ const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ ||
 export const db = new CodeDatabase();
 export const connection = new Connection();
 export const executionService = new ExecutionService();
+const undo$ = new Subject<string>();
 
 const epicMiddleware = createEpicMiddleware<Action<any>, Action<any>, State, Dependencies>({
   dependencies: {
@@ -33,6 +34,7 @@ const epicMiddleware = createEpicMiddleware<Action<any>, Action<any>, State, Dep
     db,
     connection,
     executionService,
+    undo$,
   },
 });
 
@@ -61,9 +63,16 @@ if ((module as any).hot) {
 const App = () => (
   <>
     <Loading />
-    <ToastContainer position={ToastPosition.TOP_RIGHT} autoClose={5000} hideProgressBar closeOnClick pauseOnHover draggable />
+    <ToastContainer
+      position={ToastPosition.TOP_RIGHT}
+      autoClose={5000}
+      hideProgressBar
+      closeOnClick
+      pauseOnHover
+      draggable
+    />
     <Header />
-    <Editor model={model} />
+    <Editor model={model} undo$={undo$} />
     <Output />
     <IndexModal db={db} />
   </>
