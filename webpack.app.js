@@ -5,7 +5,7 @@ const webpack = require('webpack');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 // const CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -116,7 +116,7 @@ const config = {
     chunks: false,
   },
   performance: { hints: false },
-  devtool: false,
+  // devtool: false,
 };
 
 if (!isDev) {
@@ -131,9 +131,10 @@ if (!isDev) {
     }),
   );
   config.optimization.minimizer.push(
-    new UglifyJsPlugin({
-      uglifyOptions: {
+    new TerserPlugin({
+      terserOptions: {
         ecma: 7,
+        extractComments: true,
       },
       parallel: true,
     }),
