@@ -1,41 +1,33 @@
 use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
+use actix::spawn;
+use futures::Future;
 use uuid::Uuid;
 
-use super::socket;
+use super::msg::Msg;
 
-pub struct Message(
-    // from
-    pub Uuid,
-    // to
-    pub Option<Uuid>,
-    // message
-    pub socket::Message,
-);
-
-impl actix::Message for Message {
+impl actix::Message for Msg {
     type Result = ();
 }
 
-pub struct Connect(pub Uuid, pub Recipient<Message>);
+pub struct Connect(pub Uuid, pub Recipient<Msg>);
 
 impl actix::Message for Connect {
     type Result = ();
 }
 
-pub struct Disconnect(
-    // client id
-    pub Uuid,
+pub struct Disconnect {
+    pub client_id: Uuid,
     // host id
-    pub Option<Uuid>,
-);
+    pub host_id: Option<Uuid>,
+}
 
 impl actix::Message for Disconnect {
     type Result = ();
 }
 
-type Sessions = HashMap<Uuid, Recipient<Message>>;
+type Sessions = HashMap<Uuid, Recipient<Msg>>;
 type Groups = HashMap<Uuid, HashSet<Uuid>>;
 
 pub struct SignalServer {
@@ -48,6 +40,14 @@ impl Default for SignalServer {
         SignalServer {
             sessions: HashMap::new(),
             groups: HashMap::new(),
+        }
+    }
+}
+
+impl SignalServer {
+    fn send_to_target(&self, msg: Msg, target: &Uuid) {
+        if let Some(addr) = self.sessions.get(target) {
+            spawn(addr.send(msg).map_err(|_| ()));
         }
     }
 }
@@ -71,20 +71,17 @@ impl Handler<Disconnect> for SignalServer {
     fn handle<'a>(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
         let groups = &mut self.groups;
         let sessions = &mut self.sessions;
-        sessions.remove(&msg.0);
-        msg.1
+        sessions.remove(&msg.client_id);
+        msg.host_id
             .and_then(|host_id| groups.get_mut(&host_id))
             .into_iter()
             .flat_map(|set| {
-                set.remove(&msg.0);
+                set.remove(&msg.client_id);
                 set.iter()
-            }).flat_map(|id| sessions.get(&id))
+            })
+            .flat_map(|id| sessions.get(&id))
             .for_each(|addr| {
-                let _ = addr.do_send(Message(
-                    msg.0,
-                    None,
-                    socket::Message::Offline { client_id: msg.0 },
-                ));
+                let _ = addr.do_send(Msg::Offline(msg.client_id));
             });
         // msg.1
         //     .iter()
@@ -118,19 +115,23 @@ impl Handler<Disconnect> for SignalServer {
     }
 }
 
-impl Handler<Message> for SignalServer {
+impl Handler<Msg> for SignalServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Message, _: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Msg, _: &mut Context<Self>) -> Self::Result {
+        use super::msg::{JoinRes, Msg, SendMsg};
+
         match msg {
-            Message(from, Some(to), socket::Message::JoinResponse { ok: true, .. }) => {
+            Msg::JoinRes(SendMsg {
+                from: Some(from),
+                to,
+                content: JoinRes { ok: true, .. },
+                ..
+            }) => {
                 self.groups.entry(from).or_default().insert(to);
+                self.send_to_target(msg, &to);
             }
             _ => {}
         }
-
-        msg.1
-            .and_then(|id| self.sessions.get(&id))
-            .map(|addr| addr.do_send(msg));
     }
 }

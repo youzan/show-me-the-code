@@ -2,6 +2,7 @@ extern crate actix;
 extern crate actix_web;
 extern crate dotenv;
 extern crate env_logger;
+extern crate futures;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -14,6 +15,7 @@ use std::env;
 use actix::*;
 use actix_web::*;
 
+mod msg;
 mod server;
 mod socket;
 

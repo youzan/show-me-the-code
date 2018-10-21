@@ -1,54 +1,13 @@
 use actix::*;
 use actix_web::*;
+use futures::Future;
 use serde_json::{from_str, to_string};
 use uuid::*;
 
+use super::msg;
+use super::msg::Msg;
 use super::server;
 use super::State;
-
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum Message {
-  Ping,
-  Pong,
-  #[serde(rename_all = "camelCase")]
-  Join {
-    to: Uuid,
-    name: String,
-    from: Option<Uuid>,
-    request_id: Uuid,
-  },
-  #[serde(rename_all = "camelCase")]
-  JoinResponse {
-    to: Uuid,
-    from: Option<Uuid>,
-    request_id: Uuid,
-    ok: bool,
-    code_id: Uuid,
-    code_name: String,
-    code_content: String,
-    language: String,
-  },
-  #[serde(rename_all = "camelCase")]
-  JoinAck {
-    from: Option<Uuid>,
-    to: Uuid,
-    request_id: Uuid,
-    ok: bool,
-  },
-  #[serde(rename_all = "camelCase")]
-  Offline {
-    client_id: Uuid,
-  },
-  Connected {
-    id: Uuid,
-  },
-  #[serde(rename_all = "camelCase")]
-  Error {
-    request_id: Option<Uuid>,
-    reason: String,
-  },
-}
 
 pub struct WsSession {
   id: Uuid,
@@ -64,8 +23,27 @@ impl Default for WsSession {
   }
 }
 
+type Context = ws::WebsocketContext<WsSession, State>;
+
+impl WsSession {
+  fn send_to_server(&mut self, ctx: &mut Context, msg: msg::Msg) {
+    ctx
+      .state()
+      .signal_server_addr
+      .send(msg)
+      .into_actor(self)
+      .then(|res, _, ctx| {
+        if let Err(_) = res {
+          ctx.stop();
+        }
+        fut::ok(())
+      })
+      .wait(ctx);
+  }
+}
+
 impl Actor for WsSession {
-  type Context = ws::WebsocketContext<Self, State>;
+  type Context = Context;
 
   fn started(&mut self, ctx: &mut Self::Context) {
     let addr = ctx.address();
@@ -77,26 +55,32 @@ impl Actor for WsSession {
       .then(|res, act, ctx| {
         match res {
           Ok(_) => {
-            ctx.text(to_string(&Message::Connected { id: act.id }).expect("Error sending message"));
+            ctx.text(to_string(&Msg::Connected(act.id)).expect("Error sending message"));
           }
           Err(_) => ctx.stop(),
         }
         fut::ok(())
-      }).wait(ctx);
+      })
+      .wait(ctx);
   }
 
   fn stopping(&mut self, ctx: &mut Self::Context) -> Running {
-    ctx
+    let fut = ctx
       .state()
       .signal_server_addr
-      .do_send(server::Disconnect(self.id, self.host_id));
+      .send(server::Disconnect {
+        client_id: self.id,
+        host_id: self.host_id,
+      })
+      .map_err(|_| ());
+    spawn(fut);
     Running::Stop
   }
 }
 
-impl Handler<server::Message> for WsSession {
+impl Handler<msg::Msg> for WsSession {
   type Result = ();
-  fn handle(&mut self, server::Message(_, _, msg): server::Message, ctx: &mut Self::Context) {
+  fn handle(&mut self, msg: msg::Msg, ctx: &mut Self::Context) {
     ctx.text(to_string(&msg).expect("error sending message"));
   }
 }
@@ -107,97 +91,21 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
       ws::Message::Ping(msg) => ctx.pong(&msg),
       ws::Message::Pong(_) => {}
       ws::Message::Text(text) => {
-        let m = from_str::<Message>(text.trim());
+        let mut m = from_str::<Msg>(text.trim());
         match m {
-          Ok(Message::Ping) => {
-            ctx.text(to_string::<Message>(&Message::Pong).expect("error sending pong"))
+          Ok(Msg::Ping) => ctx.text(to_string::<Msg>(&Msg::Pong).expect("error sending pong")),
+          Ok(Msg::Pong) => {}
+          Ok(Msg::JoinReq(mut inner)) => {
+            inner.from = Some(self.id);
+            self.send_to_server(ctx, Msg::JoinReq(inner));
           }
-          Ok(Message::Pong) => {}
-          Ok(Message::Join {
-            from: _,
-            to,
-            name,
-            request_id,
-          }) => {
-            ctx
-              .state()
-              .signal_server_addr
-              .send(server::Message(
-                self.id,
-                Some(to),
-                Message::Join {
-                  from: Some(self.id),
-                  to,
-                  name,
-                  request_id,
-                },
-              )).into_actor(self)
-              .then(|res, _, ctx| {
-                if let Err(_) = res {
-                  ctx.stop();
-                }
-                fut::ok(())
-              }).wait(ctx);
+          Ok(Msg::JoinRes(mut inner)) => {
+            inner.from = Some(self.id);
+            self.send_to_server(ctx, Msg::JoinRes(inner));
           }
-          Ok(Message::JoinResponse {
-            to,
-            from: _,
-            request_id,
-            ok,
-            code_id,
-            code_name,
-            code_content,
-            language,
-          }) => {
-            ctx
-              .state()
-              .signal_server_addr
-              .send(server::Message(
-                self.id,
-                Some(to),
-                Message::JoinResponse {
-                  from: Some(self.id),
-                  to,
-                  request_id,
-                  ok,
-                  code_id,
-                  code_name,
-                  code_content,
-                  language,
-                },
-              )).into_actor(self)
-              .then(|res, _, ctx| {
-                if let Err(_) = res {
-                  ctx.stop();
-                }
-                fut::ok(())
-              }).wait(ctx);
-          }
-          Ok(Message::JoinAck {
-            from: _,
-            to,
-            request_id,
-            ok,
-          }) => {
-            ctx
-              .state()
-              .signal_server_addr
-              .send(server::Message(
-                self.id,
-                Some(to),
-                Message::JoinAck {
-                  from: Some(self.id),
-                  to,
-                  request_id,
-                  ok,
-                },
-              )).into_actor(self)
-              .then(|res, _, ctx| {
-                if let Err(_) = res {
-                  ctx.stop();
-                }
-                fut::ok(())
-              }).wait(ctx);
+          Ok(Msg::JoinAck(mut inner)) => {
+            inner.from = Some(self.id);
+            self.send_to_server(ctx, Msg::JoinAck(inner));
           }
           Ok(_) => {
             println!("Unimplemented message received");
@@ -205,10 +113,8 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
           Err(e) => {
             println!("{:?}", e);
             ctx.text(
-              to_string::<Message>(&Message::Error {
-                reason: "invalid request".to_owned(),
-                request_id: None,
-              }).expect("fatal sending error"),
+              to_string::<Msg>(&Msg::Error("invalid request".to_owned(), None))
+                .expect("fatal sending error"),
             )
           }
         }
