@@ -11,7 +11,8 @@
     "jsx": "react",
     "allowJs": true,
     "typeRoots": ["node_modules/@types"],
-    "lib": ["es2017", "dom"]
+    "lib": ["es2017", "dom"],
+    "outDir": "static"
   },
   "exclude": [
     "src",

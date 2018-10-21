@@ -4,12 +4,16 @@ body {
   overflow: hidden;
 }
 
+.Toastify {
+  position: absolute;
+}
+
 .app {
   width: 100vw;
   height: 100vh;
   display: grid;
-  grid-template: 'header-left header-right' 'editor panel';
-  grid-template-rows: 60px auto;
+  grid-template: 'header-left header-right' 'editor panel-1' 'editor panel-2';
+  grid-template-rows: 60px 1fr minmax(min-content, max-content);
   grid-template-columns: 61.8% auto;
   overflow: hidden;
 
@@ -49,7 +53,7 @@ body {
 }
 
 .output {
-  grid-area: panel;
+  grid-area: panel-1;
   background-color: rgb(39, 40, 34);
   overflow: auto;
 
@@ -74,5 +78,19 @@ body {
         width: 100px;
       }
     }
+  }
+}
+
+.user-status {
+  grid-area: panel-2;
+  background: rgba(0, 0, 0, 0.93);
+  display: flex;
+  flex-wrap: wrap;
+
+  &-item {
+    display: flex;
+    align-items: center;
+    margin: 5px;
+    color: white;
   }
 }

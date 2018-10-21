@@ -20,7 +20,7 @@ export type IClient = {
   status: string;
 };
 
-class Client extends Record<IClient>({
+export class Client extends Record<IClient>({
   id: '',
   name: '',
   status: '',

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { hot } from 'react-hot-loader';
 import { createStore, applyMiddleware, compose, Action } from 'redux';
 import { createEpicMiddleware } from 'redux-observable';
@@ -13,6 +14,7 @@ import Header from 'components/header';
 import Output from 'components/output';
 import IndexModal from 'components/index-modal';
 import Loading from 'components/loading';
+import UserStatus from 'components/user-status';
 import { CodeDatabase } from 'services/storage';
 import { epic, Dependencies, EpicType } from 'epics';
 import reducer, { State } from 'reducer';
@@ -60,21 +62,28 @@ if ((module as any).hot) {
   });
 }
 
+const toastContainer = document.createElement('div');
+document.body.appendChild(toastContainer);
+
 const App = () => (
   <>
     <Loading />
-    <ToastContainer
-      position={ToastPosition.TOP_RIGHT}
-      autoClose={5000}
-      hideProgressBar
-      closeOnClick
-      pauseOnHover
-      draggable
-    />
     <Header />
     <Editor model={model} undo$={undo$} />
     <Output />
     <IndexModal db={db} />
+    <UserStatus />
+    {createPortal(
+      <ToastContainer
+        position={ToastPosition.TOP_RIGHT}
+        autoClose={5000}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+        draggable
+      />,
+      toastContainer,
+    )}
   </>
 );
 
