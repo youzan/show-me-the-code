@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use actix::prelude::*;
 use actix::spawn;
-use futures::Future;
+use futures::{future, Future};
 use uuid::Uuid;
 
 use super::msg::Msg;
@@ -19,7 +19,6 @@ impl actix::Message for Connect {
 
 pub struct Disconnect {
     pub client_id: Uuid,
-    // host id
     pub host_id: Option<Uuid>,
 }
 
@@ -80,38 +79,13 @@ impl Handler<Disconnect> for SignalServer {
                 set.iter()
             })
             .flat_map(|id| sessions.get(&id))
-            .for_each(|addr| {
-                let _ = addr.do_send(Msg::Offline(msg.client_id));
+            .for_each(|rec| {
+                spawn(
+                    rec.send(Msg::Offline(msg.client_id))
+                        .map(|_| {})
+                        .or_else(|_| future::ok(())),
+                );
             });
-        // msg.1
-        //     .iter()
-        //     .flat_map(|host_id| groups.get_mut(&host_id))
-        //     .flat_map(|set| {
-        //         set.remove(&msg.0);
-        //         set.iter()
-        //     }).flat_map(|id| sessions.get(&id))
-        //     .map(|addr| {
-        //         addr.do_send(Message(
-        //             msg.0,
-        //             None,
-        //             socket::Message::Offline { client_id: msg.0 },
-        //         ))
-        //     });
-        // if let Some(host_id) = msg.1 {
-        //     let groups = &mut self.groups;
-        //     if let Some(set) = groups.get_mut(&host_id) {
-        //         set.remove(&msg.0);
-        //         for val in set.iter() {
-        //             if let Some(addr) = self.sessions.get(&val) {
-        //                 let _ = addr.do_send(Message(
-        //                     msg.0,
-        //                     None,
-        //                     socket::Message::Offline { client_id: msg.0 },
-        //                 ));
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
 

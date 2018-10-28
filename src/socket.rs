@@ -1,5 +1,7 @@
+use actix::prelude::*;
 use actix::*;
 use actix_web::*;
+use futures::future;
 use futures::Future;
 use serde_json::{from_str, to_string};
 use uuid::*;
@@ -72,7 +74,7 @@ impl Actor for WsSession {
         client_id: self.id,
         host_id: self.host_id,
       })
-      .map_err(|_| ());
+      .or_else(|_| future::ok(()));
     spawn(fut);
     Running::Stop
   }
