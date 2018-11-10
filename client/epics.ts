@@ -28,7 +28,7 @@ import {
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Connection, JoinResponse } from 'services/connection';
+import { Connection, JoinResponse, MessageType } from 'services/connection';
 import { ExecutionService } from 'services/execution';
 import { confirmJoin } from 'notify';
 
@@ -172,7 +172,7 @@ const joinRequestEpic: EpicType = (action$, _state$, { connection }) =>
 
 const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =>
   connection.message$.pipe(
-    filter(msg => msg.type === 'join'),
+    filter(msg => msg.type === MessageType.JoinReq),
     withLatestFrom(state$),
     mergeMap<any, any>(([msg, state]) => {
       if (!msg.from) {

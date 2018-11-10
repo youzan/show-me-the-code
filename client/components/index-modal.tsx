@@ -18,6 +18,7 @@ import * as uuid from 'uuid/v1';
 import { CodeDatabase, Code } from 'services/storage';
 import { State } from 'reducer';
 import { CreateAction, JoinStartAction } from 'actions';
+import { noop } from 'utils';
 import { LANGUAGE } from '../../config';
 
 const EMPTY = 'empty';
@@ -182,8 +183,8 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
     const { db, open, loading } = this.props;
 
     return (
-      <TransitionablePortal transition={{ animation: 'fade down' }} open={open}>
-        <Modal className="index-modal" size="large" open={open}>
+      <TransitionablePortal transition={{ animation: 'fade down' }} open={open} onClose={noop}>
+        <Modal className="index-modal" size="large" open={open} onClose={noop}>
           <Modal.Content>
             <Form onSubmit={this.onSubmit}>
               <Form.Group>

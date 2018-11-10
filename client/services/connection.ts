@@ -17,6 +17,83 @@ import * as uuid from 'uuid/v1';
 
 import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
 
+export enum MessageType {
+  Ping = 0,
+  Pong = 1,
+  JoinReq = 2,
+  JoinRes = 3,
+  JoinAck = 4,
+  Tunnel = 5,
+  Offline = 6,
+  Connected = 7,
+  Error = 999,
+}
+
+/**
+ * [type, to, content, request_id, from]
+ */
+type RawSocketMessage =
+  | [MessageType.Ping]
+  | [MessageType.Pong]
+  | [MessageType.JoinReq, string, string, string, string]
+  | [MessageType.JoinRes, string, JoinResContent, string, string]
+  | [MessageType.JoinAck, string, string, string, string]
+  | [MessageType.Offline, string]
+  | [MessageType.Connected, string]
+  | [MessageType.Error, any?];
+
+type JoinResContent = {
+  ok: boolean;
+  codeId: string;
+  codeName: string;
+  codeContent: string;
+  language: string;
+};
+
+export type SocketMessage =
+  | {
+      type: MessageType.Ping;
+    }
+  | {
+      type: MessageType.Pong;
+    }
+  | {
+      type: MessageType.JoinReq;
+      from: string | null;
+      to: string;
+      content: string;
+    }
+  | {
+      type: MessageType.JoinRes;
+      from: string | null;
+      to: string;
+      content: JoinResContent;
+    }
+  | {
+      type: MessageType.JoinAck;
+      from: string | null;
+      to: string;
+      content: boolean;
+    }
+  | {
+      type: MessageType.Tunnel;
+      from: string | null;
+      to: string;
+      content: string;
+    }
+  | {
+      type: MessageType.Offline;
+      content: string;
+    }
+  | {
+      type: MessageType.Connected;
+      content: string;
+    }
+  | {
+      type: MessageType.Error;
+      content?: string;
+    };
+
 export type JoinCall = {
   type: 'join';
   to: string;
@@ -50,28 +127,12 @@ export type JoinAck = {
 
 export type Response = JoinResponse | JoinAck;
 
-export type SocketMessage =
-  | Call
-  | Response
-  | {
-      type: 'ping';
-    }
-  | {
-      type: 'pong';
-    }
-  | {
-      type: 'connected';
-      id: string;
-    };
-
-export type Message = SocketMessage;
-
 class ServerConnection implements IDisposable {
   private readonly url = SOCKET_URL;
   open$ = new Subject<Event>();
   closing$ = new Subject<void>();
   close$ = new Subject<CloseEvent>();
-  private ws$ = webSocket<SocketMessage>({
+  private ws$ = webSocket<RawSocketMessage>({
     url: this.url,
     openObserver: this.open$,
     closeObserver: this.close$,
@@ -82,8 +143,47 @@ class ServerConnection implements IDisposable {
   private subscription: Subscription | null = null;
   private heartbeatSubscription: Subscription;
 
-  private subscriber = (message: SocketMessage) => {
-    this.message$.next(message);
+  private subscriber = (message: RawSocketMessage) => {
+    switch (message[0]) {
+      case MessageType.Ping:
+        this.message$.next({
+          type: MessageType.Ping,
+        });
+        break;
+      case MessageType.Pong:
+        this.message$.next({
+          type: MessageType.Pong,
+        });
+        break;
+      case MessageType.JoinReq:
+        this.message$.next({
+          type: MessageType.JoinReq,
+          to: message[1],
+          content: message[2],
+          from: message[4],
+        });
+        break;
+      case MessageType.JoinRes:
+        this.message$.next({
+          type: MessageType.JoinRes,
+          to: message[1],
+          content: message[2],
+          from: message[4],
+        });
+        break;
+      case MessageType.Connected:
+        this.message$.next({
+          type: MessageType.Connected,
+          content: message[1],
+        });
+      default:
+        this.message$.next({
+          type: MessageType.Error,
+          content:
+            'Unknown message type from server. This is probably caused by your client version differnt with server. If not, it is a bug, please submit an issue.',
+        });
+        break;
+    }
   };
 
   private errorHandler = (error: any) => {
@@ -94,25 +194,21 @@ class ServerConnection implements IDisposable {
     this.heartbeatSubscription = this.initHeartbeat();
   }
 
-  send(message: any) {
-    this.ws$.next(message);
-  }
-
   private initHeartbeat() {
     return merge(this.open$.pipe(mapTo(true)), this.closing$.pipe(mapTo(false)))
       .pipe(
         distinctUntilChanged(),
         switchMap(connected => (connected ? interval(HEARTBEAT_INTERVAL).pipe(startWith(1)) : never())),
         tap(() => {
-          this.ws$.next({
-            type: 'ping',
+          this.send({
+            type: MessageType.Ping,
           });
         }),
         switchMap(() =>
           race(
             of(1).pipe(delay(HEARTBEAT_INTERVAL)),
-            this.ws$.pipe(
-              filter(msg => msg.type === 'pong'),
+            this.message$.pipe(
+              filter(msg => msg.type === MessageType.Pong),
               mapTo(0),
             ),
           ),
@@ -135,6 +231,19 @@ class ServerConnection implements IDisposable {
     this.subscription = this.ws$.pipe(retry(5)).subscribe(this.subscriber, this.errorHandler);
   }
 
+  send(msg: SocketMessage) {
+    switch (msg.type) {
+      case MessageType.Ping:
+        this.ws$.next([MessageType.Ping]);
+        break;
+      case MessageType.Pong:
+        this.ws$.next([MessageType.Pong]);
+        break;
+      default:
+        break;
+    }
+  }
+
   dispose() {
     this.subscription && this.subscription.unsubscribe();
     this.heartbeatSubscription.unsubscribe();
@@ -150,15 +259,15 @@ const bindSubscription = (s: Subscription) => s.unsubscribe.bind(s);
 
 export class Connection implements IDisposable {
   connection$: Observable<string>;
-  message$: Observable<Message>;
+  message$: Observable<SocketMessage>;
   private serverConnection = new ServerConnection();
   private disposers: Array<() => void>;
   private callMap = new Map<string, Resolver>();
 
   constructor() {
     this.connection$ = this.serverConnection.message$.pipe(
-      filter(({ type }) => type === 'connected'),
-      pluck('id'),
+      filter(({ type }) => type === MessageType.Connected),
+      pluck('content'),
     );
     this.message$ = this.serverConnection.message$;
     this.disposers = this.init();
@@ -170,8 +279,8 @@ export class Connection implements IDisposable {
       bindSubscription(
         this.serverConnection.message$.subscribe(msg => {
           switch (msg.type) {
-            case 'joinResponse':
-              this.reply(msg);
+            case MessageType.JoinRes:
+              // this.reply(msg);
               break;
             default:
               break;
@@ -190,7 +299,7 @@ export class Connection implements IDisposable {
   }
 
   send(t: Call | Response) {
-    this.serverConnection.send(t);
+    // this.serverConnection.send(t);
   }
 
   call<T = Response>(call: Call): Promise<T> {

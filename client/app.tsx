@@ -6,7 +6,7 @@ import { createEpicMiddleware } from 'redux-observable';
 import thunk from 'redux-thunk';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { ToastContainer, ToastPosition } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 import { model } from 'services/code';
 import Editor from 'components/editor';
@@ -75,7 +75,7 @@ const App = () => (
     <UserStatus />
     {createPortal(
       <ToastContainer
-        position={ToastPosition.TOP_RIGHT}
+        position={'top-right' as any}
         autoClose={5000}
         hideProgressBar
         closeOnClick

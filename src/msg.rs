@@ -5,6 +5,8 @@ use uuid::Uuid;
 /**
  * when receiving from client, from is always null, request_id can be null
  * when sending to client, from never be null, request_id can be null
+ * 
+ * [type, to, content, request_id, from]
  */
 pub struct SendMsg<T>
 where
@@ -44,20 +46,32 @@ impl Msg {
     S: Serializer,
     T: Serialize,
   {
-    let request_id = &inner.request_id;
-    let mut seq = if let Some(_) = request_id {
-      serializer.serialize_seq(Some(5))?
-    } else {
-      serializer.serialize_seq(Some(4))?
-    };
+    let mut seq = serializer.serialize_seq(Some(6))?;
     seq.serialize_element(&t)?;
     seq.serialize_element(&inner.to)?;
     seq.serialize_element(&inner.content)?;
-    if let Some(req_id) = request_id {
-      seq.serialize_element(&req_id)?;
-    }
+    seq.serialize_element(&inner.request_id)?;
+    seq.serialize_element(&inner.from)?;
     seq.end()
   }
+}
+
+mod msg_type {
+  macro_rules! T {
+    ($n: ident, $v: expr) => {
+      pub const $n: u32 = $v;
+    };
+  }
+
+  T!(PING, 0);
+  T!(PONG, 1);
+  T!(JOIN_REQ, 2);
+  T!(JOIN_RES, 3);
+  T!(JOIN_ACK, 4);
+  T!(TUNNEL, 5);
+  T!(OFFLINE, 6);
+  T!(CONNECTED, 7);
+  T!(ERROR, 999);
 }
 
 impl Serialize for Msg {
@@ -68,39 +82,39 @@ impl Serialize for Msg {
     match self {
       Msg::Ping => {
         let mut seq = serializer.serialize_seq(Some(1))?;
-        seq.serialize_element(&0)?;
+        seq.serialize_element(&msg_type::PING)?;
         seq.end()
       }
       Msg::Pong => {
         let mut seq = serializer.serialize_seq(Some(1))?;
-        seq.serialize_element(&1)?;
+        seq.serialize_element(&msg_type::PONG)?;
         seq.end()
       }
-      Msg::JoinReq(inner) => Msg::serialize_send(2, inner, serializer),
-      Msg::JoinRes(inner) => Msg::serialize_send(3, inner, serializer),
-      Msg::JoinAck(inner) => Msg::serialize_send(4, inner, serializer),
-      Msg::Tunnel(inner) => Msg::serialize_send(5, inner, serializer),
+      Msg::JoinReq(inner) => Msg::serialize_send(msg_type::JOIN_REQ, inner, serializer),
+      Msg::JoinRes(inner) => Msg::serialize_send(msg_type::JOIN_RES, inner, serializer),
+      Msg::JoinAck(inner) => Msg::serialize_send(msg_type::JOIN_ACK, inner, serializer),
+      Msg::Tunnel(inner) => Msg::serialize_send(msg_type::TUNNEL, inner, serializer),
       Msg::Offline(id) => {
         let mut seq = serializer.serialize_seq(Some(2))?;
-        seq.serialize_element(&6)?;
+        seq.serialize_element(&msg_type::OFFLINE)?;
         seq.serialize_element(&id)?;
         seq.end()
       }
       Msg::Connected(id) => {
         let mut seq = serializer.serialize_seq(Some(2))?;
-        seq.serialize_element(&7)?;
+        seq.serialize_element(&msg_type::CONNECTED)?;
         seq.serialize_element(&id)?;
         seq.end()
       }
       Msg::Error(reason, None) => {
         let mut seq = serializer.serialize_seq(Some(2))?;
-        seq.serialize_element(&999)?;
+        seq.serialize_element(&msg_type::ERROR)?;
         seq.serialize_element(reason)?;
         seq.end()
       }
       Msg::Error(reason, req) => {
         let mut seq = serializer.serialize_seq(Some(3))?;
-        seq.serialize_element(&999)?;
+        seq.serialize_element(&msg_type::ERROR)?;
         seq.serialize_element(reason)?;
         seq.serialize_element(req)?;
         seq.end()
