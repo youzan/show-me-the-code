@@ -94,7 +94,7 @@ const config = {
       return null;
     }),
     // new CleanWebpackPlugin(['static']),
-    new HardSourceWebpackPlugin(),
+    // new HardSourceWebpackPlugin(),
     // new BundleAnalyzerPlugin(),
   ],
   resolve: {
