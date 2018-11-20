@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable, merge, never, of, Subject } from 'rxjs';
+import { from, Observable, merge, never, of, Subject, race } from 'rxjs';
 import {
   tap,
   ignoreElements,
@@ -10,6 +10,7 @@ import {
   catchError,
   mergeMap,
   filter,
+  delay,
 } from 'rxjs/operators';
 import * as monaco from 'monaco-editor';
 
@@ -28,9 +29,10 @@ import {
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Connection, JoinResponse, MessageType } from 'services/connection';
+import { Connection, MessageType, JoinResMessage, JoinReqMessage } from 'services/connection';
 import { ExecutionService } from 'services/execution';
 import { confirmJoin } from 'notify';
+import { uid } from 'utils';
 
 export type Dependencies = {
   textModel: monaco.editor.ITextModel;
@@ -77,18 +79,17 @@ const saveEpic: EpicType = (action$, state$, { db, textModel }) =>
   action$.pipe(
     ofType('SAVE'),
     withLatestFrom(state$),
-    switchMap(
-      ([_, state]) =>
-        state.codeId && state.codeName
-          ? from(
-              db.code.add({
-                id: state.codeId,
-                name: state.codeName,
-                content: textModel.getValue(),
-                language: state.language,
-              }),
-            )
-          : never(),
+    switchMap(([_, state]) =>
+      state.codeId && state.codeName
+        ? from(
+            db.code.add({
+              id: state.codeId,
+              name: state.codeName,
+              content: textModel.getValue(),
+              language: state.language,
+            }),
+          )
+        : never(),
     ),
     mapTo({
       type: 'SAVE_SUCCESS',
@@ -136,49 +137,67 @@ const createEpic: EpicType = (action$, _state$, { textModel }) =>
     ignoreElements(),
   );
 
-const joinRequestEpic: EpicType = (action$, _state$, { connection }) =>
+const joinRequestEpic: EpicType = (action$, _state$, { connection, textModel }) =>
   action$.pipe(
     ofType('JOIN_START'),
-    switchMap(({ hostId, userName }: JoinStartAction) =>
-      from(
-        connection.call<JoinResponse>({
-          type: 'join',
-          to: hostId,
-          name: userName,
-        }),
-      ),
-    ),
-    tap(res =>
+    switchMap(({ hostId, userName }) => {
+      const requestId = uid();
       connection.send({
-        type: 'joinAck',
-        to: res.from as string,
-        requestId: res.requestId,
-        ok: true,
-      }),
-    ),
-    map<JoinResponse, JoinAcceptedAction>(res => ({
-      type: 'JOIN_ACCEPT',
-      codeId: res.codeId,
-      codeContent: res.codeContent,
-      codeName: res.codeName,
-      language: res.language,
-    })),
-    catchError<any, JoinRejectAction>(() =>
-      of({
-        type: 'JOIN_REJECT',
-      }) as any,
-    ),
+        type: MessageType.JoinReq,
+        content: userName,
+        requestId,
+        to: hostId,
+        from: '',
+      });
+      return race(
+        connection.message$.pipe(filter(msg => msg.type === MessageType.JoinRes && msg.requestId === requestId)),
+        of('join request timeout').pipe(
+          delay(30000),
+          map(err => {
+            throw err;
+          }),
+        ),
+      ).pipe(
+        tap(() =>
+          connection.send({
+            type: MessageType.JoinAck,
+            to: hostId,
+            requestId,
+            content: true,
+            from: '',
+          }),
+        ),
+        map<JoinResMessage, JoinAcceptedAction>(({ content }) => {
+          if (content.ok) {
+            const { codeId, codeContent, codeName, language, hostName } = content;
+            textModel.setValue(codeContent);
+            monaco.editor.setModelLanguage(textModel, language);
+            return <JoinAcceptedAction>{
+              type: 'JOIN_ACCEPT',
+              codeId,
+              codeName,
+              hostName,
+            };
+          } else {
+            throw new Error();
+          }
+        }) as any,
+        catchError<any, JoinRejectAction>(e => {
+          console.error(e);
+          return of({
+            type: 'JOIN_REJECT',
+          }) as any;
+        }),
+      );
+    }),
   );
 
 const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =>
   connection.message$.pipe(
     filter(msg => msg.type === MessageType.JoinReq),
     withLatestFrom(state$),
-    mergeMap<any, any>(([msg, state]) => {
-      if (!msg.from) {
-        return never();
-      }
-      return from(confirmJoin(msg.name)).pipe(
+    mergeMap<[JoinReqMessage, State], any>(([msg, state]) => {
+      return from(confirmJoin(msg.content)).pipe(
         mapTo(true),
         catchError(() => of(false)),
         tap(
@@ -186,28 +205,36 @@ const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =
             msg.from &&
             msg.requestId &&
             connection.send({
-              type: 'joinResponse',
+              type: MessageType.JoinRes,
               to: msg.from,
               requestId: msg.requestId,
-              ok,
-              codeId: state.codeId,
-              codeName: state.codeName,
-              codeContent: textModel.getValue(),
-              language: state.language,
-            } as any),
+              content: ok
+                ? {
+                    ok,
+                    codeId: state.codeId,
+                    codeName: state.codeName,
+                    codeContent: textModel.getValue(),
+                    language: state.language,
+                    hostName: state.userName,
+                  }
+                : {
+                    ok,
+                  },
+              from: '',
+            }),
         ),
         switchMap(() =>
           connection.message$.pipe(
-            filter((res: any) => res.type === 'joinAck' && res.requestId === msg.requestId),
+            filter(res => res.type === MessageType.JoinAck && res.requestId === msg.requestId),
             mapTo<any, JoinAckAction>({
               type: 'JOIN_ACK',
               id: msg.from as string,
-              name: msg.name,
+              name: msg.content,
             }),
           ),
         ),
       );
-    }),
+    }) as any,
   );
 
 export const epic = combineEpics<any, any, State, Dependencies>(

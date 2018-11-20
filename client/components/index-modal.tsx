@@ -78,6 +78,7 @@ type IndexModalProps = {
   open?: boolean;
   db: CodeDatabase;
   loading?: boolean;
+  defaultUserName?: string;
   onCreate(userName: string, codeId: string, codeName: string, content?: string): void;
   onJoin(userName: string, hostId: string): void;
 };
@@ -95,7 +96,7 @@ type IndexModalState = {
 export class IndexModal extends Component<IndexModalProps, IndexModalState> {
   state: IndexModalState = {
     type: 'join',
-    userName: '',
+    userName: this.props.defaultUserName || '',
     codeName: '',
     sharedId: '',
     selected: EMPTY,
@@ -178,6 +179,15 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
     });
   };
 
+  static getDerivedStateFromProps(
+    { defaultUserName }: IndexModalProps,
+    { userName }: IndexModalState,
+  ): Partial<IndexModalState> {
+    return {
+      userName: userName || defaultUserName,
+    };
+  }
+
   render() {
     const { type, userName, codeName, sharedId, selected, copy } = this.state;
     const { db, open, loading } = this.props;
@@ -213,8 +223,9 @@ export class IndexModal extends Component<IndexModalProps, IndexModalState> {
               {type === 'join' && (
                 <Form.Input required label="Shared ID" value={sharedId} onChange={this.onSharedIdChange} />
               )}
-              {type === 'create' &&
-                selected !== EMPTY && <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />}
+              {type === 'create' && selected !== EMPTY && (
+                <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />
+              )}
               <Form.Button primary loading={loading}>
                 Go
               </Form.Button>
@@ -232,6 +243,7 @@ export default connect(
   (state: State) => ({
     open: !state.codeId,
     loading: state.clientType === 'guest' && !state.codeId,
+    defaultUserName: state.userName,
   }),
   {
     onCreate(userName: string, codeId: string, codeName: string, content = ''): CreateAction {

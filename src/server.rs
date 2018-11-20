@@ -96,6 +96,11 @@ impl Handler<Msg> for SignalServer {
         use super::msg::{JoinRes, Msg, SendMsg};
 
         match msg {
+            Msg::JoinReq(inner) => {
+                if let Some(addr) = self.sessions.get(&inner.to) {
+                    spawn(addr.send(Msg::JoinReq(inner)).map_err(|_| ()));
+                }
+            }
             Msg::JoinRes(SendMsg {
                 from: Some(from),
                 to,
@@ -104,6 +109,11 @@ impl Handler<Msg> for SignalServer {
             }) => {
                 self.groups.entry(from).or_default().insert(to);
                 self.send_to_target(msg, &to);
+            }
+            Msg::JoinAck(inner) => {
+                if let Some(addr) = self.sessions.get(&inner.to) {
+                    spawn(addr.send(Msg::JoinAck(inner)).map_err(|_| ()));
+                }
             }
             _ => {}
         }

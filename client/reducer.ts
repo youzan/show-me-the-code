@@ -32,6 +32,7 @@ type IState = {
   codeName: string | '';
   userName: string;
   hostId: string | null;
+  hostName: string;
   clientType: 'host' | 'guest' | null;
   language: string;
   fontSize: number;
@@ -52,6 +53,7 @@ const StateRecord = Record<IState>({
   fontSize: 12,
   clients: Map(),
   output: OrderedMap(),
+  hostName: '',
 });
 
 type Action =
@@ -91,6 +93,7 @@ export function reducer(state = StateRecord(), action: Action): State {
         codeId: action.codeId,
         codeName: action.codeName,
         userName: action.userName,
+        hostName: action.userName,
       });
     case 'JOIN_START':
       return state.merge({
@@ -98,12 +101,11 @@ export function reducer(state = StateRecord(), action: Action): State {
         userName: action.userName,
       });
     case 'JOIN_ACCEPT':
-      return state.merge({
-        codeId: action.codeId,
-      });
+      return state.merge(action);
     case 'JOIN_REJECT':
       return state.merge({
-        clientId: null,
+        clientType: null,
+        codeId: '',
       });
     case 'JOIN_ACK':
       return state.setIn(

@@ -30,7 +30,7 @@ const UserStatus = ({ list, hostName }: Props) => (
 
 const mapStateToProps = (state: State) => ({
   list: state.clients,
-  hostName: state.userName,
+  hostName: state.hostName,
 });
 
 export default connect(mapStateToProps)(UserStatus);

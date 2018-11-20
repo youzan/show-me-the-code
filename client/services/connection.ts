@@ -13,7 +13,6 @@ import {
   pluck,
 } from 'rxjs/operators';
 import { IDisposable } from 'monaco-editor';
-import * as uuid from 'uuid/v1';
 
 import { SOCKET_URL, HEARTBEAT_INTERVAL } from '../../config';
 
@@ -35,19 +34,40 @@ export enum MessageType {
 type RawSocketMessage =
   | [MessageType.Ping]
   | [MessageType.Pong]
-  | [MessageType.JoinReq, string, string, string, string]
-  | [MessageType.JoinRes, string, JoinResContent, string, string]
-  | [MessageType.JoinAck, string, string, string, string]
+  | [MessageType.JoinReq, string, string, string, string?]
+  | [MessageType.JoinRes, string, JoinResContent, string, string?]
+  | [MessageType.JoinAck, string, boolean, string, string?]
   | [MessageType.Offline, string]
   | [MessageType.Connected, string]
   | [MessageType.Error, any?];
 
-type JoinResContent = {
-  ok: boolean;
-  codeId: string;
-  codeName: string;
-  codeContent: string;
-  language: string;
+type JoinResContent =
+  | {
+      ok: false;
+    }
+  | {
+      ok: true;
+      codeId: string;
+      codeName: string;
+      codeContent: string;
+      language: string;
+      hostName: string;
+    };
+
+export type JoinResMessage = {
+  type: MessageType.JoinRes;
+  from: string | null;
+  to: string;
+  content: JoinResContent;
+  requestId: string;
+};
+
+export type JoinReqMessage = {
+  type: MessageType.JoinReq;
+  from: string | null;
+  to: string;
+  content: string;
+  requestId: string;
 };
 
 export type SocketMessage =
@@ -57,23 +77,14 @@ export type SocketMessage =
   | {
       type: MessageType.Pong;
     }
-  | {
-      type: MessageType.JoinReq;
-      from: string | null;
-      to: string;
-      content: string;
-    }
-  | {
-      type: MessageType.JoinRes;
-      from: string | null;
-      to: string;
-      content: JoinResContent;
-    }
+  | JoinReqMessage
+  | JoinResMessage
   | {
       type: MessageType.JoinAck;
       from: string | null;
       to: string;
       content: boolean;
+      requestId: string;
     }
   | {
       type: MessageType.Tunnel;
@@ -94,56 +105,25 @@ export type SocketMessage =
       content?: string;
     };
 
-export type JoinCall = {
-  type: 'join';
-  to: string;
-  name: string;
-  from?: string;
-  requestId?: string;
-};
-
-export type Call = JoinCall;
-
-export type JoinResponse = {
-  type: 'joinResponse';
-  to: string;
-  from?: string;
-  requestId: string;
-  ok: boolean;
-  name: string;
-  codeId: string;
-  codeName: string;
-  codeContent: string;
-  language: string;
-};
-
-export type JoinAck = {
-  type: 'joinAck';
-  from?: string;
-  to: string;
-  requestId: string;
-  ok: true;
-};
-
-export type Response = JoinResponse | JoinAck;
+export type Message = SocketMessage;
 
 class ServerConnection implements IDisposable {
   private readonly url = SOCKET_URL;
-  open$ = new Subject<Event>();
-  closing$ = new Subject<void>();
-  close$ = new Subject<CloseEvent>();
-  private ws$ = webSocket<RawSocketMessage>({
+  readonly open$ = new Subject<Event>();
+  readonly closing$ = new Subject<void>();
+  readonly close$ = new Subject<CloseEvent>();
+  readonly ws$ = webSocket<RawSocketMessage>({
     url: this.url,
     openObserver: this.open$,
     closeObserver: this.close$,
     closingObserver: this.closing$,
   });
-  fetal$ = new Subject<any>();
-  message$ = new Subject<SocketMessage>();
+  readonly fetal$ = new Subject<any>();
+  readonly message$ = new Subject<SocketMessage>();
   private subscription: Subscription | null = null;
-  private heartbeatSubscription: Subscription;
+  private readonly heartbeatSubscription: Subscription;
 
-  private subscriber = (message: RawSocketMessage) => {
+  private readonly subscriber = (message: RawSocketMessage) => {
     switch (message[0]) {
       case MessageType.Ping:
         this.message$.next({
@@ -160,7 +140,12 @@ class ServerConnection implements IDisposable {
           type: MessageType.JoinReq,
           to: message[1],
           content: message[2],
-          from: message[4],
+          requestId: message[3],
+          from: message[4]
+            ? message[4]
+            : (() => {
+                throw new Error();
+              })(),
         });
         break;
       case MessageType.JoinRes:
@@ -168,7 +153,25 @@ class ServerConnection implements IDisposable {
           type: MessageType.JoinRes,
           to: message[1],
           content: message[2],
-          from: message[4],
+          requestId: message[3],
+          from: message[4]
+            ? message[4]
+            : (() => {
+                throw new Error();
+              })(),
+        });
+        break;
+      case MessageType.JoinAck:
+        this.message$.next({
+          type: MessageType.JoinAck,
+          to: message[1],
+          content: message[2],
+          requestId: message[3],
+          from: message[4]
+            ? message[4]
+            : (() => {
+                throw new Error();
+              })(),
         });
         break;
       case MessageType.Connected:
@@ -186,7 +189,7 @@ class ServerConnection implements IDisposable {
     }
   };
 
-  private errorHandler = (error: any) => {
+  private readonly errorHandler = (error: any) => {
     this.fetal$.next(error);
   };
 
@@ -255,8 +258,6 @@ type Resolver = {
   reject(response: any): void;
 };
 
-const bindSubscription = (s: Subscription) => s.unsubscribe.bind(s);
-
 export class Connection implements IDisposable {
   connection$: Observable<string>;
   message$: Observable<SocketMessage>;
@@ -276,17 +277,6 @@ export class Connection implements IDisposable {
   init(): Array<() => void> {
     return [
       this.serverConnection.dispose.bind(this.serverConnection),
-      bindSubscription(
-        this.serverConnection.message$.subscribe(msg => {
-          switch (msg.type) {
-            case MessageType.JoinRes:
-              // this.reply(msg);
-              break;
-            default:
-              break;
-          }
-        }),
-      ),
     ];
   }
 
@@ -298,30 +288,34 @@ export class Connection implements IDisposable {
     this.disposers.forEach(disposer => disposer());
   }
 
-  send(t: Call | Response) {
-    // this.serverConnection.send(t);
+  send(t: Message) {
+    switch (t.type) {
+      case MessageType.Ping:
+        return this._send([MessageType.Ping]);
+      case MessageType.Pong:
+        return this._send([MessageType.Pong]);
+      case MessageType.JoinReq:
+        return this._send([MessageType.JoinReq, t.to, t.content, t.requestId]);
+      case MessageType.JoinRes:
+        return this._send([MessageType.JoinRes, t.to, t.content, t.requestId]);
+      case MessageType.JoinAck:
+        return this._send([MessageType.JoinAck, t.to, t.content, t.requestId]);
+      default:
+        break;
+    }
   }
 
-  call<T = Response>(call: Call): Promise<T> {
-    call.requestId = call.requestId || uuid();
-    return new Promise((resolve, reject) => {
-      this.callMap.set(call.requestId as string, {
-        resolve,
-        reject,
+  private _send(raw: RawSocketMessage) {
+    const requestId: string | undefined = raw[4];
+    if (requestId) {
+      return new Promise((resolve, reject) => {
+        this.callMap.set(requestId, {
+          resolve,
+          reject,
+        });
+        this.serverConnection.ws$.next(raw);
       });
-      this.send(call);
-    });
-  }
-
-  private reply(response: Response) {
-    const resolver = this.callMap.get(response.requestId);
-    if (!resolver) {
-      return;
     }
-    if (response.ok) {
-      resolver.resolve(response);
-    } else {
-      resolver.reject(response);
-    }
+    this.serverConnection.ws$.next(raw);
   }
 }

@@ -63,8 +63,7 @@ export type JoinAcceptedAction = {
   type: 'JOIN_ACCEPT';
   codeId: string;
   codeName: string;
-  codeContent: string;
-  language: string;
+  hostName: string;
 };
 
 export type JoinRejectAction = {

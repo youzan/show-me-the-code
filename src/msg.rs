@@ -26,6 +26,7 @@ pub struct JoinRes {
   pub code_name: String,
   pub code_content: String,
   pub language: String,
+  pub host_name: String,
 }
 
 pub enum Msg {
