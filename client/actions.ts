@@ -41,6 +41,10 @@ export type ConnectedAction = {
   id: string;
 };
 
+export type DisconnectAction = {
+  type: 'DISCONNECT';
+};
+
 export type StopExecutionAction = {
   type: 'STOP_EXECUTION';
 };
@@ -74,4 +78,9 @@ export type JoinAckAction = {
   type: 'JOIN_ACK';
   id: string;
   name: string;
+};
+
+export type ClientLeaveAction = {
+  type: 'CLIENT_LEAVE';
+  clientId: string;
 };

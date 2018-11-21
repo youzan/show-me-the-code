@@ -11,6 +11,7 @@ import {
   retry,
   distinctUntilChanged,
   pluck,
+  map,
 } from 'rxjs/operators';
 import { IDisposable } from 'monaco-editor';
 
@@ -70,6 +71,11 @@ export type JoinReqMessage = {
   requestId: string;
 };
 
+export type OfflineMessage = {
+  type: MessageType.Offline;
+  content: string;
+}
+
 export type SocketMessage =
   | {
       type: MessageType.Ping;
@@ -92,10 +98,7 @@ export type SocketMessage =
       to: string;
       content: string;
     }
-  | {
-      type: MessageType.Offline;
-      content: string;
-    }
+  | OfflineMessage
   | {
       type: MessageType.Connected;
       content: string;
@@ -179,6 +182,11 @@ class ServerConnection implements IDisposable {
           type: MessageType.Connected,
           content: message[1],
         });
+      case MessageType.Offline:
+        this.message$.next({
+          type: MessageType.Offline,
+          content: message[1],
+        });
       default:
         this.message$.next({
           type: MessageType.Error,
@@ -260,6 +268,7 @@ type Resolver = {
 
 export class Connection implements IDisposable {
   connection$: Observable<string>;
+  disconnect$: Observable<void>;
   message$: Observable<SocketMessage>;
   private serverConnection = new ServerConnection();
   private disposers: Array<() => void>;
@@ -270,14 +279,13 @@ export class Connection implements IDisposable {
       filter(({ type }) => type === MessageType.Connected),
       pluck('content'),
     );
+    this.disconnect$ = this.serverConnection.close$.pipe(map(() => {}));
     this.message$ = this.serverConnection.message$;
     this.disposers = this.init();
   }
 
   init(): Array<() => void> {
-    return [
-      this.serverConnection.dispose.bind(this.serverConnection),
-    ];
+    return [this.serverConnection.dispose.bind(this.serverConnection)];
   }
 
   connect() {

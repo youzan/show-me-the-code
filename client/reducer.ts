@@ -12,6 +12,8 @@ import {
   JoinAcceptedAction,
   JoinRejectAction,
   JoinAckAction,
+  DisconnectAction,
+  ClientLeaveAction,
 } from './actions';
 
 export type IClient = {
@@ -63,11 +65,13 @@ type Action =
   | ExecutionOutputAction
   | ClearAction
   | ConnectedAction
+  | DisconnectAction
   | CreateAction
   | JoinStartAction
   | JoinAcceptedAction
   | JoinRejectAction
-  | JoinAckAction;
+  | JoinAckAction
+  | ClientLeaveAction;
 
 export function reducer(state = StateRecord(), action: Action): State {
   switch (action.type) {
@@ -86,6 +90,8 @@ export function reducer(state = StateRecord(), action: Action): State {
       return state.set('output', OrderedMap());
     case 'CONNECTED':
       return state.set('clientId', action.id);
+    case 'DISCONNECT':
+      return state.set('clientId', null);
     case 'CREATE':
       return state.merge({
         clientType: 'host',
@@ -115,6 +121,8 @@ export function reducer(state = StateRecord(), action: Action): State {
           name: action.name,
         }),
       );
+    case 'CLIENT_LEAVE':
+      return state.deleteIn(['clients', action.clientId]);
     default:
       return state;
   }

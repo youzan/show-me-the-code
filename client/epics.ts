@@ -26,10 +26,12 @@ import {
   JoinAcceptedAction,
   JoinRejectAction,
   JoinAckAction,
+  DisconnectAction,
+  ClientLeaveAction,
 } from 'actions';
 import { State } from 'reducer';
 import { CodeDatabase } from 'services/storage';
-import { Connection, MessageType, JoinResMessage, JoinReqMessage } from 'services/connection';
+import { Connection, MessageType, JoinResMessage, JoinReqMessage, OfflineMessage } from 'services/connection';
 import { ExecutionService } from 'services/execution';
 import { confirmJoin } from 'notify';
 import { uid } from 'utils';
@@ -102,6 +104,13 @@ const connectionEpic: EpicType = (_action$, _state$, { connection }) =>
       type: 'CONNECTED',
       id,
     })),
+  );
+
+const disconnectEpic: EpicType = (_action$, _state$, { connection }) =>
+  connection.disconnect$.pipe(
+    mapTo<any, DisconnectAction>({
+      type: 'DISCONNECT',
+    }),
   );
 
 const stopExecutionEpic: EpicType = (action$, _state$, { executionService }) =>
@@ -237,6 +246,15 @@ const joinHandleEpic: EpicType = (_action$, state$, { connection, textModel }) =
     }) as any,
   );
 
+const clinetLeaveEpic: EpicType = (_action$, _state$, { connection }) =>
+  connection.message$.pipe(
+    filter(msg => msg.type === MessageType.Offline),
+    map<OfflineMessage, ClientLeaveAction>(msg => ({
+      type: 'CLIENT_LEAVE',
+      clientId: msg.content,
+    })) as any,
+  );
+
 export const epic = combineEpics<any, any, State, Dependencies>(
   changeLanguageEpic,
   languageDidChangeEpic,
@@ -248,4 +266,6 @@ export const epic = combineEpics<any, any, State, Dependencies>(
   createEpic,
   joinRequestEpic,
   joinHandleEpic,
+  disconnectEpic,
+  clinetLeaveEpic,
 );

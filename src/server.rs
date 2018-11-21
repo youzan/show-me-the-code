@@ -49,6 +49,14 @@ impl SignalServer {
             spawn(addr.send(msg).map_err(|_| ()));
         }
     }
+
+    fn offline(client_id: Uuid, rec: Recipient<Msg>) {
+        spawn(
+            rec.send(Msg::Offline(client_id))
+                .map(|_| {})
+                .or_else(|_| future::ok(())),
+        );
+    }
 }
 
 impl Actor for SignalServer {
@@ -71,21 +79,20 @@ impl Handler<Disconnect> for SignalServer {
         let groups = &mut self.groups;
         let sessions = &mut self.sessions;
         sessions.remove(&msg.client_id);
-        msg.host_id
-            .and_then(|host_id| groups.get_mut(&host_id))
-            .into_iter()
-            .flat_map(|set| {
-                set.remove(&msg.client_id);
-                set.iter()
-            })
-            .flat_map(|id| sessions.get(&id))
-            .for_each(|rec| {
-                spawn(
-                    rec.send(Msg::Offline(msg.client_id))
-                        .map(|_| {})
-                        .or_else(|_| future::ok(())),
-                );
-            });
+        if let Some(ref host_id) = msg.host_id {
+            if let Some(rec) = sessions.get(host_id) {
+                Self::offline(msg.client_id, rec.clone());
+            }
+            groups
+                .get_mut(host_id)
+                .into_iter()
+                .flat_map(|set| {
+                    set.remove(&msg.client_id);
+                    set.iter()
+                })
+                .flat_map(|id| sessions.get(&id))
+                .for_each(|rec| Self::offline(msg.client_id, rec.clone()));
+        }
     }
 }
 

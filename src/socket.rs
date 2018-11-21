@@ -83,6 +83,9 @@ impl Actor for WsSession {
 impl Handler<msg::Msg> for WsSession {
   type Result = ();
   fn handle(&mut self, msg: msg::Msg, ctx: &mut Self::Context) {
+    if let Msg::JoinRes(ref inner) = msg {
+      self.host_id = inner.from;
+    }
     ctx.text(to_string(&msg).expect("error sending message"));
   }
 }
@@ -122,9 +125,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
         }
       }
       ws::Message::Binary(_) => println!("Unexpected binary"),
-      ws::Message::Close(_) => {
-        ctx.stop();
-      }
+      ws::Message::Close(_) => ctx.stop(),
     }
   }
 }
