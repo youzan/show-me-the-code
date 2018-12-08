@@ -1,5 +1,5 @@
-use actix::prelude::*;
-use actix::*;
+use ::actix::prelude::*;
+use ::actix::*;
 use actix_web::*;
 use futures::future;
 use futures::Future;
@@ -35,7 +35,7 @@ impl WsSession {
       .send(msg)
       .into_actor(self)
       .then(|res, _, ctx| {
-        if let Err(_) = res {
+        if res.is_err() {
           ctx.stop();
         }
         fut::ok(())
@@ -96,7 +96,7 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for WsSession {
       ws::Message::Ping(msg) => ctx.pong(&msg),
       ws::Message::Pong(_) => {}
       ws::Message::Text(text) => {
-        let mut m = from_str::<Msg>(text.trim());
+        let m = from_str::<Msg>(text.trim());
         match m {
           Ok(Msg::Ping) => ctx.text(to_string::<Msg>(&Msg::Pong).expect("error sending pong")),
           Ok(Msg::Pong) => {}

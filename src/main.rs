@@ -1,18 +1,10 @@
-extern crate actix;
-extern crate actix_web;
-extern crate dotenv;
-extern crate env_logger;
-extern crate futures;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate uuid;
 
 use std::env;
 // use std::path::PathBuf;
 
-use actix::*;
+use ::actix::*;
 use actix_web::*;
 
 mod msg;

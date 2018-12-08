@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use actix::prelude::*;
-use actix::spawn;
+use ::actix::prelude::*;
+use ::actix::spawn;
 use futures::{future, Future};
 use uuid::Uuid;
 
@@ -50,7 +50,7 @@ impl SignalServer {
         }
     }
 
-    fn offline(client_id: Uuid, rec: Recipient<Msg>) {
+    fn offline(client_id: Uuid, rec: &Recipient<Msg>) {
         spawn(
             rec.send(Msg::Offline(client_id))
                 .map(|_| {})
@@ -75,13 +75,13 @@ impl Handler<Connect> for SignalServer {
 impl Handler<Disconnect> for SignalServer {
     type Result = ();
 
-    fn handle<'a>(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) -> Self::Result {
         let groups = &mut self.groups;
         let sessions = &mut self.sessions;
         sessions.remove(&msg.client_id);
         if let Some(ref host_id) = msg.host_id {
             if let Some(rec) = sessions.get(host_id) {
-                Self::offline(msg.client_id, rec.clone());
+                Self::offline(msg.client_id, rec);
             }
             groups
                 .get_mut(host_id)
@@ -91,7 +91,7 @@ impl Handler<Disconnect> for SignalServer {
                     set.iter()
                 })
                 .flat_map(|id| sessions.get(&id))
-                .for_each(|rec| Self::offline(msg.client_id, rec.clone()));
+                .for_each(|rec| Self::offline(msg.client_id, rec));
         }
     }
 }
