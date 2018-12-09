@@ -94,3 +94,12 @@ body {
     color: white;
   }
 }
+
+.visible.transition.config {
+  display: flex !important;
+  flex-direction: column;
+
+  .config-select {
+    margin: 5px 0;
+  }
+}

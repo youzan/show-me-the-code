@@ -75,9 +75,11 @@ class Config extends Component<ConfigProps, ConfigState> {
         }
         on="click"
         position="bottom left"
+        className="config"
       >
-        <Dropdown selection search options={options} onChange={onLanguageChange} value={language} />
+        <Dropdown className="config-select" selection search options={options} onChange={onLanguageChange} value={language} />
         <Dropdown
+          className="config-select"
           selection
           search
           value={fontSize}
