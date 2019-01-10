@@ -41,7 +41,6 @@ export type Dependencies = {
   db: CodeDatabase;
   connection: Connection;
   executionService: ExecutionService;
-  undo$: Subject<string>;
 };
 
 export type InputAction =

@@ -134,8 +134,8 @@ if (!isDev) {
     new TerserPlugin({
       terserOptions: {
         ecma: 7,
-        extractComments: true,
       },
+      extractComments: true,
       parallel: true,
     }),
     new OptimizeCssAssetsPlugin(),

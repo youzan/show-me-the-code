@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render } from 'react-dom';
+import * as ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
 import 'semantic-ui-css/semantic.min.css';
@@ -7,12 +7,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import App, { store, connection } from 'app';
 
-render(
+(ReactDOM as any).unstable_createRoot(document.getElementById('app')).render(
   <Provider store={store}>
     <App />
   </Provider>,
-  document.getElementById('app'),
-  () => {
-    connection.connect();
-  }
+  connection.connect.bind(connection),
 );

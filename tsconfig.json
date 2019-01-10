@@ -1,7 +1,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./client",
     "module": "esnext",
     "strict": true,
     "moduleResolution": "node",

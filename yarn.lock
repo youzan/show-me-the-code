@@ -5680,15 +5680,15 @@ react-base16-styling@^0.5.1:
     lodash.flow "^3.3.0"
     pure-color "^1.2.0"
 
-react-dom@^16.4.2:
-  version "16.6.3"
-  resolved "http://registry.npm.taobao.org/react-dom/download/react-dom-16.6.3.tgz#8fa7ba6883c85211b8da2d0efeffc9d3825cccc0"
-  integrity sha1-j6e6aIPIUhG42i0O/v/J04JczMA=
+react-dom@^16.7.0-alpha.2:
+  version "16.7.0-alpha.2"
+  resolved "http://registry.npm.taobao.org/react-dom/download/react-dom-16.7.0-alpha.2.tgz#16632880ed43676315991d8b412cce6975a30282"
+  integrity sha1-FmMogO1DZ2MVmR2LQSzOaXWjAoI=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     prop-types "^15.6.2"
-    scheduler "^0.11.2"
+    scheduler "^0.12.0-alpha.2"
 
 react-hot-loader@^4.3.5:
   version "4.3.12"
@@ -5752,15 +5752,15 @@ react-transition-group@^2.4.0:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
-react@^16.6.1:
-  version "16.6.3"
-  resolved "http://registry.npm.taobao.org/react/download/react-16.6.3.tgz#25d77c91911d6bbdd23db41e70fb094cc1e0871c"
-  integrity sha1-Jdd8kZEda73SPbQecPsJTMHghxw=
+react@^16.7.0-alpha.2:
+  version "16.7.0-alpha.2"
+  resolved "http://registry.npm.taobao.org/react/download/react-16.7.0-alpha.2.tgz#924f2ae843a46ea82d104a8def7a599fbf2c78ce"
+  integrity sha1-kk8q6EOkbqgtEEqN73pZn78seM4=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     prop-types "^15.6.2"
-    scheduler "^0.11.2"
+    scheduler "^0.12.0-alpha.2"
 
 read-pkg-up@^1.0.1:
   version "1.0.1"
@@ -6120,10 +6120,10 @@ sax@^1.2.4, sax@~1.2.4:
   resolved "http://registry.npm.taobao.org/sax/download/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha1-KBYjTiN4vdxOU1T6tcqold9xANk=
 
-scheduler@^0.11.2:
-  version "0.11.3"
-  resolved "http://registry.npm.taobao.org/scheduler/download/scheduler-0.11.3.tgz#b5769b90cf8b1464f3f3cfcafe8e3cd7555a2d6b"
-  integrity sha1-tXabkM+LFGTz88/K/o4811VaLWs=
+scheduler@^0.12.0-alpha.2:
+  version "0.12.0"
+  resolved "http://registry.npm.taobao.org/scheduler/download/scheduler-0.12.0.tgz#8ab17699939c0aedc5a196a657743c496538647b"
+  integrity sha1-irF2mZOcCu3FoZamV3Q8SWU4ZHs=
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
