@@ -61,13 +61,13 @@ const config = {
     splitChunks: {
       cacheGroups: {
         vendor: {
-          chunks: 'initial',
+          chunks: 'all',
           name: 'vendors',
-          test: 'vendors',
+          test: /(lodash|vendors)/,
           enforce: true,
         },
         monaco: {
-          chunks: 'initial',
+          chunks: 'all',
           name: 'monaco',
           test: 'monaco',
           enforce: true,
