@@ -1,27 +1,24 @@
 import * as React from 'react';
-import { PureComponent, StatelessComponent } from 'react';
-import { OrderedMap } from 'immutable';
-import { connect } from 'react-redux';
+import { memo } from 'react';
+import { view } from 'react-easy-state';
 import JSONTree from 'react-json-tree';
 import cx from 'classnames';
 
-import { State } from '../reducer';
-
 type ItemProps = {
-  data: any;
+  data: unknown;
 };
 
 type LineProps = {
-  data: any[];
+  data: unknown[];
 };
 
 type BlockProps = {
-  data: any[][];
+  data: unknown[][];
 };
 
 type OutputProps = {
-  data: OrderedMap<string, any[][]>;
-};
+  data: Map<string, unknown[][]>;
+}
 
 const THEME = {
   scheme: 'monokai',
@@ -44,22 +41,24 @@ const THEME = {
   base0F: '#cc6633',
 };
 
-const OutputItem: StatelessComponent<ItemProps> = ({ data }) => {
+const OutputItem = memo<ItemProps>(({ data }) => {
   function labelRenderer([name, _parent]: [string, string]): JSX.Element {
-    if (name === 'root') {
-      return <span>{data.constructor.name || 'Object'}</span>;
+    if (name === 'root' && typeof data === 'object') {
+      if (data !== null) {
+        return <span>{data.constructor.name || 'Object'}</span>;
+      }
+      return <span>null</span>;
     }
     return <span>{`${name}:`}</span>;
   }
 
-  const type = typeof data;
-  switch (type) {
+  switch (typeof data) {
     case 'boolean':
     case 'number':
     case 'string':
-      return <div className={cx('output-item', type)}>{'' + data}</div>;
+      return <div className={cx('output-item', 'string')}>{'' + data}</div>;
     case 'undefined':
-      return <div className={cx('output-item', type)}>undefined</div>;
+      return <div className={cx('output-item', 'undefined')}>undefined</div>;
     case 'object':
       if (data === null) {
         return <div className={cx('output-item', 'null')}>null</div>;
@@ -68,52 +67,41 @@ const OutputItem: StatelessComponent<ItemProps> = ({ data }) => {
       }
       return <JSONTree data={data} theme={THEME} invertTheme={false} labelRenderer={labelRenderer} />;
     case 'symbol':
-      return <div className={cx('output-item', type)}>{data.toString()}</div>;
+      return <div className={cx('output-item', 'symbol')}>{data.toString()}</div>;
     default:
       return <div>{'' + data}</div>;
   }
-};
+});
 
-class OutputLine extends PureComponent<LineProps> {
-  render() {
-    const { data } = this.props;
+const OutputLine = view<React.FunctionComponent<LineProps>>(({ data }) => (
+  <div className="output-line">
+    {data.map((data, index) => (
+      <OutputItem key={index} data={data} />
+    ))}
+  </div>
+));
+OutputLine.displayName = 'OutputLine';
 
-    return (
-      <div className="output-line">
-        {data.map((data, index) => (
-          <OutputItem key={index} data={data} />
-        ))}
-      </div>
-    );
-  }
-}
+const OutputBlock = view<React.FunctionComponent<BlockProps>>(({ data }) => (
+  <div className="output-block">
+    {data.map((data, index) => (
+      <OutputLine key={index} data={data} />
+    ))}
+  </div>
+));
+OutputBlock.displayName = 'OutputBlock';
 
-class OutputBlock extends PureComponent<BlockProps> {
-  render() {
-    const { data } = this.props;
-
-    return (
-      <div className="output-block">
-        {data.map((data, index) => (
-          <OutputLine key={index} data={data} />
-        ))}
-      </div>
-    );
-  }
-}
-
-const Output: StatelessComponent<OutputProps> = ({ data }) => (
+const Output = view<React.FunctionComponent<OutputProps>>(({ data }) => (
   <div className="output">
     {(data as any).reduce(
-      (array: React.ReactNode[], block: any[][], key: string) => {
+      (array: React.ReactNode[], block: unknown[][], key: string) => {
         array.push(<OutputBlock key={key} data={block} />);
         return array;
       },
       [] as React.ReactNode[],
     )}
   </div>
-);
+));
+Output.displayName = 'Output';
 
-export default connect((state: State) => ({
-  data: state.output,
-}))(Output);
+export default Output;

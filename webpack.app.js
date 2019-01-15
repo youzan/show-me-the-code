@@ -17,19 +17,18 @@ const isDev = process.env.NODE_ENV === 'development';
 const vendors = [
   'react',
   'react-dom',
-  'monaco-editor',
-  'immutable',
-  'redux',
-  'react-redux',
   'dexie',
+  'react-easy-state',
   'resize-observer-polyfill',
   'react-json-tree',
+  'react-toastify',
 ];
 
 const config = {
   mode: process.env.NODE_ENV,
   entry: {
     vendors,
+    monaco: ['monaco-editor'],
     app: './client/main.tsx',
   },
   output: {
@@ -67,6 +66,12 @@ const config = {
           test: 'vendors',
           enforce: true,
         },
+        monaco: {
+          chunks: 'initial',
+          name: 'monaco',
+          test: 'monaco',
+          enforce: true,
+        }
       },
     },
   },
@@ -95,7 +100,6 @@ const config = {
     }),
     // new CleanWebpackPlugin(['static']),
     // new HardSourceWebpackPlugin(),
-    // new BundleAnalyzerPlugin(),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
@@ -118,6 +122,10 @@ const config = {
   performance: { hints: false },
   // devtool: false,
 };
+
+if (process.env.BUNDLE_ANALYZER) {
+  config.plugins.push(new BundleAnalyzerPlugin());
+}
 
 if (!isDev) {
   config.plugins.push(

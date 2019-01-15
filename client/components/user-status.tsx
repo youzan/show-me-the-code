@@ -1,18 +1,34 @@
 import * as React from 'react';
-import { Map } from 'immutable';
+import { useContext } from 'react';
 import { Icon } from 'semantic-ui-react';
 import { Observable } from 'rxjs';
 
 import { useSubscription } from '../utils';
 import { IClient } from '../models';
+import { view } from 'react-easy-state';
+import { Context } from '../context';
 
 type Props = {
-  list$: Observable<Map<string, IClient>>;
   hostName$: Observable<string>;
 };
 
-const UserStatus = ({ list$, hostName$ }: Props) => {
-  const list = useSubscription(list$, Map());
+function* renderClients(list: Iterable<IClient>) {
+  for (const client of list) {
+    yield (
+      <div key={client.id} className="user-status-item">
+        <Icon name="circle" size="tiny" />
+        {client.name}
+      </div>
+    );
+  }
+}
+
+const ClientList = view(() => {
+  const { clients } = useContext(Context);
+  return <>{renderClients(clients.list.values())}</>;
+});
+
+const UserStatus = ({ hostName$ }: Props) => {
   const hostName = useSubscription(hostName$, '');
 
   return (
@@ -21,15 +37,7 @@ const UserStatus = ({ list$, hostName$ }: Props) => {
         <Icon name="home" color="orange" size="small" />
         {hostName}
       </div>
-      {list
-        .valueSeq()
-        .map(client => (
-          <div key={client.id} className="user-status-item">
-            <Icon name="circle" size="tiny" />
-            {client.name}
-          </div>
-        ))
-        .toArray()}
+      <ClientList />
     </div>
   );
 };

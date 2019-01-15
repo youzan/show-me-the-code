@@ -1,11 +1,6 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { hot } from 'react-hot-loader';
-import { createStore, applyMiddleware, compose, Action } from 'redux';
-import { createEpicMiddleware } from 'redux-observable';
-import thunk from 'redux-thunk';
-import { BehaviorSubject } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 import { ToastContainer } from 'react-toastify';
 
 import { CodeService } from './services/code';
@@ -16,63 +11,68 @@ import IndexModal from './components/index-modal';
 import Loading from './components/loading';
 import UserStatus from './components/user-status';
 import { CodeDatabase } from './services/storage';
-import { epic, Dependencies, EpicType } from './epics';
-import reducer, { State } from './reducer';
+
 import { Connection } from './services/connection';
-import { ExecutionService } from './services/execution';
+import { Execution } from './services/execution';
 
 import './style.scss';
+import { ViewModel } from './view-model';
+import { Context } from './context';
+import { map } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { noop } from './utils';
 
-const composeEnhancers =
-  process.env.NODE_ENV === 'production' ? compose : (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-
-export const db = new CodeDatabase();
+const db = new CodeDatabase();
 export const connection = new Connection();
-export const executionService = new ExecutionService();
-export const codeService = new CodeService(db, connection);
-
-const epicMiddleware = createEpicMiddleware<Action<any>, Action<any>, State, Dependencies>({
-  dependencies: {
-    textModel: codeService.model,
-    db,
-    connection,
-    executionService,
-  },
-});
-
-export const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk, epicMiddleware)));
-
-if ((module as any).hot) {
-  const epic$ = new BehaviorSubject(epic);
-  const hotReloadingEpic: EpicType = (...args: any[]) => epic$.pipe(switchMap((epic: any) => epic(...args)));
-  epicMiddleware.run(hotReloadingEpic);
-  (module as any).hot.accept('epics', () => {
-    const nextRootEpic = require('epics').epic;
-    epic$.next(nextRootEpic);
-  });
-} else {
-  epicMiddleware.run(epic);
-}
-
-if ((module as any).hot) {
-  (module as any).hot.accept('reducer', () => {
-    const nextReducer = require('reducer').default;
-
-    store.replaceReducer(nextReducer);
-  });
-}
+const executionService = new Execution();
+const codeService = new CodeService(db, connection);
+const viewModel = new ViewModel(db, connection, executionService, codeService);
 
 const toastContainer = document.createElement('div');
 document.body.appendChild(toastContainer);
 
+const {
+  userName$,
+  language$,
+  fontSize$,
+  loading$,
+  hostId$,
+  onLanguageChange,
+  onFontSizeChange,
+  hostName$,
+  codeId$,
+  clientType$,
+  clients,
+  output,
+} = viewModel;
+
+const modalOpen$ = codeId$.pipe(map(id => !id));
+
+const modalLoading$ = combineLatest(clientType$, codeId$).pipe(
+  map(([clientType, codeId]) => clientType === 'guest' && !codeId),
+);
+
 const App = () => (
-  <>
+  <Context.Provider
+    value={{
+      language$,
+      fontSize$,
+      loading$,
+      hostId$,
+      editorModel: codeService.model,
+      onLanguageChange,
+      onFontSizeChange,
+      undo$: codeService.undo$,
+      clients,
+      output,
+    }}
+  >
     <Loading />
     <Header />
-    <Editor model={codeService.model} undo$={codeService.undo$} />
-    <Output />
-    <IndexModal db={db} />
-    <UserStatus />
+    <Editor />
+    <Output data={output.blocks} />
+    <IndexModal userName$={userName$} open$={modalOpen$} loading$={modalLoading$} onCreate={noop} onJoin={noop} />
+    <UserStatus hostName$={hostName$} />
     {createPortal(
       <ToastContainer
         position={'top-right' as any}
@@ -84,7 +84,7 @@ const App = () => (
       />,
       toastContainer,
     )}
-  </>
+  </Context.Provider>
 );
 
 export default hot(module)(App);
