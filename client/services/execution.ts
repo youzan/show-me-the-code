@@ -42,7 +42,7 @@ class Executor implements IDisposable {
   private subscriptions: Subscription[];
 
   constructor(
-    private readonly execution: Execution,
+    private readonly executionService: ExecutionService,
     public readonly id: string,
     public readonly type: string,
     public readonly code: string,
@@ -66,13 +66,13 @@ class Executor implements IDisposable {
     return this.message$.subscribe(data => {
       switch (data.type) {
         case 'close':
-          this.execution.stop(this.id);
+          this.executionService.stop(this.id);
           break;
         case 'stdout':
-          this.execution.stdout(this.id, data.data.map(fromString));
+          this.executionService.stdout(this.id, data.data.map(fromString));
           break;
         case 'stderr':
-          this.execution.stderr(this.id, data.data.map(fromString));
+          this.executionService.stderr(this.id, data.data.map(fromString));
           break;
         default:
           break;
@@ -101,7 +101,7 @@ class Executor implements IDisposable {
       )
       .subscribe(value => {
         if (value > 0) {
-          this.execution.kill(this.id, 'Executor not responding');
+          this.executionService.kill(this.id, 'Executor not responding');
         }
       });
   }
@@ -124,7 +124,7 @@ export type Output<T = any> = {
   id: string;
 };
 
-export class Execution implements IDisposable {
+export class ExecutionService implements IDisposable {
   private executors = new Map<string, Executor>();
   stdout$ = new Subject<Output>();
   stderr$ = new Subject<Output<Error>>();

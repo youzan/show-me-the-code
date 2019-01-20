@@ -1,11 +1,15 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
 
 import 'semantic-ui-css/semantic.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 
-import App, { connection } from './app';
+import App, { store, connection } from 'app';
 
-(ReactDOM as any)
-  .createRoot(document.getElementById('app'))
-  .render(<App />, connection.connect.bind(connection));
+(ReactDOM as any).unstable_createRoot(document.getElementById('app')).render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  connection.connect.bind(connection),
+);

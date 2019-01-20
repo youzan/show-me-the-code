@@ -1,10 +1,24 @@
 import * as React from 'react';
-import { Component, PureComponent, useState, useCallback, memo } from 'react';
-import { Modal, Divider, Form, CheckboxProps, TransitionablePortal, InputOnChangeData } from 'semantic-ui-react';
+import { Component, PureComponent, useState, useCallback } from 'react';
+import { connect } from 'react-redux';
+import {
+  Modal,
+  Divider,
+  Form,
+  List,
+  Label,
+  CheckboxProps,
+  ListItemProps,
+  InputProps,
+  TransitionablePortal,
+  FormProps,
+} from 'semantic-ui-react';
 // import * as uuid from 'uuid/v1';
 
-import { noop, useValue, useSubscription } from '../utils';
-import { Observable, BehaviorSubject } from 'rxjs';
+// import { CodeDatabase, Code } from 'services/storage';
+// import { State } from 'reducer';
+// import { CreateAction, JoinStartAction } from 'actions';
+import { noop, useValue } from '../utils';
 // import { LANGUAGE } from '../../config';
 
 // const EMPTY = 'empty';
@@ -60,10 +74,11 @@ import { Observable, BehaviorSubject } from 'rxjs';
 //   }
 // }
 
-export type IndexModalProps = {
-  open$: Observable<boolean>;
-  loading$: Observable<boolean>;
-  userName$: BehaviorSubject<string>;
+type IndexModalProps = {
+  open?: boolean;
+  // db: CodeDatabase;
+  loading?: boolean;
+  defaultUserName?: string;
   onCreate(userName: string, codeId: string, codeName: string, content?: string): void;
   onJoin(userName: string, hostId: string): void;
 };
@@ -78,37 +93,27 @@ export type IndexModalProps = {
 //   errors: string[];
 // };
 
-const IndexModal: React.FunctionComponent<IndexModalProps> = ({ open$, userName$, loading$ }) => {
-  const open = useSubscription(open$, false);
-  const loading = useSubscription(loading$, false);
+
+
+const IndexModal: React.FunctionComponent<IndexModalProps> = ({ open, loading }) => {
   const [type, setType] = useState<'join' | 'create'>('join');
-  const onTypeChange = useCallback(
-    (_event: React.FormEvent<HTMLInputElement>, { name }: CheckboxProps) => {
-      if (!name) {
-        return;
-      }
-      setType(name as 'join' | 'create');
-    },
-    [setType],
-  );
-  const userName = useSubscription(userName$, '');
-  const onUserNameChange = useCallback(
-    (_event: React.FormEvent<HTMLInputElement>, { value }: InputOnChangeData) => {
-      userName$.next(value);
-    },
-    [userName$],
-  );
+  const onTypeChange = useCallback((_event: React.FormEvent<HTMLInputElement>, { name }: CheckboxProps) => {
+    if (!name) {
+      return;
+    }
+    setType(name as 'join' | 'create');
+  }, [setType]);
+  const [userName, onUserNameChange] = useValue('');
   const [codeName, onCodeNameChange] = useValue('');
   const [sharedId, onSharedIdChange] = useValue('');
   const [copy, setCopy] = useState<boolean>(false);
-  const onCopyChange = useCallback(
-    (_event: React.FormEvent<HTMLInputElement>, { checked }: CheckboxProps) => {
-      setCopy(!!checked);
-    },
-    [setCopy],
-  );
+  const onCopyChange=  useCallback((_event: React.FormEvent<HTMLInputElement>, { checked }: CheckboxProps) => {
+    setCopy(!!checked);
+  }, [setCopy])
 
-  const onSubmit = useCallback(() => {}, []);
+  const onSubmit = useCallback(() => {
+
+  }, []);
 
   return (
     <TransitionablePortal transition={{ animation: 'fade down' }} open={open} onClose={noop}>
@@ -131,9 +136,16 @@ const IndexModal: React.FunctionComponent<IndexModalProps> = ({ open$, userName$
             </Form.Group>
             <Form.Input required label="Who are you ?" value={userName} onChange={onUserNameChange} />
             {type === 'create' && (
-              <Form.Input required label="Name of your great work" value={codeName} onChange={onCodeNameChange} />
+              <Form.Input
+                required
+                label="Name of your great work"
+                value={codeName}
+                onChange={onCodeNameChange}
+              />
             )}
-            {type === 'join' && <Form.Input required label="Shared ID" value={sharedId} onChange={onSharedIdChange} />}
+            {type === 'join' && (
+              <Form.Input required label="Shared ID" value={sharedId} onChange={onSharedIdChange} />
+            )}
             {/* {type === 'create' && selected !== EMPTY && (
               <Form.Checkbox label="Copy" checked={copy} onChange={this.onCopyChange} />
             )} */}
@@ -147,7 +159,7 @@ const IndexModal: React.FunctionComponent<IndexModalProps> = ({ open$, userName$
       </Modal>
     </TransitionablePortal>
   );
-};
+}
 
 export default IndexModal;
 
