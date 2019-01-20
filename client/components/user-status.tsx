@@ -1,20 +1,17 @@
 import * as React from 'react';
 import { Map } from 'immutable';
+import { connect } from 'react-redux';
 import { Icon } from 'semantic-ui-react';
-import { Observable } from 'rxjs';
 
-import { useSubscription } from '../utils';
 import { IClient } from '../models';
+import { State } from '../reducer';
 
-type Props = {
-  list$: Observable<Map<string, IClient>>;
-  hostName$: Observable<string>;
+type IUserStatusProps = {
+  list: Map<string, IClient>;
+  hostName: string;
 };
 
-const UserStatus = ({ list$, hostName$ }: Props) => {
-  const list = useSubscription(list$, Map());
-  const hostName = useSubscription(hostName$, '');
-
+const UserStatus: React.FunctionComponent<IUserStatusProps> = ({ list, hostName }) => {
   return (
     <div className="user-status">
       <div className="user-status-item">
@@ -34,4 +31,9 @@ const UserStatus = ({ list$, hostName$ }: Props) => {
   );
 };
 
-export default UserStatus;
+const mapStateToProps = (state: State) => ({
+  list: state.clients,
+  hostName: state.hostName,
+});
+
+export default connect(mapStateToProps)(UserStatus);

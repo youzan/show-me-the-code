@@ -5,9 +5,9 @@ import { Provider } from 'react-redux';
 import 'semantic-ui-css/semantic.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 
-import App, { store, connection } from 'app';
+import App, { store, connection } from './app';
 
-(ReactDOM as any).unstable_createRoot(document.getElementById('app')).render(
+(ReactDOM as any).createRoot(document.getElementById('app')).render(
   <Provider store={store}>
     <App />
   </Provider>,

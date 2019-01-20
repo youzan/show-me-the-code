@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import { createContext } from 'react';
+// import { createContext } from 'react';
 
 import { NAME } from '../constants';
 
@@ -25,6 +25,6 @@ export class CodeDatabase extends Dexie {
   }
 }
 
-export const StorageContext = createContext<CodeDatabase>(null as any);
+// export const StorageContext = createContext<CodeDatabase>(null as any);
 
 export default CodeDatabase;

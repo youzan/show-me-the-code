@@ -51,7 +51,6 @@ export type StopExecutionAction = {
 
 export type CreateAction = {
   type: 'CREATE';
-  userName: string;
   codeId: string;
   codeName: string;
   content: string;
@@ -59,7 +58,6 @@ export type CreateAction = {
 
 export type JoinStartAction = {
   type: 'JOIN_START';
-  userName: string;
   hostId: string;
 };
 
@@ -83,4 +81,9 @@ export type JoinAckAction = {
 export type ClientLeaveAction = {
   type: 'CLIENT_LEAVE';
   clientId: string;
+};
+
+export type UserNameChangeAction = {
+  type: 'USER_NAME';
+  userName: string;
 };

@@ -1,3 +1,5 @@
+import { Record } from 'immutable';
+
 export type IClient = {
   id: string;
   name: string;

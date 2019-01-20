@@ -14,8 +14,9 @@ import {
   JoinAckAction,
   DisconnectAction,
   ClientLeaveAction,
+  UserNameChangeAction,
 } from './actions';
-
+import { Client } from './models';
 
 type IState = {
   clientId: string | null;
@@ -60,7 +61,8 @@ type Action =
   | JoinAcceptedAction
   | JoinRejectAction
   | JoinAckAction
-  | ClientLeaveAction;
+  | ClientLeaveAction
+  | UserNameChangeAction;
 
 export function reducer(state = StateRecord(), action: Action): State {
   switch (action.type) {
@@ -87,13 +89,11 @@ export function reducer(state = StateRecord(), action: Action): State {
         hostId: state.clientId,
         codeId: action.codeId,
         codeName: action.codeName,
-        userName: action.userName,
-        hostName: action.userName,
+        hostName: state.userName,
       });
     case 'JOIN_START':
       return state.merge({
         clientType: 'guest',
-        userName: action.userName,
       });
     case 'JOIN_ACCEPT':
       return state.merge(action);
@@ -112,6 +112,8 @@ export function reducer(state = StateRecord(), action: Action): State {
       );
     case 'CLIENT_LEAVE':
       return state.deleteIn(['clients', action.clientId]);
+    case 'USER_NAME':
+      return state.set('userName', action.userName);
     default:
       return state;
   }

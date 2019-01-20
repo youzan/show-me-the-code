@@ -1,43 +1,56 @@
 import * as React from 'react';
-import { FunctionComponent, useContext, useCallback } from 'react';
+import { FunctionComponent, useCallback } from 'react';
+import { connect } from 'react-redux';
 import { Icon, Button } from 'semantic-ui-react';
 import * as copy from 'copy-to-clipboard';
-import { Context } from '../context';
-import { useSubscription } from '../utils';
+import { uid } from '../utils';
+import { ExecutionAction, ClearAction } from '../actions';
+import { State } from '../reducer';
 
-export type Props = {
+export type IToolbarProps = {
   onExecution?(): void;
   onClear?(): void;
+  hostId: string | null;
 };
 
-function HostId() {
-  const { hostId$ } = useContext(Context);
-  const hostId = useSubscription(hostId$, null);
+const Toolbar: FunctionComponent<IToolbarProps> = ({ onExecution, onClear, hostId }) => {
   const onCopy = useCallback(
     () => {
       copy(hostId || '');
     },
     [hostId],
   );
-  if (!hostId) {
-    return null;
-  }
-  return <Button icon="copy" content={hostId} primary labelPosition="right" onClick={onCopy} />;
-}
+  return (
+    <Button.Group size="mini" className="toolbar">
+      <Button color="green" onClick={onExecution}>
+        <Icon name="play" />
+      </Button>
+      <Button color="orange">
+        <Icon name="save" />
+      </Button>
+      <Button color="red" onClick={onClear}>
+        <Icon name="close" />
+      </Button>
+      {hostId && <Button icon="copy" content={hostId} primary labelPosition="right" onClick={onCopy} />}
+    </Button.Group>
+  );
+};
 
-const Toolbar: FunctionComponent<Props> = ({ onExecution, onClear }) => (
-  <Button.Group size="mini" className="toolbar">
-    <Button color="green" onClick={onExecution}>
-      <Icon name="play" />
-    </Button>
-    <Button color="orange">
-      <Icon name="save" />
-    </Button>
-    <Button color="red" onClick={onClear}>
-      <Icon name="close" />
-    </Button>
-    <HostId />
-  </Button.Group>
-);
-
-export default Toolbar;
+export default connect(
+  (state: State) => ({
+    hostId: state.hostId,
+  }),
+  {
+    onExecution(): ExecutionAction {
+      return {
+        type: 'EXECUTION',
+        id: uid(),
+      };
+    },
+    onClear(): ClearAction {
+      return {
+        type: 'CLEAR_OUTPUT',
+      };
+    },
+  },
+)(Toolbar);
