@@ -106,6 +106,7 @@ const IndexModal: React.FunctionComponent<IndexModalProps> = ({
 
   const onSubmit = useCallback(
     (e: React.FormEvent<HTMLElement>) => {
+      console.log('onSubmit', userName)
       e.preventDefault();
       if (!userName) {
         return;
@@ -133,7 +134,7 @@ const IndexModal: React.FunctionComponent<IndexModalProps> = ({
         onJoin(sharedId);
       }
     },
-    [type, selected, onCreate, onJoin],
+    [type, selected, onCreate, onJoin, userName],
   );
 
   return (
@@ -163,7 +164,7 @@ const IndexModal: React.FunctionComponent<IndexModalProps> = ({
             {type === 'create' && selected !== EMPTY && (
               <Form.Checkbox label="Copy" checked={copy} onChange={onCopyChange} />
             )}
-            <Form.Button primary loading={loading}>
+            <Form.Button primary loading={loading} onClick={onSubmit}>
               Go
             </Form.Button>
           </Form>

@@ -1,76 +1,46 @@
 import * as React from 'react';
-import { Component, createRef } from 'react';
-import ResizeObserver from 'resize-observer-polyfill';
+import { useRef, useLayoutEffect, useEffect } from 'react';
 import { connect } from 'react-redux';
 import * as monaco from 'monaco-editor';
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 
+import MonacoEditor from './monaco-editor';
 import { State } from '../reducer';
 
-export type Props = {
+export type IEditorProps = {
   model: monaco.editor.ITextModel;
   fontSize: number;
   undo$: Subject<string>;
 };
 
-class Editor extends Component<Props> {
-  containerRef = createRef<HTMLDivElement>();
-  editor: monaco.editor.IStandaloneCodeEditor | null = null;
-  resizeObserver = new ResizeObserver(() => {
-    this.editor && this.editor.layout();
-  });
-  undoSubscription: Subscription | null = null;
+const Editor: React.FunctionComponent<IEditorProps> = ({ model, fontSize, undo$ }) => {
+  const editorRef = useRef<MonacoEditor | null>(null);
 
-  initUndo() {
-    this.undoSubscription = this.props.undo$.subscribe(source => {
-      (this.editor as monaco.editor.IStandaloneCodeEditor).trigger(source, 'undo', '');
-    });
-  }
+  useLayoutEffect(
+    () => {
+      const editor = editorRef.current;
+      if (editor) {
+        editor.setFontSize(fontSize);
+      }
+    },
+    [fontSize],
+  );
 
-  componentDidMount() {
-    if (!this.containerRef.current) {
-      throw new Error('Fetal');
-    }
-    this.editor = monaco.editor.create(this.containerRef.current, {
-      model: this.props.model,
-      theme: 'vs-dark',
-      fontSize: 12,
-    });
-    this.resizeObserver.observe(this.containerRef.current);
-    this.initUndo();
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (!this.editor) {
-      throw new Error('Fetal');
-    }
-    if (this.props.model !== prevProps.model) {
-      this.editor.setModel(this.props.model);
-    }
-    if (this.props.fontSize !== prevProps.fontSize) {
-      this.editor.updateOptions({
-        fontSize: this.props.fontSize,
+  useEffect(
+    () => {
+      const subscription = undo$.subscribe(source => {
+        const editor = editorRef.current;
+        if (editor) {
+          editor.undo(source);
+        }
       });
-    }
-    if (this.props.undo$ !== prevProps.undo$) {
-      this.undoSubscription && this.undoSubscription.unsubscribe();
-      this.initUndo();
-    }
-  }
+      return () => subscription.unsubscribe();
+    },
+    [undo$],
+  );
 
-  componentWillUnmount() {
-    this.resizeObserver.disconnect();
-    if (!this.editor) {
-      throw new Error('Fetal');
-    }
-    this.undoSubscription && this.undoSubscription.unsubscribe();
-    this.editor.dispose();
-  }
-
-  render() {
-    return <div ref={this.containerRef} className="editor" />;
-  }
-}
+  return <MonacoEditor ref={editorRef} className="editor" model={model} />;
+};
 
 export default connect((state: State) => ({
   fontSize: state.fontSize,
