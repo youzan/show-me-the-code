@@ -17,7 +17,6 @@ const isDev = process.env.NODE_ENV === 'development';
 const vendors = [
   'react',
   'react-dom',
-  'monaco-editor',
   'immutable',
   'redux',
   'react-redux',
@@ -30,6 +29,7 @@ const config = {
   mode: process.env.NODE_ENV,
   entry: {
     vendors,
+    monaco: ['monaco-editor'],
     app: './client/main.tsx',
   },
   output: {
@@ -146,6 +146,10 @@ if (!isDev) {
     }),
     new OptimizeCssAssetsPlugin(),
   );
+}
+
+if (process.env.BUNDLE_ANALYZER) {
+  config.plugins.push(new BundleAnalyzerPlugin());
 }
 
 module.exports = config;
