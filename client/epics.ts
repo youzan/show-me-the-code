@@ -1,5 +1,5 @@
 import { combineEpics, Epic, ofType } from 'redux-observable';
-import { from, Observable, merge, never, of, Subject, race } from 'rxjs';
+import { from, Observable, merge, never, of, race } from 'rxjs';
 import {
   tap,
   ignoreElements,
@@ -28,13 +28,13 @@ import {
   JoinAckAction,
   DisconnectAction,
   ClientLeaveAction,
-} from 'actions';
-import { State } from 'reducer';
-import { CodeDatabase } from 'services/storage';
-import { Connection, MessageType, JoinResMessage, JoinReqMessage, OfflineMessage } from 'services/connection';
-import { ExecutionService } from 'services/execution';
-import { confirmJoin } from 'notify';
-import { uid } from 'utils';
+} from './actions';
+import { State } from './reducer';
+import { CodeDatabase } from './services/storage';
+import { Connection, MessageType, JoinResMessage, JoinReqMessage, OfflineMessage } from './services/connection';
+import { ExecutionService } from './services/execution';
+import { confirmJoin } from './notify';
+import { uid } from './utils';
 
 export type Dependencies = {
   textModel: monaco.editor.ITextModel;

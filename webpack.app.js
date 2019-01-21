@@ -105,7 +105,6 @@ const config = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
-    modules: [path.resolve(__dirname, 'client'), 'node_modules'],
   },
   devServer: {
     proxy: {
