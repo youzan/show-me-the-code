@@ -21,12 +21,8 @@ pub struct State {
 // }
 
 fn ws_route(req: &HttpRequest<State>) -> Result<HttpResponse, Error> {
-    ws::start(
-        req,
-        socket::WsSession::default(),
-    )
+    ws::start(req, socket::WsSession::default())
 }
-
 
 fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=info");
@@ -36,7 +32,7 @@ fn main() {
     let sys = actix::System::new("show-me-the-code");
 
     let server = Arbiter::start(|_| server::SignalServer::default());
-    let address = env::var("ADDRESS").unwrap();
+    let address = env::var("ADDRESS").unwrap_or_else(|_| "127.0.0.1:8086".to_owned());
     actix_web::server::HttpServer::new(move || {
         let state = State {
             signal_server_addr: server.clone(),
@@ -46,12 +42,15 @@ fn main() {
             .resource("/ws", |r| r.route().f(ws_route))
             .handler(
                 "/",
-                fs::StaticFiles::new("./static").expect("serve static").index_file("index.html"),
+                fs::StaticFiles::new("./static")
+                    .expect("serve static")
+                    .index_file("index.html"),
             )
-            // .default_resource(|r| r.get().f(index))
-    }).bind(address.clone())
-        .unwrap()
-        .start();
+        // .default_resource(|r| r.get().f(index))
+    })
+    .bind(address.clone())
+    .unwrap()
+    .start();
 
     println!("Started http server: {}", address);
     let _ = sys.run();
