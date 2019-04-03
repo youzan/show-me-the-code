@@ -8,21 +8,21 @@ const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
-// const CleanWebpackPlugin = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const { AngularCompilerPlugin } = require('@ngtools/webpack');
 const { PUBLIC_PATH } = require('./config');
 
 const isDev = process.env.NODE_ENV === 'development';
 
 const vendors = [
-  'react',
-  'react-dom',
-  'immutable',
-  'redux',
-  'react-redux',
+  // 'react',
+  // 'react-dom',
+  // 'immutable',
+  // 'redux',
+  // 'react-redux',
   'dexie',
-  'resize-observer-polyfill',
-  'react-json-tree',
+  // 'resize-observer-polyfill',
+  // 'react-json-tree',
 ];
 
 const config = {
@@ -30,7 +30,7 @@ const config = {
   entry: {
     vendors,
     monaco: ['monaco-editor'],
-    app: './client/main.tsx',
+    app: './client/main.ts',
   },
   output: {
     filename: isDev ? '[name].js' : '[name].[chunkhash].js',
@@ -40,17 +40,27 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        loader: 'awesome-typescript-loader',
+        test: /\.ts$/,
+        loader: '@ngtools/webpack',
         exclude: /node_modules/,
       },
       {
         test: /\.s?css$/,
-        use: [isDev ? 'style-loader' : MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        use: ['css-to-string-loader', 'css-loader'],
+        exclude: [/node_modules/, path.resolve(__dirname, './client/style.scss')],
+      },
+      {
+        test: /\.s?css$/,
+        use: ['style-loader', 'css-loader'],
+        include: [/node_modules/, path.resolve(__dirname, './client/style.scss')],
       },
       {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2)$/,
         loader: 'file-loader',
+      },
+      {
+        test: /\.html$/,
+        loader: 'html-loader',
       },
     ],
   },
@@ -72,17 +82,21 @@ const config = {
           name: 'monaco',
           test: 'monaco',
           enforce: true,
-        }
+        },
       },
     },
   },
   plugins: [
     new webpack.ProgressPlugin(),
+    new AngularCompilerPlugin({
+      mainPath: path.resolve(__dirname, './client/main.ts'),
+      tsConfigPath: path.resolve(__dirname, './tsconfig.json'),
+    }),
     new MonacoWebpackPlugin(),
-    new webpack.ContextReplacementPlugin(
-      /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
-      __dirname,
-    ),
+    // new webpack.ContextReplacementPlugin(
+    //   /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
+    //   __dirname,
+    // ),
     new HtmlPlugin({
       template: './client/index.html',
       cache: true,
@@ -99,9 +113,6 @@ const config = {
       }
       return null;
     }),
-    // new CleanWebpackPlugin(['static']),
-    // new HardSourceWebpackPlugin(),
-    // new BundleAnalyzerPlugin(),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],

@@ -1,0 +1,12 @@
+:host {
+  display: grid;
+  grid-template:
+    'label1 language' 40px
+    'label2 fontSize' 40px;
+  grid-template-columns: auto auto;
+  align-items: center;
+}
+
+label {
+  padding: 0 10px;
+}

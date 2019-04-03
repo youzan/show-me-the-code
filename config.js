@@ -70,6 +70,7 @@ module.exports = {
       sql: 'SQL',
       swift: 'Swift',
       vb: 'Visual Basic',
+      json: 'JSON'
     },
     COLOR: {
       javascript: 'yellow',
