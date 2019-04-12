@@ -15,22 +15,17 @@
       },
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "ngx-build-plus:build",
           "options": {
             "outputPath": "dist/show-me-the-code",
             "index": "client/index.html",
             "main": "client/main.ts",
             "polyfills": "client/polyfills.ts",
             "tsConfig": "client/tsconfig.app.json",
-            "assets": [
-              "client/favicon.ico",
-              "client/assets"
-            ],
-            "styles": [
-              "client/styles.scss"
-            ],
+            "assets": ["client/favicon.ico", "client/assets"],
+            "styles": ["client/styles.scss"],
             "scripts": [],
-            "es5BrowserSupport": true
+            "es5BrowserSupport": false
           },
           "configurations": {
             "production": {
@@ -44,23 +39,17 @@
               "outputHashing": "all",
               "sourceMap": false,
               "extractCss": true,
-              "namedChunks": false,
+              "namedChunks": true,
               "aot": true,
               "extractLicenses": true,
-              "vendorChunk": false,
+              "vendorChunk": true,
               "buildOptimizer": true,
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
-                }
-              ]
+              "budgets": []
             }
           }
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "ngx-build-plus:dev-server",
           "options": {
             "browserTarget": "show-me-the-code:build"
           },
@@ -77,32 +66,22 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "ngx-build-plus:karma",
           "options": {
             "main": "client/test.ts",
             "polyfills": "client/polyfills.ts",
             "tsConfig": "client/tsconfig.spec.json",
             "karmaConfig": "client/karma.conf.js",
-            "styles": [
-              "client/styles.scss"
-            ],
+            "styles": ["client/styles.scss"],
             "scripts": [],
-            "assets": [
-              "client/favicon.ico",
-              "client/assets"
-            ]
+            "assets": ["client/favicon.ico", "client/assets"]
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "client/tsconfig.app.json",
-              "client/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "tsConfig": ["client/tsconfig.app.json", "client/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
           }
         }
       }

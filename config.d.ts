@@ -1,4 +1,4 @@
-import { SemanticCOLORS } from 'semantic-ui-react';
+// import { SemanticCOLORS } from 'semantic-ui-react';
 
 type Config = {
   SOCKET_URL: string;
@@ -13,7 +13,7 @@ type Config = {
       [key: string]: string;
     };
     COLOR: {
-      [key: string]: SemanticCOLORS;
+      [key: string]: string;
     };
   };
 };

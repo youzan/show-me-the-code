@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng serve --plugin ~cli-plugin.js",
+    "build": "ng build --prod --plugin ~cli-plugin.js",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -12,6 +12,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "~7.2.0",
+    "@angular/cdk": "^7.3.7",
     "@angular/common": "~7.2.0",
     "@angular/compiler": "~7.2.0",
     "@angular/core": "~7.2.0",
@@ -23,7 +24,9 @@
     "mobx": "^5.9.4",
     "mobx-angular": "^3.0.1",
     "monaco-editor": "^0.16.2",
+    "ngx-build-plus": "^7.7.6",
     "ngx-json-viewer": "^2.4.0",
+    "primeicons": "^1.0.0",
     "primeng": "^7.1.0",
     "resize-observer-polyfill": "^1.5.1",
     "rxjs": "~6.3.3",
@@ -39,6 +42,7 @@
     "monaco-editor-webpack-plugin": "^1.7.0",
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
-    "typescript": "~3.2.2"
+    "typescript": "~3.2.2",
+    "worker-plugin": "^3.1.0"
   }
 }
