@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { EditorService } from './editor.service';
-import { LANGUAGE } from '../config';
+import { LANGUAGE } from '../../config';
 import { FONT_SIZE } from './constants';
 
 const options = LANGUAGE.LIST.map(language => ({
