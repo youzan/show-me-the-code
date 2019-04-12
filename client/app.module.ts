@@ -7,12 +7,14 @@ import { MobxAngularModule } from 'mobx-angular';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { NgxJsonViewerModule } from 'ngx-json-viewer';
 
 import { AppComponent } from './app.component';
 import { EditorService } from './editor.service';
 import { MonacoEditorDirective } from './monaco-editor.directive';
 import { HeaderComponent } from './header.component';
 import { ConfigComponent } from './config.component';
+import { OutputComponent } from './output.component';
 
 @NgModule({
   imports: [
@@ -23,8 +25,9 @@ import { ConfigComponent } from './config.component';
     ButtonModule,
     DropdownModule,
     OverlayPanelModule,
+    NgxJsonViewerModule,
   ],
-  declarations: [AppComponent, MonacoEditorDirective, HeaderComponent, ConfigComponent],
+  declarations: [AppComponent, MonacoEditorDirective, HeaderComponent, ConfigComponent, OutputComponent],
   bootstrap: [AppComponent],
   providers: [EditorService],
 })

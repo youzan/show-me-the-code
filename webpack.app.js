@@ -15,13 +15,15 @@ const { PUBLIC_PATH } = require('./config');
 const isDev = process.env.NODE_ENV === 'development';
 
 const vendors = [
-  // 'react',
-  // 'react-dom',
-  // 'immutable',
-  // 'redux',
-  // 'react-redux',
+  '@angular/forms',
+  '@angular/platform-browser',
+  'mobx',
+  'mobx-angular',
+  'primeng/button',
+  'primeng/dropdown',
+  'primeng/overlaypanel',
   'dexie',
-  // 'resize-observer-polyfill',
+  'resize-observer-polyfill',
   // 'react-json-tree',
 ];
 
@@ -41,7 +43,7 @@ const config = {
     rules: [
       {
         test: /\.ts$/,
-        loader: '@ngtools/webpack',
+        use: isDev ? ['awesome-typescript-loader', 'angular2-template-loader'] : ['@ngtools/webpack'],
         exclude: /node_modules/,
       },
       {
@@ -88,10 +90,6 @@ const config = {
   },
   plugins: [
     new webpack.ProgressPlugin(),
-    new AngularCompilerPlugin({
-      mainPath: path.resolve(__dirname, './client/main.ts'),
-      tsConfigPath: path.resolve(__dirname, './tsconfig.json'),
-    }),
     new MonacoWebpackPlugin(),
     // new webpack.ContextReplacementPlugin(
     //   /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
@@ -144,6 +142,10 @@ if (!isDev) {
       hashFunction: 'sha256',
       hashDigest: 'hex',
       hashDigestLength: 20,
+    }),
+    new AngularCompilerPlugin({
+      mainPath: path.resolve(__dirname, './client/main.ts'),
+      tsConfigPath: path.resolve(__dirname, './tsconfig.json'),
     }),
   );
   config.optimization.minimizer.push(

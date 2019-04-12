@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('reflect-metadata');
+}
 import 'zone.js';
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
@@ -12,4 +15,8 @@ if (process.env.NODE_ENV === 'production') {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule);
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(error => {
+    console.error(error);
+  });
