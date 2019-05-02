@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --plugin ~cli-plugin.js",
+    "dev": "ng serve --plugin ~cli-plugin.js",
     "build": "ng build --prod --plugin ~cli-plugin.js",
     "test": "ng test",
     "lint": "ng lint",
