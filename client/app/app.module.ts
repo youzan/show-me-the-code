@@ -15,6 +15,7 @@ import { MonacoEditorDirective } from './monaco-editor.directive';
 import { HeaderComponent } from './header.component';
 import { ConfigComponent } from './config.component';
 import { OutputComponent } from './output.component';
+import { ExecutionService } from './execution.service';
 
 @NgModule({
   imports: [
@@ -29,6 +30,6 @@ import { OutputComponent } from './output.component';
   ],
   declarations: [AppComponent, MonacoEditorDirective, HeaderComponent, ConfigComponent, OutputComponent],
   bootstrap: [AppComponent],
-  providers: [EditorService],
+  providers: [EditorService, ExecutionService],
 })
 export class AppModule {}

@@ -206,6 +206,11 @@
   dependencies:
     tslib "^1.9.0"
 
+"@babel/standalone@^7.4.4":
+  version "7.4.4"
+  resolved "https://registry.yarnpkg.com/@babel/standalone/-/standalone-7.4.4.tgz#a40fbed37254e0a6dd55ea2db142c7b357fc4299"
+  integrity sha512-b1iLEvcOK9SdG+howg7pcbUm9EaHFlZ4yMaj7/3vAz7eDfEnY0gb3o8BByBDCFueqAZyHSodj0AW+yVnK1+/qg==
+
 "@ngtools/webpack@7.3.8":
   version "7.3.8"
   resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-7.3.8.tgz#c8761d0f6959682e03032f8d3de718d1f811410e"

@@ -13,10 +13,7 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
     if (this.scheduled) {
       return;
     }
-    requestAnimationFrame(() => {
-      this.scheduled = false;
-      this.editor && this.editor.layout();
-    });
+    requestAnimationFrame(this._doLayout);
     this.scheduled = true;
   });
   private scheduled = false;
@@ -45,4 +42,9 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
     this.resizeObserver.disconnect();
     this.$fontSize.unsubscribe();
   }
+
+  private _doLayout = () => {
+    this.scheduled = false;
+    this.editor && this.editor.layout();
+  };
 }

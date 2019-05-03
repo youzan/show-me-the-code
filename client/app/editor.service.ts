@@ -11,9 +11,6 @@ export class EditorService {
     autorun(() => {
       monaco.editor.setModelLanguage(this.model, this.language);
     });
-    autorun(() => {
-      
-    })
   }
 
   model = monaco.editor.createModel('', 'javascript');
@@ -25,5 +22,9 @@ export class EditorService {
 
   setTheme(theme: string) {
     monaco.editor.setTheme(theme);
+  }
+
+  getContent() {
+    return this.model.getValue();
   }
 }

@@ -20,6 +20,7 @@
     "@angular/platform-browser": "~7.2.0",
     "@angular/platform-browser-dynamic": "~7.2.0",
     "@angular/router": "~7.2.0",
+    "@babel/standalone": "^7.4.4",
     "core-js": "^2.5.4",
     "mobx": "^5.9.4",
     "mobx-angular": "^3.0.1",
