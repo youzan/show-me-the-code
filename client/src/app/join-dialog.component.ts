@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { map, distinctUntilChanged } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
 
@@ -16,8 +16,15 @@ import { ConnectionService } from './connection.service';
         <label for="room-id">Room ID</label>
       </div>
       <p-footer>
-        <button pButton type="button" label="Create" class="ui-button-secondary" (click)="create()"></button>
-        <button pButton type="button" label="Join" (click)="join()"></button>
+        <button
+          pButton
+          type="button"
+          label="Create"
+          [disabled]="!username"
+          class="ui-button-secondary"
+          (click)="create()"
+        ></button>
+        <button pButton type="button" label="Join" [disabled]="!username" (click)="join()"></button>
       </p-footer>
     </p-dialog>
   `,
@@ -40,8 +47,9 @@ export class JoinDialogComponent {
   constructor(private readonly connectionService: ConnectionService) {
     const params = new URLSearchParams(location.search);
     const roomId = params.get('roomId');
-    this.visible$ = this.connectionService.roomId$.pipe(
-      map(it => !it),
+    const { connect$, roomId$ } = connectionService;
+    this.visible$ = combineLatest(connect$, roomId$).pipe(
+      map(([connect, roomId]) => connect && !roomId),
       distinctUntilChanged(),
     );
     if (roomId) {
@@ -58,6 +66,6 @@ export class JoinDialogComponent {
   }
 
   join() {
-    // this.visible = false;
+    this.connectionService.join(this.roomId, this.username);
   }
 }

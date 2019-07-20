@@ -16,8 +16,6 @@ import { EditorService } from './editor.service';
       (click)="op.toggle($event)"
     ></button>
 
-    <app-users></app-users>
-
     <div class="button-group">
       <button type="button" pButton icon="pi pi-caret-right" class="ui-button-success" (click)="execute()"></button>
       <button type="button" pButton icon="pi pi-times" class="ui-button-danger"></button>

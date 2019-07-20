@@ -17,3 +17,17 @@ app-root {
   height: 100vh;
   overflow: hidden;
 }
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.global-block .ui-progress-spinner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+  display: block;
+}

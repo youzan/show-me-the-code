@@ -18,12 +18,51 @@ createConnection({
   synchronize: true,
 });
 
+function verifyUuid(id: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
+interface IUser {
+  name: string;
+  id: string;
+}
+
+const rooms = new Map<string, IUser[]>();
+
+function addUser(user: IUser, room: string) {
+  let users = rooms.get(room);
+  if (!users) {
+    users = [];
+    rooms.set(room, users);
+  }
+  users.push(user);
+  return users;
+}
+
+function removeUser(user: IUser, room: string) {
+  let users = rooms.get(room);
+  if (!users) {
+    return;
+  }
+  const index = users.findIndex(it => it.id === user.id);
+  if (index !== -1) {
+    users.splice(index, 1);
+  }
+  if (users.length === 0) {
+    rooms.delete(room);
+  }
+}
+
 io.on('connection', socket => {
   const userId = uuid();
   let username = '';
   let roomId = '';
 
   socket.on('room.join', async data => {
+    if (!verifyUuid(data.id)) {
+      socket.emit('room.fail', 'invalid room id');
+      return;
+    }
     if (roomId) {
       return;
     }
@@ -33,7 +72,7 @@ io.on('connection', socket => {
       id: data.id,
     });
     if (!room) {
-      socket.emit('room.fail', 'roon not exist');
+      socket.emit('room.fail', 'room not exist');
       return;
     }
     roomId = room.id;
@@ -42,7 +81,17 @@ io.on('connection', socket => {
       username,
     });
     socket.join(room.id);
-    socket.emit('room.joint', roomId);
+    const users = addUser(
+      {
+        id: userId,
+        name: username,
+      },
+      roomId,
+    );
+    socket.emit('room.joint', {
+      roomId,
+      users,
+    });
   });
 
   socket.on('room.create', async data => {
@@ -56,6 +105,13 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     if (roomId) {
       socket.leave(roomId);
+      removeUser(
+        {
+          id: userId,
+          name: username,
+        },
+        roomId,
+      );
       io.to(roomId).emit('user.leave', userId);
     }
   });

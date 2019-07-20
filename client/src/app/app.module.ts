@@ -8,6 +8,10 @@ import { DropdownModule } from 'primeng/dropdown';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { BlockUIModule } from 'primeng/blockui';
+import { MessageService } from 'primeng/components/common/messageservice';
 
 import { AppComponent } from './app.component';
 import { MonacoEditorDirective } from './editor.directive';
@@ -36,8 +40,11 @@ import { UsersComponent } from './users.component';
     OverlayPanelModule,
     DialogModule,
     InputTextModule,
+    ToastModule,
+    ProgressSpinnerModule,
+    BlockUIModule,
   ],
-  providers: [EditorService, ConnectionService],
+  providers: [EditorService, ConnectionService, MessageService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
