@@ -1,4 +1,5 @@
 import { Component, HostListener } from '@angular/core';
+import { ConnectionService } from './connection.service';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,8 @@ import { Component, HostListener } from '@angular/core';
   ],
 })
 export class AppComponent {
+  constructor(private readonly connectionService: ConnectionService) {}
+
   @HostListener('window:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
     if (e.metaKey && e.key === 's') {

@@ -33,14 +33,17 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
     });
     this.$$.push(
       this.editorService.fontSize$.subscribe(fontSize => {
-        this.editor.updateOptions({
-          fontSize,
-        });
+        this.editor &&
+          this.editor.updateOptions({
+            fontSize,
+          });
       }),
     );
   }
 
   ngOnDestroy() {
+    this.editor && this.editor.dispose();
+    this.editor = null;
     this.$$.forEach(it => it.unsubscribe());
     this.$$ = [];
   }
