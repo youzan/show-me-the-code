@@ -1,0 +1,19 @@
+
+@import '~primeicons/primeicons.css';
+@import '~primeng/resources/themes/nova-dark/theme.css';
+@import '~primeng/resources/primeng.min.css';
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+app-root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}

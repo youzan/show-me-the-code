@@ -1,0 +1,45 @@
+{
+  "name": "show-me-the-code",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --plugin ~build-plugin.js",
+    "build": "ng build --plugin ~build-plugin.js",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~8.0.1",
+    "@angular/cdk": "~8.1.1",
+    "@angular/common": "~8.0.1",
+    "@angular/compiler": "~8.0.1",
+    "@angular/core": "~8.0.1",
+    "@angular/forms": "~8.0.1",
+    "@angular/platform-browser": "~8.0.1",
+    "@angular/platform-browser-dynamic": "~8.0.1",
+    "@angular/router": "~8.0.1",
+    "mobx": "^5.13.0",
+    "mobx-angular": "^3.0.1",
+    "monaco-editor": "^0.17.1",
+    "monaco-editor-webpack-plugin": "^1.7.0",
+    "ngx-build-plus": "^8.1.1",
+    "primeicons": "^1.0.0",
+    "primeng": "^8.0.1",
+    "rxjs": "~6.4.0",
+    "tslib": "^1.9.0",
+    "zone.js": "~0.9.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.800.0",
+    "@angular/cli": "~8.0.3",
+    "@angular/compiler-cli": "~8.0.1",
+    "@angular/language-service": "~8.0.1",
+    "@types/node": "~8.9.4",
+    "ts-node": "~7.0.0",
+    "tslint": "~5.15.0",
+    "typescript": "~3.4.3",
+    "worker-plugin": "^3.1.0"
+  }
+}
