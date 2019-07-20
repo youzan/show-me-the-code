@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LANGUAGE_OPTIONS, FONT_SIZE_OPTIONS } from './constants';
 import { EditorService } from './editor.service';
 
@@ -6,9 +6,18 @@ import { EditorService } from './editor.service';
   selector: 'app-config',
   template: `
     <label>Language: </label>
-    <p-dropdown [options]="languageOptions" [(ngModel)]="language" [filter]="true"></p-dropdown>
+    <p-dropdown
+      [options]="languageOptions"
+      [ngModel]="language$ | async"
+      (ngModelChange)="langaugeChange($event)"
+      [filter]="true"
+    ></p-dropdown>
     <label>Font Size: </label>
-    <p-dropdown [options]="fontSizeOptions" [(ngModel)]="fontSize"></p-dropdown>
+    <p-dropdown
+      [options]="fontSizeOptions"
+      [ngModel]="fontSize$ | async"
+      (ngModelChange)="fontSizeChange($event)"
+    ></p-dropdown>
   `,
   styles: [
     `
@@ -26,6 +35,7 @@ import { EditorService } from './editor.service';
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfigCompoennt {
   readonly languageOptions = LANGUAGE_OPTIONS;
@@ -33,19 +43,19 @@ export class ConfigCompoennt {
 
   constructor(private readonly editorService: EditorService) {}
 
-  get language() {
-    return this.editorService.language$.getValue();
+  get language$() {
+    return this.editorService.language$;
   }
 
-  set language(lang: string) {
+  langaugeChange(lang: string) {
     this.editorService.language$.next(lang);
   }
 
-  get fontSize() {
-    return this.editorService.fontSize$.getValue();
+  get fontSize$() {
+    return this.editorService.fontSize$;
   }
 
-  set fontSize(fontSize: number) {
+  fontSizeChange(fontSize: number) {
     this.editorService.fontSize$.next(fontSize);
   }
 }

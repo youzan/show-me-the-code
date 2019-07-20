@@ -14,9 +14,11 @@ export class ConnectionService implements OnDestroy {
   constructor() {
     this.socket.on('room.created', (roomId: string) => {
       this.roomId$.next(roomId);
+      this.updateUrl();
     });
     this.socket.on('room.joint', (roomId: string) => {
       this.roomId$.next(roomId);
+      this.updateUrl();
     });
   }
 
@@ -31,6 +33,12 @@ export class ConnectionService implements OnDestroy {
       id: roomId,
       username,
     });
+  }
+
+  private updateUrl() {
+    const url = new URL(location.href);
+    url.searchParams.set('roomId', this.roomId$.getValue());
+    history.replaceState(history.state, '', url.href);
   }
 
   ngOnDestroy() {

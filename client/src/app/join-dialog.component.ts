@@ -9,7 +9,7 @@ import { ConnectionService } from './connection.service';
     <p-dialog [visible]="visible$ | async" [modal]="true" [closable]="false" [draggable]="false">
       <div class="ui-float-label username">
         <input [(ngModel)]="username" id="username" type="text" size="30" pInputText />
-        <label for="username">Username</label>
+        <label for="username">Name</label>
       </div>
       <div class="ui-float-label room-id">
         <input [(ngModel)]="roomId" id="room-id" type="text" size="30" pInputText [disabled]="roomIdReadOnly" />
