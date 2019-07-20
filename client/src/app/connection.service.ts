@@ -38,6 +38,13 @@ export class ConnectionService implements OnDestroy {
         detail: `Join room fail, ${msg}`,
       });
     });
+    this.socket.on('user.join', (user: IUser) => {
+      this.users.push(user);
+    });
+    this.socket.on('user.leave', (userId: string) => {
+      this.users = this.users.filter(it => it.id !== userId);
+      console.log(this.users)
+    });
   }
 
   create(username: string) {

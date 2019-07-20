@@ -8,8 +8,8 @@ import { ConnectionService } from './connection.service';
     <div monaco-editor-container></div>
     <p-toast></p-toast>
     <app-join></app-join>
-    <p-blockUI class="global-block" [blocked]="!(connection$ | async)">
-      <p-progressSpinner></p-progressSpinner>
+    <p-blockUI [blocked]="!(connection$ | async)">
+      <p-progressSpinner class="global-spinner"></p-progressSpinner>
     </p-blockUI>
   `,
   styleUrls: ['./app.component.scss'],

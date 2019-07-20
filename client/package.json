@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "~8.0.1",
     "@angular/router": "~8.0.1",
     "@types/socket.io-client": "^1.4.32",
+    "jss": "^9.8.7",
     "mobx": "^5.13.0",
     "mobx-angular": "^3.0.1",
     "monaco-editor": "^0.17.1",

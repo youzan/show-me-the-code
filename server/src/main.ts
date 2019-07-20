@@ -24,7 +24,7 @@ function verifyUuid(id: string) {
 
 interface IUser {
   name: string;
-  id: string;
+  readonly id: string;
 }
 
 const rooms = new Map<string, IUser[]>();
@@ -54,8 +54,10 @@ function removeUser(user: IUser, room: string) {
 }
 
 io.on('connection', socket => {
-  const userId = uuid();
-  let username = '';
+  const user: IUser = {
+    id: uuid(),
+    name: '',
+  };
   let roomId = '';
 
   socket.on('room.join', async data => {
@@ -66,7 +68,7 @@ io.on('connection', socket => {
     if (roomId) {
       return;
     }
-    username = data.username;
+    user.name = data.username;
 
     const room = await getRepository(Room).findOne({
       id: data.id,
@@ -76,18 +78,9 @@ io.on('connection', socket => {
       return;
     }
     roomId = room.id;
-    io.to(room.id).emit('user.join', {
-      userId,
-      username,
-    });
+    io.to(room.id).emit('user.join', user);
     socket.join(room.id);
-    const users = addUser(
-      {
-        id: userId,
-        name: username,
-      },
-      roomId,
-    );
+    const users = addUser(user, roomId);
     socket.emit('room.joint', {
       roomId,
       users,
@@ -95,7 +88,7 @@ io.on('connection', socket => {
   });
 
   socket.on('room.create', async data => {
-    username = data.username;
+    user.name = data.username;
     const repository = getRepository(Room);
     const room = await repository.save({});
     roomId = room.id;
@@ -105,14 +98,8 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     if (roomId) {
       socket.leave(roomId);
-      removeUser(
-        {
-          id: userId,
-          name: username,
-        },
-        roomId,
-      );
-      io.to(roomId).emit('user.leave', userId);
+      removeUser(user, roomId);
+      io.to(roomId).emit('user.leave', user.id);
     }
   });
 });
