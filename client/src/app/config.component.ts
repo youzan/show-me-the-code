@@ -4,8 +4,28 @@ import { EditorService } from './editor.service';
 
 @Component({
   selector: 'app-config',
-  templateUrl: './config.component.html',
-  styleUrls: ['./config.component.scss'],
+  template: `
+    <label>Language: </label>
+    <p-dropdown [options]="languageOptions" [(ngModel)]="language" [filter]="true"></p-dropdown>
+    <label>Font Size: </label>
+    <p-dropdown [options]="fontSizeOptions" [(ngModel)]="fontSize"></p-dropdown>
+  `,
+  styles: [
+    `
+      :host {
+        display: grid;
+        grid-template:
+          'label1 language' 40px
+          'label2 fontSize' 40px;
+        grid-template-columns: auto auto;
+        align-items: center;
+      }
+
+      label {
+        padding: 0 10px;
+      }
+    `,
+  ],
 })
 export class ConfigCompoennt {
   readonly languageOptions = LANGUAGE_OPTIONS;
