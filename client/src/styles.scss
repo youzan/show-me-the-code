@@ -31,3 +31,31 @@ button:disabled {
   margin: auto;
   display: block;
 }
+
+$colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
+
+@for $i from 1 through length($colors) {
+  $color: nth($colors, $i);
+  .user-#{$i} {
+    color: $color;
+
+    &-bg {
+      background-color: $color;
+    }
+
+    &-li {
+      display: flex;
+      align-items: center;
+      
+      &::before {
+        content: "";
+        background: #D50000;
+        display: inline-block;
+        width: 0.5em;
+        height: 0.5em;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+    }
+  }
+}

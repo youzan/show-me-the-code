@@ -7,9 +7,10 @@ declare const process: any;
 
 const url = process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : 'ws://127.0.0.1:8086';
 
-interface IUser {
+export interface IUser {
   name: string;
   id: string;
+  color: number;
 }
 
 @Injectable()
@@ -17,7 +18,7 @@ export class ConnectionService implements OnDestroy {
   readonly socket = io(url);
   readonly roomId$ = new BehaviorSubject('');
   readonly connect$ = new BehaviorSubject(false);
-  users: IUser[] = [];
+  users = new Map<string, IUser>();
 
   constructor(private readonly messageService: MessageService) {
     this.socket.on('connect', () => this.connect$.next(true));
@@ -29,7 +30,7 @@ export class ConnectionService implements OnDestroy {
     this.socket.on('room.joint', ({ roomId, users }: { roomId: string; users: IUser[] }) => {
       this.roomId$.next(roomId);
       this.updateUrl();
-      this.users = users;
+      users.forEach(user => this.users.set(user.id, user));
     });
     this.socket.on('room.fail', (msg: string) => {
       this.messageService.add({
@@ -39,11 +40,10 @@ export class ConnectionService implements OnDestroy {
       });
     });
     this.socket.on('user.join', (user: IUser) => {
-      this.users.push(user);
+      this.users.set(user.id, user);
     });
     this.socket.on('user.leave', (userId: string) => {
-      this.users = this.users.filter(it => it.id !== userId);
-      console.log(this.users)
+      this.users.delete(userId);
     });
   }
 

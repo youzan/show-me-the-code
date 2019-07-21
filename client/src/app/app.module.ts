@@ -21,6 +21,7 @@ import { ConfigCompoennt } from './config.component';
 import { ConnectionService } from './connection.service';
 import { JoinDialogComponent } from './join-dialog.component';
 import { UsersComponent } from './users.component';
+import { UserClassNamePipe, UserListItemPipe } from './user.pipe';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,8 @@ import { UsersComponent } from './users.component';
     ConfigCompoennt,
     JoinDialogComponent,
     UsersComponent,
+    UserClassNamePipe,
+    UserListItemPipe,
   ],
   imports: [
     BrowserModule,

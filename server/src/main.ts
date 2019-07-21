@@ -25,31 +25,50 @@ function verifyUuid(id: string) {
 interface IUser {
   name: string;
   readonly id: string;
+  color: number;
 }
 
-const rooms = new Map<string, IUser[]>();
+class RoomUsers {
+  users: IUser[] = [];
+  colors = [1, 2, 3, 4, 5];
 
-function addUser(user: IUser, room: string) {
-  let users = rooms.get(room);
-  if (!users) {
-    users = [];
-    rooms.set(room, users);
+  addUser(user: IUser) {
+    user.color = this.colors.shift() as number;
+    this.users.push(user);
   }
-  users.push(user);
-  return users;
+
+  removeUser(user: IUser) {
+    const index = this.users.findIndex(it => it.id === user.id);
+    if (index !== -1) {
+      this.users.splice(index, 1);
+      this.colors.push(user.color);
+    }
+  }
 }
 
-function removeUser(user: IUser, room: string) {
-  let users = rooms.get(room);
-  if (!users) {
+const rooms = new Map<string, RoomUsers>();
+
+function addUser(user: IUser, roomId: string) {
+  let room = rooms.get(roomId);
+  if (!room) {
+    room = new RoomUsers();
+    rooms.set(roomId, room);
+  }
+  if (room.users.length >= 5) {
+    return null;
+  }
+  room.addUser(user);
+  return room;
+}
+
+function removeUser(user: IUser, roomId: string) {
+  let room = rooms.get(roomId);
+  if (!room) {
     return;
   }
-  const index = users.findIndex(it => it.id === user.id);
-  if (index !== -1) {
-    users.splice(index, 1);
-  }
-  if (users.length === 0) {
-    rooms.delete(room);
+  room.removeUser(user);
+  if (room.users.length === 0) {
+    rooms.delete(roomId);
   }
 }
 
@@ -57,6 +76,7 @@ io.on('connection', socket => {
   const user: IUser = {
     id: uuid(),
     name: '',
+    color: 0,
   };
   let roomId = '';
 
@@ -80,10 +100,14 @@ io.on('connection', socket => {
     roomId = room.id;
     io.to(room.id).emit('user.join', user);
     socket.join(room.id);
-    const users = addUser(user, roomId);
+    const roomUsers = addUser(user, roomId);
+    if (!roomUsers) {
+      socket.emit('room.fail', 'room is full');
+      return;
+    }
     socket.emit('room.joint', {
       roomId,
-      users,
+      users: roomUsers.users,
     });
   });
 
