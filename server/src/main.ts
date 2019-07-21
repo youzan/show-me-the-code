@@ -98,9 +98,9 @@ io.on('connection', socket => {
       return;
     }
     roomId = room.id;
-    io.to(room.id).emit('user.join', user);
     socket.join(room.id);
     const roomUsers = addUser(user, roomId);
+    io.to(room.id).emit('user.join', user);
     if (!roomUsers) {
       socket.emit('room.fail', 'room is full');
       return;

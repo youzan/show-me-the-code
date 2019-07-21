@@ -49,7 +49,7 @@ $colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
       
       &::before {
         content: "";
-        background: #D50000;
+        background: $color;
         display: inline-block;
         width: 0.5em;
         height: 0.5em;
