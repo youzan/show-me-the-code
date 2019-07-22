@@ -24,6 +24,11 @@ export interface IReceiveUserCursor {
   userId: string;
 }
 
+export interface IReceiveUserSelection {
+  ranges: monaco.IRange[];
+  userId: string;
+}
+
 @Injectable()
 export class ConnectionService implements OnDestroy {
   private readonly socket = io(url);
@@ -96,6 +101,15 @@ export class ConnectionService implements OnDestroy {
 
   onReceiveUserCursor(cb: (e: IReceiveUserCursor) => void) {
     this.socket.on('user.cursor', cb);
+    return this;
+  }
+
+  selectionChange(selections: monaco.IRange[]) {
+    this.socket.emit('user.selection', selections);
+  }
+
+  onReceiveUserSelection(cb: (e: IReceiveUserSelection) => void) {
+    this.socket.on('user.selection', cb);
     return this;
   }
 

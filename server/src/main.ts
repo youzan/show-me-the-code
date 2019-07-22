@@ -137,6 +137,13 @@ io.on('connection', socket => {
     });
   });
 
+  socket.on('user.selection', ranges => {
+    io.to(roomId).emit('user.selection', {
+      ranges,
+      userId: user.id,
+    });
+  });
+
   socket.on('disconnect', () => {
     if (roomId) {
       socket.leave(roomId);

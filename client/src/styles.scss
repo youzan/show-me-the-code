@@ -1,4 +1,3 @@
-
 @import '~primeicons/primeicons.css';
 @import '~primeng/resources/themes/nova-dark/theme.css';
 @import '~primeng/resources/primeng.min.css';
@@ -32,7 +31,7 @@ button:disabled {
   display: block;
 }
 
-$colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
+$colors: #d50000, #2962ff, #00bfa5, #ffab00, #00c853;
 
 @for $i from 1 through length($colors) {
   $color: nth($colors, $i);
@@ -46,9 +45,9 @@ $colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
     &-li {
       display: flex;
       align-items: center;
-      
+
       &::before {
-        content: "";
+        content: '';
         background: $color;
         display: inline-block;
         width: 0.5em;
@@ -61,6 +60,10 @@ $colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
     &-cursor {
       background-color: $color;
       width: 2px !important;
+    }
+
+    &-selection {
+      background-color: rgba($color, 0.2);
     }
   }
 }
