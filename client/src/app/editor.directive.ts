@@ -1,7 +1,8 @@
-import { Directive, AfterViewInit, ViewContainerRef, OnDestroy, HostListener } from '@angular/core';
+import { Directive, AfterViewInit, ViewContainerRef, OnDestroy, HostListener, Injector } from '@angular/core';
 import * as monaco from 'monaco-editor';
 import { Subscription } from 'rxjs';
 import { EditorService } from './editor.service';
+import { CodeService } from './code.service';
 
 @Directive({
   selector: '[monaco-editor-container]',
@@ -12,7 +13,11 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
 
   private scheduled = false;
 
-  constructor(private readonly viewContainerRef: ViewContainerRef, private readonly editorService: EditorService) {}
+  constructor(
+    private readonly viewContainerRef: ViewContainerRef,
+    private readonly editorService: EditorService,
+    private readonly codeService: CodeService,
+  ) {}
 
   @HostListener('window:resize')
   onWindowResize() {
@@ -39,6 +44,7 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
           });
       }),
     );
+    this.codeService.init(this.editor);
   }
 
   ngOnDestroy() {

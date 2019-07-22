@@ -2,6 +2,7 @@ import io from 'socket.io-client';
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
+import * as monaco from 'monaco-editor';
 
 declare const process: any;
 
@@ -13,22 +14,30 @@ export interface IUser {
   color: number;
 }
 
+export interface IReceiveEdit {
+  userId: string;
+  changes: monaco.editor.IModelContentChange[];
+}
+
 @Injectable()
 export class ConnectionService implements OnDestroy {
-  readonly socket = io(url);
+  private readonly socket = io(url);
   readonly roomId$ = new BehaviorSubject('');
   readonly connect$ = new BehaviorSubject(false);
   users = new Map<string, IUser>();
+  userId = '';
 
   constructor(private readonly messageService: MessageService) {
     this.socket.on('connect', () => this.connect$.next(true));
     this.socket.on('disconnect', () => this.connect$.next(false));
-    this.socket.on('room.created', (roomId: string) => {
+    this.socket.on('room.created', ({ roomId, userId }: { roomId: string; userId: string }) => {
       this.roomId$.next(roomId);
+      this.userId = userId;
       this.updateUrl();
     });
-    this.socket.on('room.joint', ({ roomId, users }: { roomId: string; users: IUser[] }) => {
+    this.socket.on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
       this.roomId$.next(roomId);
+      this.userId = userId;
       this.updateUrl();
       users.forEach(user => this.users.set(user.id, user));
     });
@@ -64,6 +73,14 @@ export class ConnectionService implements OnDestroy {
     const url = new URL(location.href);
     url.searchParams.set('roomId', this.roomId$.getValue());
     history.replaceState(history.state, '', url.href);
+  }
+
+  userEdit(changes: monaco.editor.IModelContentChange[]) {
+    this.socket.emit('user.edit', changes);
+  }
+
+  onReceiveEdit(cb: (e: IReceiveEdit) => void) {
+    this.socket.on('user.edit', cb);
   }
 
   ngOnDestroy() {

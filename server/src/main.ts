@@ -107,6 +107,7 @@ io.on('connection', socket => {
     }
     socket.emit('room.joint', {
       roomId,
+      userId: user.id,
       users: roomUsers.users,
     });
   });
@@ -116,7 +117,17 @@ io.on('connection', socket => {
     const repository = getRepository(Room);
     const room = await repository.save({});
     roomId = room.id;
-    socket.emit('room.created', room.id);
+    socket.emit('room.created', {
+      userId: user.id,
+      roomId,
+    });
+  });
+
+  socket.on('user.edit', changes => {
+    io.to(roomId).emit('user.edit', {
+      userId: user.id,
+      changes,
+    });
   });
 
   socket.on('disconnect', () => {

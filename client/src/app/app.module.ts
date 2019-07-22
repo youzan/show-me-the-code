@@ -22,6 +22,7 @@ import { ConnectionService } from './connection.service';
 import { JoinDialogComponent } from './join-dialog.component';
 import { UsersComponent } from './users.component';
 import { UserClassNamePipe, UserListItemPipe } from './user.pipe';
+import { CodeService } from './code.service';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,7 @@ import { UserClassNamePipe, UserListItemPipe } from './user.pipe';
     ProgressSpinnerModule,
     BlockUIModule,
   ],
-  providers: [EditorService, ConnectionService, MessageService],
+  providers: [EditorService, ConnectionService, MessageService, CodeService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
