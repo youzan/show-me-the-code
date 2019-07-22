@@ -1,5 +1,4 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { EditorService } from './editor.service';
 import { ConnectionService } from './connection.service';
 import * as monaco from 'monaco-editor';
@@ -17,26 +16,39 @@ function positionToRange({ lineNumber, column }: monaco.IPosition): monaco.IRang
   };
 }
 
+interface IUserDecorations {
+  cursor: string[];
+}
+
+function emptyDecorations(): IUserDecorations {
+  return {
+    cursor: [],
+  };
+}
+
 @Injectable()
 export class CodeService implements OnDestroy {
   $$: monaco.IDisposable[] = [];
 
-  private userEditting = false;
-  private editor: monaco.editor.IStandaloneCodeEditor | null = null;
-  private readonly userDecorations = new Map<string, string[]>();
+  private readonly userDecorations = new Map<string, IUserDecorations>();
+  private previousSyncVersionId = 0;
+
+  get model() {
+    return this.editorServie.model;
+  }
 
   constructor(private readonly editorServie: EditorService, private readonly connectionService: ConnectionService) {}
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
-    this.editor = editor;
     this.editorServie.model.onDidChangeContent(e => {
-      if (this.userEditting) {
-        this.connectionService.userEdit(e.changes);
+      if (e.versionId === this.previousSyncVersionId + 1) {
+        return;
       }
+      this.connectionService.userEdit(e.changes);
     });
     this.connectionService
       .onReceiveEdit(({ userId, changes }) => {
-        if (userId === this.connectionService.userId || !this.editor) {
+        if (userId === this.connectionService.userId) {
           return;
         }
         const edits = changes.map(change => ({
@@ -44,35 +56,44 @@ export class CodeService implements OnDestroy {
           range: deserializeRange(change.range),
           remote: true,
         }));
-        const selections = this.editor.getSelections();
-        this.editorServie.model.pushEditOperations(this.editor.getSelections() || [], edits, () => selections || []);
+        const selections = editor.getSelections();
+        this.previousSyncVersionId = this.model.getVersionId();
+        this.model.pushEditOperations(editor.getSelections() || [], edits, () => selections || []);
       })
       .onReceiveUserCursor(({ userId, position }) => {
         const user = this.connectionService.users.get(userId);
         if (!user || user.id === this.connectionService.userId) {
           return;
         }
-        const prevDecorations = this.userDecorations.get(userId) || [];
-        const newDecorations = this.editorServie.model.deltaDecorations(prevDecorations, [
-          {
-            options: {
-              className: `user-${user.color}-cursor`,
+        let decorations = this.userDecorations.get(userId);
+        if (!decorations) {
+          decorations = emptyDecorations();
+          this.userDecorations.set(userId, decorations);
+        }
+        let newCursor: string[];
+        if (position !== null) {
+          newCursor = this.model.deltaDecorations(decorations.cursor, [
+            {
+              options: {
+                className: `user-${user.color}-cursor`,
+              },
+              range: positionToRange(position),
             },
-            range: positionToRange(position),
-          },
-        ]);
-        this.userDecorations.set(userId, newDecorations);
+          ]);
+        } else {
+          newCursor = this.model.deltaDecorations(decorations.cursor, []);
+        }
+        decorations.cursor = newCursor;
       });
 
     this.$$.push(
-      this.editor.onKeyDown(() => (this.userEditting = true)),
-      this.editor.onKeyUp(() => (this.userEditting = false)),
-      this.editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
+      editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
+      editor.onDidBlurEditorText(() => this.connectionService.cursorChange(null)),
+      editor.onDidFocusEditorText(() => this.connectionService.cursorChange(editor.getPosition())),
     );
   }
 
   ngOnDestroy() {
     this.$$.forEach(it => it.dispose());
-    this.editor = null;
   }
 }

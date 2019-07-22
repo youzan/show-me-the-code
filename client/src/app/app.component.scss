@@ -3,8 +3,7 @@
   display: grid;
   grid-template:
     'header header' 60px
-    'editor output' 1fr
-    'editor users' minmax(min-content, max-content);
+    'editor output' 1fr;
   grid-template-columns: auto 38.2%;
 }
 

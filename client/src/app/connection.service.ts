@@ -20,7 +20,7 @@ export interface IReceiveEdit {
 }
 
 export interface IReceiveUserCursor {
-  position: monaco.IPosition;
+  position: monaco.IPosition | null;
   userId: string;
 }
 
@@ -90,7 +90,7 @@ export class ConnectionService implements OnDestroy {
     return this;
   }
 
-  cursorChange(pos: monaco.IPosition) {
+  cursorChange(pos: monaco.IPosition | null) {
     this.socket.emit('user.cursor', pos);
   }
 
