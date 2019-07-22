@@ -83,6 +83,9 @@ export class CodeService implements OnDestroy {
             {
               options: {
                 className: `user-${user.color}-cursor`,
+                hoverMessage: {
+                  value: `Cursor: ${user.name}`
+                }
               },
               range: positionToRange(position),
             },
@@ -108,6 +111,9 @@ export class CodeService implements OnDestroy {
             options: {
               stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
               className: `user-${user.color}-selection`,
+              hoverMessage: {
+                value: `Selection: ${user.name}`,
+              },
             },
           })),
         );
