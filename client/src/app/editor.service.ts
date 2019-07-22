@@ -20,6 +20,12 @@ export class EditorService implements OnDestroy {
     );
   }
 
+  async format() {
+    const prettier = await import('prettier/standalone');
+    const out = prettier.format(this.model.getValue());
+    this.model.setValue(out);
+  }
+
   ngOnDestroy() {
     this.$$.forEach(it => it.unsubscribe());
     this.$$ = [];

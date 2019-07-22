@@ -1,5 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { ConnectionService } from './connection.service';
+import { EditorService } from './editor.service';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,7 @@ import { ConnectionService } from './connection.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  constructor(private readonly connectionService: ConnectionService) {}
+  constructor(private readonly connectionService: ConnectionService, private readonly editorService: EditorService) {}
 
   get connection$() {
     return this.connectionService.connect$;
@@ -26,6 +27,12 @@ export class AppComponent {
   onKeyDown(e: KeyboardEvent) {
     if (e.metaKey && e.key === 's') {
       e.preventDefault();
+      return;
+    }
+    if (e.altKey && e.shiftKey && e.key === 'f') {
+      e.preventDefault();
+      this.editorService.format();
+      return;
     }
   }
 }

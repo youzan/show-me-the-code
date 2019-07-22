@@ -19,6 +19,10 @@ import { ExecutionService } from './execution.service';
 
     <app-users></app-users>
 
+    <button type="button" pButton class="ui-button-primary format" label="Shift + Alt + F" (click)="format()">
+      <div class="prettier"></div>
+    </button>
+
     <div class="button-group">
       <button type="button" pButton icon="pi pi-caret-right" class="ui-button-success" (click)="execute()"></button>
       <button type="button" pButton icon="pi pi-times" class="ui-button-danger"></button>
@@ -35,5 +39,9 @@ export class HeaderComponent {
     const lang = this.editorService.language$.getValue();
     const code = this.editorService.model.getValue();
     this.executionService.exec(lang, code);
+  }
+
+  format() {
+    this.editorService.format();
   }
 }
