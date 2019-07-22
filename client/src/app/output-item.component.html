@@ -1,0 +1,19 @@
+<ng-container [ngSwitch]="type">
+  <div *ngSwitchCase="'error'" class="error">
+    <div *ngIf="key" class="key">{{ key }}</div>
+    {{ value.message }}
+  </div>
+  <div *ngSwitchCase="'object'" class="object" [class.expand]="expand">
+    <div class="title" (click)="toggle()">
+      <div *ngIf="key" class="key">{{ key }}</div>
+      Object
+    </div>
+    <ng-container *ngIf="expand">
+      <app-output-item *ngFor="let item of value | keyvalue" [key]="item.key" [value]="item.value"></app-output-item>
+    </ng-container>
+  </div>
+  <div *ngSwitchDefault [class]="type">
+    <div *ngIf="key" class="key">{{ key }}</div>
+    {{ value | toString }}
+  </div>
+</ng-container>

@@ -19,7 +19,12 @@ consoleMethods.forEach(method => {
 onmessage = e => {
   switch (e.data.type) {
     case 'exec':
-      eval(e.data.code);
+      try {
+        eval(e.data.code); 
+      } catch (error) {
+        stdout(error);
+        throw error; 
+      }
       break;
     default:
       break;

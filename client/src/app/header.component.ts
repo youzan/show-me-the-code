@@ -1,5 +1,6 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { EditorService } from './editor.service';
+import { ExecutionService } from './execution.service';
 
 @Component({
   selector: 'app-header',
@@ -28,7 +29,11 @@ import { EditorService } from './editor.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent {
-  constructor(private readonly editorService: EditorService) {}
+  constructor(private readonly editorService: EditorService, private readonly executionService: ExecutionService) {}
 
-  execute() {}
+  execute() {
+    const lang = this.editorService.language$.getValue();
+    const code = this.editorService.model.getValue();
+    this.executionService.exec(lang, code);
+  }
 }

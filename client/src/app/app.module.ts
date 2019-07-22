@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MobxAngularModule } from 'mobx-angular';
 
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
@@ -23,6 +24,10 @@ import { JoinDialogComponent } from './join-dialog.component';
 import { UsersComponent } from './users.component';
 import { UserClassNamePipe, UserListItemPipe } from './user.pipe';
 import { CodeService } from './code.service';
+import { ExecutionService } from './execution.service';
+import { OutputComponent } from './output.component';
+import { OutputItemComponent } from './output-item.component';
+import { ToStringPipe } from './to-string.pipe';
 
 @NgModule({
   declarations: [
@@ -34,6 +39,9 @@ import { CodeService } from './code.service';
     UsersComponent,
     UserClassNamePipe,
     UserListItemPipe,
+    OutputComponent,
+    OutputItemComponent,
+    ToStringPipe,
   ],
   imports: [
     BrowserModule,
@@ -47,8 +55,9 @@ import { CodeService } from './code.service';
     ToastModule,
     ProgressSpinnerModule,
     BlockUIModule,
+    MobxAngularModule,
   ],
-  providers: [EditorService, ConnectionService, MessageService, CodeService],
+  providers: [EditorService, ConnectionService, MessageService, CodeService, ExecutionService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -1,15 +1,45 @@
 function serialize(e) {
   if (e instanceof Error) {
-    return e.message;
+    return {
+      type: 'error',
+      message: e.message,
+    };
   }
   if (typeof e === 'symbol') {
-    return e.toString();
+    return {
+      type: 'symbol',
+      text: e.toString(),
+    };
   }
-  try {
-    return JSON.stringify(e);
-  } catch (error) {
-    return '' + e;
+  if (e === null) {
+    return {
+      type: 'raw',
+      value: e,
+    };
   }
+  if (typeof e === 'object') {
+    try {
+      return {
+        type: 'json',
+        value: JSON.stringify(e),
+      };
+    } catch (_) {
+      return {
+        type: 'text',
+        value: `${e}`,
+      };
+    }
+  }
+  if (typeof e === 'function') {
+    return {
+      type: 'function',
+      value: e.toString(),
+    };
+  }
+  return {
+    type: 'raw',
+    value: e,
+  };
 }
 
 export function stdout(...data) {

@@ -6,6 +6,7 @@ import { ConnectionService } from './connection.service';
   template: `
     <app-header></app-header>
     <div monaco-editor-container></div>
+    <app-output></app-output>
     <p-toast></p-toast>
     <app-join></app-join>
     <p-blockUI [blocked]="!(connection$ | async)">
