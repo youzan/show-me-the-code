@@ -57,5 +57,10 @@ $colors: #D50000, #2962FF, #00BFA5, #FFAB00, #00C853;
         margin-right: 5px;
       }
     }
+
+    &-cursor {
+      background-color: $color;
+      width: 2px !important;
+    }
   }
 }

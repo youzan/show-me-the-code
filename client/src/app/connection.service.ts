@@ -19,6 +19,11 @@ export interface IReceiveEdit {
   changes: monaco.editor.IModelContentChange[];
 }
 
+export interface IReceiveUserCursor {
+  position: monaco.IPosition;
+  userId: string;
+}
+
 @Injectable()
 export class ConnectionService implements OnDestroy {
   private readonly socket = io(url);
@@ -28,32 +33,33 @@ export class ConnectionService implements OnDestroy {
   userId = '';
 
   constructor(private readonly messageService: MessageService) {
-    this.socket.on('connect', () => this.connect$.next(true));
-    this.socket.on('disconnect', () => this.connect$.next(false));
-    this.socket.on('room.created', ({ roomId, userId }: { roomId: string; userId: string }) => {
-      this.roomId$.next(roomId);
-      this.userId = userId;
-      this.updateUrl();
-    });
-    this.socket.on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
-      this.roomId$.next(roomId);
-      this.userId = userId;
-      this.updateUrl();
-      users.forEach(user => this.users.set(user.id, user));
-    });
-    this.socket.on('room.fail', (msg: string) => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Join fail',
-        detail: `Join room fail, ${msg}`,
+    this.socket
+      .on('connect', () => this.connect$.next(true))
+      .on('disconnect', () => this.connect$.next(false))
+      .on('room.created', ({ roomId, userId }: { roomId: string; userId: string }) => {
+        this.roomId$.next(roomId);
+        this.userId = userId;
+        this.updateUrl();
+      })
+      .on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
+        this.roomId$.next(roomId);
+        this.userId = userId;
+        this.updateUrl();
+        users.forEach(user => this.users.set(user.id, user));
+      })
+      .on('room.fail', (msg: string) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Join fail',
+          detail: `Join room fail, ${msg}`,
+        });
+      })
+      .on('user.join', (user: IUser) => {
+        this.users.set(user.id, user);
+      })
+      .on('user.leave', (userId: string) => {
+        this.users.delete(userId);
       });
-    });
-    this.socket.on('user.join', (user: IUser) => {
-      this.users.set(user.id, user);
-    });
-    this.socket.on('user.leave', (userId: string) => {
-      this.users.delete(userId);
-    });
   }
 
   create(username: string) {
@@ -81,6 +87,16 @@ export class ConnectionService implements OnDestroy {
 
   onReceiveEdit(cb: (e: IReceiveEdit) => void) {
     this.socket.on('user.edit', cb);
+    return this;
+  }
+
+  cursorChange(pos: monaco.IPosition) {
+    this.socket.emit('user.cursor', pos);
+  }
+
+  onReceiveUserCursor(cb: (e: IReceiveUserCursor) => void) {
+    this.socket.on('user.cursor', cb);
+    return this;
   }
 
   ngOnDestroy() {

@@ -130,6 +130,13 @@ io.on('connection', socket => {
     });
   });
 
+  socket.on('user.cursor', position => {
+    io.to(roomId).emit('user.cursor', {
+      position,
+      userId: user.id,
+    });
+  });
+
   socket.on('disconnect', () => {
     if (roomId) {
       socket.leave(roomId);
