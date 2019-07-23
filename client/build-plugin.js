@@ -10,7 +10,6 @@ exports.default = {
         break;
       }
     }
-    cfg.output.publicPath = '/show-me-the-code';
     return cfg;
   },
 };

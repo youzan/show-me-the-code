@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve --plugin ~build-plugin.js",
     "build": "ng build --plugin ~build-plugin.js",
-    "prod": "ng build --plugin ~build-plugin.js --prod",
+    "prod": "ng build --plugin ~build-plugin.js --prod --deploy-url /show-me-the-code/",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
