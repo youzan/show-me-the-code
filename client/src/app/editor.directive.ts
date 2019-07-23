@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor';
 import { Subscription } from 'rxjs';
 import { EditorService } from './editor.service';
 import { CodeService } from './code.service';
+import { ConnectionService } from './connection.service';
 
 @Directive({
   selector: '[monaco-editor-container]',
@@ -17,6 +18,7 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
     private readonly viewContainerRef: ViewContainerRef,
     private readonly editorService: EditorService,
     private readonly codeService: CodeService,
+    private readonly connectionService: ConnectionService,
   ) {}
 
   @HostListener('window:resize')
@@ -33,9 +35,11 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     const el: HTMLElement = this.viewContainerRef.element.nativeElement;
-    this.editor = monaco.editor.create(el, {
+    const editor = monaco.editor.create(el, {
       model: this.editorService.model,
+      readOnly: true,
     });
+    this.editor = editor;
     this.$$.push(
       this.editorService.fontSize$.subscribe(fontSize => {
         this.editor &&
@@ -43,6 +47,12 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
             fontSize,
           });
       }),
+      this.editorService.format$.subscribe(() => editor.getAction('editor.action.formatDocument').run()),
+      this.connectionService.init$.subscribe(init =>
+        editor.updateOptions({
+          readOnly: !init,
+        }),
+      ),
     );
     this.codeService.init(this.editor);
   }

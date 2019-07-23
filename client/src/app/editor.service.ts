@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import * as monaco from 'monaco-editor';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, Subject } from 'rxjs';
 
 monaco.editor.setTheme('vs-dark');
 
@@ -8,6 +8,7 @@ monaco.editor.setTheme('vs-dark');
 export class EditorService implements OnDestroy {
   readonly language$ = new BehaviorSubject('javascript');
   readonly fontSize$ = new BehaviorSubject(14);
+  readonly format$ = new Subject();
 
   readonly model = monaco.editor.createModel('', this.language$.getValue());
   private $$: Subscription[] = [];
@@ -21,9 +22,7 @@ export class EditorService implements OnDestroy {
   }
 
   async format() {
-    const prettier = await import('prettier/standalone');
-    const out = prettier.format(this.model.getValue());
-    this.model.setValue(out);
+    this.format$.next();
   }
 
   ngOnDestroy() {

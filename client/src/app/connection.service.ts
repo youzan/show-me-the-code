@@ -36,11 +36,21 @@ export class ConnectionService implements OnDestroy {
   readonly connect$ = new BehaviorSubject(false);
   users = new Map<string, IUser>();
   userId = '';
+  readonly init$ = new BehaviorSubject(false);
 
   constructor(private readonly messageService: MessageService) {
     this.socket
       .on('connect', () => this.connect$.next(true))
-      .on('disconnect', () => this.connect$.next(false))
+      .on('disconnect', () => {
+        this.connect$.next(false);
+        this.init$.next(false);
+      })
+      .on('reconnect', () => {
+        const roomId = this.roomId$.getValue();
+        if (roomId) {
+          this.socket.emit('room.rejoin', roomId);
+        }
+      })
       .on('room.created', ({ roomId, userId }: { roomId: string; userId: string }) => {
         this.roomId$.next(roomId);
         this.userId = userId;
@@ -51,6 +61,7 @@ export class ConnectionService implements OnDestroy {
         this.userId = userId;
         this.updateUrl();
         users.forEach(user => this.users.set(user.id, user));
+        this.socket.emit('sync.full');
       })
       .on('room.fail', (msg: string) => {
         this.messageService.add({
@@ -64,6 +75,13 @@ export class ConnectionService implements OnDestroy {
       })
       .on('user.leave', (userId: string) => {
         this.users.delete(userId);
+      })
+      .on('code.save.success', () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Save success',
+          detail: 'Save success',
+        });
       });
   }
 
@@ -111,6 +129,24 @@ export class ConnectionService implements OnDestroy {
   onReceiveUserSelection(cb: (e: IReceiveUserSelection) => void) {
     this.socket.on('user.selection', cb);
     return this;
+  }
+
+  onReceiveSync(cb: (value: string) => void) {
+    this.socket.on('sync.full', cb);
+    return this;
+  }
+
+  responseSync(code: string) {
+    this.socket.emit('sync.full.response', code);
+  }
+
+  onReceiveSyncRequest(cb: () => void) {
+    this.socket.on('sync.full.request', cb);
+    return this;
+  }
+
+  save(code: string) {
+    this.socket.emit('code.save', code);
   }
 
   ngOnDestroy() {

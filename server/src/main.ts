@@ -1,5 +1,5 @@
 import http from 'http';
-import socket from 'socket.io';
+import socket, { Socket } from 'socket.io';
 import { createConnection, getRepository } from 'typeorm';
 import uuid from 'uuid/v4';
 import { Room } from './room';
@@ -11,7 +11,7 @@ const io = socket(server);
 createConnection({
   type: 'postgres',
   host: '127.0.0.1',
-  database: 'intellild',
+  database: 'coding_dev',
   port: 5432,
   username: 'intellild',
   entities: [Room],
@@ -26,6 +26,7 @@ interface IUser {
   name: string;
   readonly id: string;
   color: number;
+  getSocket(): Socket;
 }
 
 class RoomUsers {
@@ -77,6 +78,9 @@ io.on('connection', socket => {
     id: uuid(),
     name: '',
     color: 0,
+    getSocket() {
+      return socket;
+    },
   };
   let roomId = '';
 
@@ -90,9 +94,7 @@ io.on('connection', socket => {
     }
     user.name = data.username;
 
-    const room = await getRepository(Room).findOne({
-      id: data.id,
-    });
+    const room = await getRepository(Room).findOne(data.id);
     if (!room) {
       socket.emit('room.fail', 'room not exist');
       return;
@@ -100,11 +102,41 @@ io.on('connection', socket => {
     roomId = room.id;
     socket.join(room.id);
     const roomUsers = addUser(user, roomId);
-    io.to(room.id).emit('user.join', user);
     if (!roomUsers) {
       socket.emit('room.fail', 'room is full');
       return;
     }
+    io.to(room.id).emit('user.join', user);
+    socket.emit('room.joint', {
+      roomId,
+      userId: user.id,
+      users: roomUsers.users,
+    });
+  });
+
+  socket.on('room.rejoin', async id => {
+    if (!verifyUuid(id)) {
+      socket.emit('room.fail', 'invalid room id');
+      return;
+    }
+    if (roomId) {
+      return;
+    }
+
+    const room = await getRepository(Room).findOne(id);
+    if (!room) {
+      socket.emit('room.fail', 'room not exist');
+      return;
+    }
+    roomId = room.id;
+    socket.join(room.id);
+    const roomUsers = addUser(user, roomId);
+
+    if (!roomUsers) {
+      socket.emit('room.fail', 'room is full');
+      return;
+    }
+    io.to(room.id).emit('user.join', user);
     socket.emit('room.joint', {
       roomId,
       userId: user.id,
@@ -142,6 +174,35 @@ io.on('connection', socket => {
       ranges,
       userId: user.id,
     });
+  });
+
+  socket.on('sync.full', async () => {
+    const r = rooms.get(roomId);
+    if (!r) {
+      return;
+    }
+    if (r.users[0].id === user.id) {
+      const room = await getRepository(Room).findOne(roomId);
+      if (!room) {
+        return;
+      }
+      socket.emit('sync.full', room.content || '');
+    } else {
+      const user = r.users[0];
+      user.getSocket().emit('sync.full.request');
+    }
+  });
+
+  socket.on('sync.full.response', code => {
+    io.to(roomId).emit('sync.full', code);
+  });
+
+  socket.on('code.save', async code => {
+    await getRepository(Room).update(roomId, {
+      content: code,
+    });
+    socket.emit('code.save.success');
+    io.to(roomId).emit('sync.full', code);
   });
 
   socket.on('disconnect', () => {

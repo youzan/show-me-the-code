@@ -84,8 +84,8 @@ export class CodeService implements OnDestroy {
               options: {
                 className: `user-${user.color}-cursor`,
                 hoverMessage: {
-                  value: `Cursor: ${user.name}`
-                }
+                  value: `Cursor: ${user.name}`,
+                },
               },
               range: positionToRange(position),
             },
@@ -118,6 +118,13 @@ export class CodeService implements OnDestroy {
           })),
         );
         decorations.selection = newDecorationsId;
+      })
+      .onReceiveSync(code => {
+        this.model.setValue(code);
+      })
+      .onReceiveSyncRequest(() => {
+        const value = this.model.getValue();
+        this.connectionService.responseSync(value);
       });
 
     this.$$.push(

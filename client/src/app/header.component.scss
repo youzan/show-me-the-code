@@ -12,12 +12,12 @@ button {
 .button-group {
   margin-left: auto;
 
-  button:first-child {
+  button:not(:last-child) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
 
-  button:last-child {
+  button:not(:first-child) {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
@@ -47,13 +47,6 @@ app-users {
   }
 }
 
-.prettier {
-  background-image: url(/assets/prettier.png);
-  width: 20px;
-  height: 20px;
-  background-position: center;
-  background-size: 100%;
-  background-repeat: no-repeat;
+.save {
   margin-left: 10px;
-  border-radius: 5px;
 }
