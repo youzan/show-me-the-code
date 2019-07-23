@@ -114,36 +114,6 @@ io.on('connection', socket => {
     });
   });
 
-  socket.on('room.rejoin', async id => {
-    if (!verifyUuid(id)) {
-      socket.emit('room.fail', 'invalid room id');
-      return;
-    }
-    if (roomId) {
-      return;
-    }
-
-    const room = await getRepository(Room).findOne(id);
-    if (!room) {
-      socket.emit('room.fail', 'room not exist');
-      return;
-    }
-    roomId = room.id;
-    socket.join(room.id);
-    const roomUsers = addUser(user, roomId);
-
-    if (!roomUsers) {
-      socket.emit('room.fail', 'room is full');
-      return;
-    }
-    io.to(room.id).emit('user.join', user);
-    socket.emit('room.joint', {
-      roomId,
-      userId: user.id,
-      users: roomUsers.users,
-    });
-  });
-
   socket.on('room.create', async data => {
     user.name = data.username;
     const repository = getRepository(Room);

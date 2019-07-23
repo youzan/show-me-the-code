@@ -34,6 +34,7 @@ export class ConnectionService implements OnDestroy {
   private readonly socket = io(url);
   readonly roomId$ = new BehaviorSubject('');
   readonly connect$ = new BehaviorSubject(false);
+  username = '';
   users = new Map<string, IUser>();
   userId = '';
   readonly init$ = new BehaviorSubject(false);
@@ -48,7 +49,10 @@ export class ConnectionService implements OnDestroy {
       .on('reconnect', () => {
         const roomId = this.roomId$.getValue();
         if (roomId) {
-          this.socket.emit('room.rejoin', roomId);
+          this.socket.emit('room.join', {
+            id: roomId,
+            username: this.username,
+          });
         }
       })
       .on('room.created', ({ roomId, userId }: { roomId: string; userId: string }) => {
@@ -60,6 +64,7 @@ export class ConnectionService implements OnDestroy {
         this.roomId$.next(roomId);
         this.userId = userId;
         this.updateUrl();
+        this.users.clear();
         users.forEach(user => this.users.set(user.id, user));
         this.socket.emit('sync.full');
       })
@@ -86,12 +91,14 @@ export class ConnectionService implements OnDestroy {
   }
 
   create(username: string) {
+    this.username = username;
     this.socket.emit('room.create', {
       username,
     });
   }
 
   join(roomId: string, username: string) {
+    this.username = username;
     this.socket.emit('room.join', {
       id: roomId,
       username,
