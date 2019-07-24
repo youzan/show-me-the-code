@@ -11,7 +11,7 @@ const server = http.createServer();
 
 const io = socket(server);
 
-const { DB_HOST, DB_USER, DB_DATABASE } = process.env;
+const { DB_HOST, DB_USER, DB_DATABASE, DB_PASSWROD } = process.env;
 
 createConnection({
   type: 'postgres',
@@ -21,6 +21,7 @@ createConnection({
   username: DB_USER,
   entities: [Room],
   synchronize: true,
+  password: DB_PASSWROD,
 });
 
 function verifyUuid(id: string) {
