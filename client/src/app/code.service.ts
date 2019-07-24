@@ -69,7 +69,8 @@ export class CodeService implements OnDestroy {
         }));
         const selections = editor.getSelections();
         this.previousSyncVersionId = this.model.getVersionId();
-        this.model.pushEditOperations(editor.getSelections() || [], edits, () => selections || []);
+        this.model.pushEditOperations(selections || [], edits, () => selections);
+        editor.setSelections(selections || []);
       })
       .onReceiveUserCursor(({ userId, position }) => {
         const user = this.connectionService.users.get(userId);
@@ -121,6 +122,7 @@ export class CodeService implements OnDestroy {
       })
       .onReceiveSync(code => {
         this.model.setValue(code);
+        this.connectionService.init$.next(true);
       })
       .onReceiveSyncRequest(() => {
         const value = this.model.getValue();

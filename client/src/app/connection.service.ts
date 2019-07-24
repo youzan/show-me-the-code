@@ -6,7 +6,7 @@ import * as monaco from 'monaco-editor';
 
 declare const process: any;
 
-const url = process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : 'ws://127.0.0.1:8086';
+const url = process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : `ws://${location.hostname}:8086`;
 
 export interface IUser {
   name: string;
