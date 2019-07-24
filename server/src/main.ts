@@ -2,18 +2,23 @@ import http from 'http';
 import socket, { Socket } from 'socket.io';
 import { createConnection, getRepository } from 'typeorm';
 import uuid from 'uuid/v4';
+import { config } from 'dotenv';
 import { Room } from './room';
+
+config();
 
 const server = http.createServer();
 
 const io = socket(server);
 
+const { DB_HOST, DB_USER, DB_DATABASE } = process.env;
+
 createConnection({
   type: 'postgres',
-  host: '127.0.0.1',
-  database: 'coding_dev',
+  host: DB_HOST,
+  database: DB_DATABASE,
   port: 5432,
-  username: 'intellild',
+  username: DB_USER,
   entities: [Room],
   synchronize: true,
 });
