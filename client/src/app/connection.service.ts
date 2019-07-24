@@ -59,6 +59,7 @@ export class ConnectionService implements OnDestroy {
         this.roomId$.next(roomId);
         this.userId = userId;
         this.updateUrl();
+        this.init$.next(true);
       })
       .on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
         this.roomId$.next(roomId);
