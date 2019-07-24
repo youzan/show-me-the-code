@@ -10,6 +10,9 @@ exports.default = {
         break;
       }
     }
+    cfg.node = cfg.node || {};
+    cfg.node.fs = 'empty';
+    cfg.node.module = 'empty';
     return cfg;
   },
 };

@@ -1,6 +1,4 @@
-/// <reference path="../../node_modules/zone.js/dist/zone.js.d.ts" />
-
-import { Component, ViewEncapsulation, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
 import { EditorService } from './editor.service';
 import { ExecutionService } from './execution.service';
 import { ConnectionService } from './connection.service';
@@ -52,7 +50,21 @@ export class HeaderComponent {
   execute() {
     const lang = this.editorService.language$.getValue();
     const code = this.editorService.model.getValue();
+    if (lang === 'typescript') {
+      this.executeTypeScript(code);
+      return;
+    }
     this.executionService.exec(lang, code);
+  }
+
+  async executeTypeScript(source: string) {
+    const ts = await import('typescript');
+    const { outputText } = ts.transpileModule(source, {
+      compilerOptions: {
+        target: ts.ScriptTarget.ES2019,
+      },
+    });
+    this.executionService.exec('javascript', outputText);
   }
 
   clean() {
@@ -70,8 +82,6 @@ export class HeaderComponent {
   }
 
   format() {
-    Zone.root.run(() => {
-      this.editorService.format();
-    });
+    this.editorService.format();
   }
 }
