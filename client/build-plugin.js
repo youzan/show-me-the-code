@@ -13,6 +13,16 @@ exports.default = {
     cfg.node = cfg.node || {};
     cfg.node.fs = 'empty';
     cfg.node.module = 'empty';
+    const loader = cfg.module.rules.find(
+      rule => rule.use && rule.use.find(it => it.loader === '@angular-devkit/build-optimizer/webpack-loader'),
+    );
+    if (loader) {
+      const originalTest = loader.test;
+      loader.test = file => {
+        const isMonaco = !!file.match('node_modules/monaco-editor');
+        return !isMonaco && !!file.match(originalTest);
+      };
+    }
     return cfg;
   },
 };
