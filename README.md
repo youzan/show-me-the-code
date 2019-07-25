@@ -2,9 +2,6 @@
 
 > Talk is cheap. Show me the code. —— Linus Torvalds
 
-`Master` is under heavy development.
-<a href="https://github.com/youzan/show-me-the-code/tree/v1">Checkout `v1` branch.</a>
-
 ## Features
 * Real time multi user editting.
 * View execution result immediately.
