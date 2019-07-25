@@ -13,6 +13,8 @@ exports.default = {
     cfg.node = cfg.node || {};
     cfg.node.fs = 'empty';
     cfg.node.module = 'empty';
+
+    // workaround for https://github.com/angular/angular-cli/issues/14033
     const loader = cfg.module.rules.find(
       rule => rule.use && rule.use.find(it => it.loader === '@angular-devkit/build-optimizer/webpack-loader'),
     );
@@ -23,6 +25,7 @@ exports.default = {
         return !isMonaco && !!file.match(originalTest);
       };
     }
+
     return cfg;
   },
 };
