@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import * as monaco from 'monaco-editor';
 import { EditorService } from './editor.service';
 import { ConnectionService } from './connection.service';
-import * as monaco from 'monaco-editor';
 
 function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumber }: monaco.IRange): monaco.Range {
   return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
@@ -36,10 +36,10 @@ export class CodeService implements OnDestroy {
   private previousSyncVersionId = 0;
 
   get model() {
-    return this.editorServie.model;
+    return this.editorService.model;
   }
 
-  constructor(private readonly editorServie: EditorService, private readonly connectionService: ConnectionService) {}
+  constructor(private readonly editorService: EditorService, private readonly connectionService: ConnectionService) {}
 
   private getDecorations(userId: string): IUserDecorations {
     let decorations = this.userDecorations.get(userId);
@@ -51,7 +51,7 @@ export class CodeService implements OnDestroy {
   }
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
-    this.editorServie.model.onDidChangeContent(e => {
+    this.editorService.model.onDidChangeContent(e => {
       if (e.versionId === this.previousSyncVersionId + 1) {
         return;
       }
@@ -137,6 +137,11 @@ export class CodeService implements OnDestroy {
         this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
       ),
     );
+  }
+
+  save() {
+    const value = this.editorService.model.getValue();
+    this.connectionService.save(value);
   }
 
   ngOnDestroy() {

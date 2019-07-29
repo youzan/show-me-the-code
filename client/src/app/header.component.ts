@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { EditorService } from './editor.service';
 import { ExecutionService } from './execution.service';
-import { ConnectionService } from './connection.service';
+import { CodeService } from './code.service';
 
 @Component({
   selector: 'app-header',
@@ -44,7 +44,7 @@ export class HeaderComponent {
   constructor(
     private readonly editorService: EditorService,
     private readonly executionService: ExecutionService,
-    private readonly connectionService: ConnectionService,
+    private readonly codeService: CodeService,
   ) {}
 
   execute() {
@@ -77,8 +77,7 @@ export class HeaderComponent {
   }
 
   save() {
-    const value = this.editorService.model.getValue();
-    this.connectionService.save(value);
+    this.codeService.save();
   }
 
   format() {

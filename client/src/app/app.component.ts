@@ -1,6 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { ConnectionService } from './connection.service';
 import { EditorService } from './editor.service';
+import { CodeService } from './code.service';
 
 @Component({
   selector: 'app-root',
@@ -17,10 +18,18 @@ import { EditorService } from './editor.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  constructor(private readonly connectionService: ConnectionService, private readonly editorService: EditorService) {}
+  constructor(private readonly connectionService: ConnectionService, private readonly codeService: CodeService) {}
 
   get connection$() {
     return this.connectionService.connect$;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  autoSave(e: BeforeUnloadEvent) {
+    if (this.connectionService.users.size === 1) {
+      this.codeService.save();
+    }
+    e.returnValue = 'Sure ?';
   }
 
   @HostListener('window:keydown', ['$event'])
