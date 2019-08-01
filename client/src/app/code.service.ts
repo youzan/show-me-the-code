@@ -121,6 +121,7 @@ export class CodeService implements OnDestroy {
         decorations.selection = newDecorationsId;
       })
       .onReceiveSync(code => {
+        this.previousSyncVersionId = this.model.getVersionId();
         this.model.setValue(code);
         this.connectionService.init$.next(true);
       })

@@ -1,7 +1,8 @@
 import { Component, HostListener } from '@angular/core';
 import { ConnectionService } from './connection.service';
-import { EditorService } from './editor.service';
 import { CodeService } from './code.service';
+
+declare const process: any;
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,9 @@ export class AppComponent {
 
   @HostListener('window:beforeunload', ['$event'])
   autoSave(e: BeforeUnloadEvent) {
+    if (process.env.NODE_ENV === 'development') {
+      return;
+    }
     if (this.connectionService.users.size === 1) {
       this.codeService.save();
     }

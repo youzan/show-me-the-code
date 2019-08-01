@@ -125,9 +125,12 @@ io.on('connection', socket => {
     const repository = getRepository(Room);
     const room = await repository.save({});
     roomId = room.id;
+    const users = addUser(user, roomId);
+    socket.join(room.id);
     socket.emit('room.created', {
       userId: user.id,
       roomId,
+      users: users!.users,
     });
   });
 
