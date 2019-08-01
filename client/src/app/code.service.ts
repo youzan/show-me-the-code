@@ -1,5 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import * as monaco from 'monaco-editor';
+import { interval, never } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { EditorService } from './editor.service';
 import { ConnectionService } from './connection.service';
 
@@ -137,12 +139,22 @@ export class CodeService implements OnDestroy {
       editor.onDidChangeCursorSelection(e =>
         this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
       ),
+      this.registerAutoSave(),
     );
   }
 
-  save() {
+  registerAutoSave(): monaco.IDisposable {
+    const $ = this.connectionService.autoSave$
+      .pipe(switchMap(autoSave => (autoSave ? interval(60000) : never())))
+      .subscribe(this.save.bind(this, true));
+    return {
+      dispose: $.unsubscribe.bind($),
+    };
+  }
+
+  save(silent = false) {
     const value = this.editorService.model.getValue();
-    this.connectionService.save(value);
+    this.connectionService.save(value, silent);
   }
 
   ngOnDestroy() {

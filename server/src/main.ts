@@ -184,6 +184,16 @@ io.on('connection', socket => {
     io.to(roomId).emit('sync.full', code);
   });
 
+  socket.on('code.save-v2', async ({ code, silent }) => {
+    await getRepository(Room).update(roomId, {
+      content: code,
+    });
+    io.to(roomId).emit('sync.full', code);
+    if (!silent) {
+      socket.emit('code.save.success');
+    }
+  });
+
   socket.on('disconnect', () => {
     if (roomId) {
       socket.leave(roomId);

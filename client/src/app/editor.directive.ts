@@ -42,10 +42,9 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
     this.editor = editor;
     this.$$.push(
       this.editorService.fontSize$.subscribe(fontSize => {
-        this.editor &&
-          this.editor.updateOptions({
-            fontSize,
-          });
+        editor.updateOptions({
+          fontSize,
+        });
       }),
       this.editorService.format$.subscribe(() => editor.getAction('editor.action.formatDocument').run()),
       this.connectionService.init$.subscribe(init =>

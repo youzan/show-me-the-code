@@ -38,6 +38,7 @@ export class ConnectionService implements OnDestroy {
   users = new Map<string, IUser>();
   userId = '';
   readonly init$ = new BehaviorSubject(false);
+  readonly autoSave$ = new BehaviorSubject(false);
 
   constructor(private readonly messageService: MessageService) {
     this.socket
@@ -60,6 +61,7 @@ export class ConnectionService implements OnDestroy {
         this.userId = userId;
         this.updateUrl();
         users.forEach(user => this.users.set(user.id, user));
+        this.autoSave$.next(true);
         this.init$.next(true);
       })
       .on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
@@ -69,6 +71,10 @@ export class ConnectionService implements OnDestroy {
         this.users.clear();
         users.forEach(user => this.users.set(user.id, user));
         this.socket.emit('sync.full');
+        const first = this.firstUser;
+        if (first && first.id === this.userId) {
+          this.autoSave$.next(true);
+        }
       })
       .on('room.fail', (msg: string) => {
         this.messageService.add({
@@ -82,6 +88,10 @@ export class ConnectionService implements OnDestroy {
       })
       .on('user.leave', (userId: string) => {
         this.users.delete(userId);
+        const first = this.firstUser;
+        if (first && first.id === this.userId) {
+          this.autoSave$.next(true);
+        }
       })
       .on('code.save.success', () => {
         this.messageService.add({
@@ -90,6 +100,10 @@ export class ConnectionService implements OnDestroy {
           detail: 'Save success',
         });
       });
+  }
+
+  get firstUser(): IUser | undefined {
+    return this.users.values().next().value;
   }
 
   create(username: string) {
@@ -154,8 +168,11 @@ export class ConnectionService implements OnDestroy {
     return this;
   }
 
-  save(code: string) {
-    this.socket.emit('code.save', code);
+  save(code: string, silent = false) {
+    this.socket.emit('code.save-v2', {
+      code,
+      silent,
+    });
   }
 
   ngOnDestroy() {
