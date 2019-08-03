@@ -72,6 +72,7 @@ export class CodeService implements OnDestroy {
         const selections = editor.getSelections();
         this.previousSyncVersionId = this.model.getVersionId();
         this.model.pushEditOperations(selections || [], edits, () => selections);
+        this.model.pushStackElement();
         editor.setSelections(selections || []);
       })
       .onReceiveUserCursor(({ userId, position }) => {
