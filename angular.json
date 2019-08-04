@@ -30,24 +30,24 @@
         }
       },
       "root": "",
-      "sourceRoot": "src",
+      "sourceRoot": "client",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "ngx-build-plus:build",
           "options": {
             "outputPath": "dist/show-me-the-code",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "index": "client/index.html",
+            "main": "client/main.ts",
+            "polyfills": "client/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "assets": [
-              "src/favicon.ico",
-              "src/assets"
+              "client/favicon.ico",
+              "client/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              "client/styles.scss"
             ],
             "scripts": []
           },
@@ -55,8 +55,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "replace": "client/environments/environment.ts",
+                  "with": "client/environments/environment.prod.ts"
                 }
               ],
               "optimization": true,
