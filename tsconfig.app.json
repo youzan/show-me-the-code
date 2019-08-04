@@ -5,11 +5,11 @@
     "types": []
   },
   "include": [
-    "src/**/*.ts"
+    "client/**/*.ts"
   ],
   "exclude": [
-    "src/test.ts",
-    "src/**/*.spec.ts"
+    "client/test.ts",
+    "client/**/*.spec.ts"
   ],
   "angularCompilerOptions": {
     "enableIvy": false
