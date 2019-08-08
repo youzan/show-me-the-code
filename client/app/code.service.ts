@@ -151,9 +151,11 @@ export class CodeService implements OnDestroy {
   registerAutoSave(): monaco.IDisposable {
     const $ = this.connectionService.autoSave$
       .pipe(switchMap(autoSave => (autoSave ? interval(60000) : never())))
-      .subscribe(this.save.bind(this, true));
+      .subscribe(() => this.save(true));
     return {
-      dispose: $.unsubscribe.bind($),
+      dispose() {
+        $.unsubscribe();
+      },
     };
   }
 

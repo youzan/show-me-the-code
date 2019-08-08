@@ -40,6 +40,7 @@ export class AppComponent {
   onKeyDown(e: KeyboardEvent) {
     if (e.metaKey && e.key === 's') {
       e.preventDefault();
+      this.codeService.save();
     }
   }
 }
