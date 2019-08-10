@@ -4,7 +4,7 @@ defmodule ShowMeTheCode.Room.Bucket do
   alias ShowMeTheCode.Room.State, as: State
   alias ShowMeTheCode.User, as: User
 
-  def start_link do
+  def start_link(_opts) do
     Agent.start_link(fn -> %State{} end, name: __MODULE__)
   end
 
