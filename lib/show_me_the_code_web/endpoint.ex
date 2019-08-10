@@ -1,7 +1,7 @@
 defmodule ShowMeTheCodeWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :show_me_the_code
 
-  socket "/socket", ShowMeTheCodeWeb.UserSocket,
+  socket "/websocket", ShowMeTheCodeWeb.UserSocket,
     websocket: true,
     longpoll: false
 
