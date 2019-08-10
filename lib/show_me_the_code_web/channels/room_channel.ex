@@ -30,8 +30,8 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
       {:ok, socket}
     catch
-      {:invalid_room_id} -> {:error, "invalid room id #{room_id}"}
-      {:room_not_exist} -> {:error, "room #{room_id} not exist"}
+      {:invalid_room_id} -> {:error, %{ :reason => "invalid room id" }}
+      {:room_not_exist} -> {:error, %{ :reason => "room not exist"}}
     end
   end
 end
