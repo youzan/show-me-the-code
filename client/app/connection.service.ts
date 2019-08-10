@@ -131,16 +131,33 @@ export class ConnectionService implements OnDestroy {
       .receive('ok', msg => {
         this.roomId = roomId;
         this.updateUrl();
+        this.channel$.next(channel);
       })
-      .receive('error', msg => {
-        channel.leave();
+      .receive('error', ({ reason }) => {
+        let msg = 'Unknown error';
+        let leave = false;
+        switch (reason) {
+          case 'join crashed':
+            leave = true;
+            break;
+          case 'invalid room id':
+          case 'room not exist':
+            msg = `Join room fail, ${reason}`;
+            leave = true;
+            break;
+          default:
+            break;
+        }
         this.messageService.add({
           severity: 'error',
           summary: 'Join fail',
-          detail: `Join room fail, ${msg}`,
+          detail: msg,
         });
+        if (leave) {
+          channel.leave();
+          this.channel$.next(null);
+        }
       });
-    this.channel$.next(channel);
   }
 
   private updateUrl() {
