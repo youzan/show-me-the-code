@@ -33,13 +33,13 @@ export interface IReceiveUserSelection {
 @Injectable()
 export class ConnectionService implements OnDestroy {
   private readonly socket = new Socket(url);
-  readonly roomId$ = new BehaviorSubject('');
+  private roomId = '';
   readonly connect$ = new BehaviorSubject(false);
+  readonly channel$ = new BehaviorSubject<Channel | null>(null);
   username = '';
   users = new Map<string, IUser>();
-  channel: Channel | null = null;
   userId = '';
-  readonly init$ = new BehaviorSubject(false);
+  readonly synchronized$ = new BehaviorSubject(false);
   readonly autoSave$ = new BehaviorSubject(false);
 
   constructor(private readonly messageService: MessageService) {
@@ -47,7 +47,7 @@ export class ConnectionService implements OnDestroy {
     this.socket.onOpen(() => this.connect$.next(true));
     this.socket.onClose(() => {
       this.connect$.next(false);
-      this.init$.next(false);
+      this.synchronized$.next(false);
     });
     // this.socket
     //   .on('connect', () => this.connect$.next(true))
@@ -129,23 +129,23 @@ export class ConnectionService implements OnDestroy {
     channel
       .join()
       .receive('ok', msg => {
-        console.log(msg);
+        this.roomId = roomId;
+        this.updateUrl();
       })
       .receive('error', msg => {
         channel.leave();
-        this.channel = null;
         this.messageService.add({
           severity: 'error',
           summary: 'Join fail',
           detail: `Join room fail, ${msg}`,
         });
       });
-    this.channel = channel;
+    this.channel$.next(channel);
   }
 
   private updateUrl() {
     const url = new URL(location.href);
-    url.searchParams.set('roomId', this.roomId$.getValue());
+    url.searchParams.set('roomId', this.roomId);
     history.replaceState(history.state, '', url.href);
   }
 

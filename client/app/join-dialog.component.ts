@@ -47,9 +47,9 @@ export class JoinDialogComponent {
   constructor(private readonly connectionService: ConnectionService) {
     const params = new URLSearchParams(location.search);
     const roomId = params.get('roomId');
-    const { connect$, roomId$ } = connectionService;
-    this.visible$ = combineLatest(connect$, roomId$).pipe(
-      map(([connect, roomId]) => connect && !roomId),
+    const { connect$, channel$ } = connectionService;
+    this.visible$ = combineLatest(connect$, channel$).pipe(
+      map(([connect, channel]) => connect && !channel),
       distinctUntilChanged(),
     );
     if (roomId) {
