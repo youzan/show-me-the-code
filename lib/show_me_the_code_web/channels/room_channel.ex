@@ -3,7 +3,6 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
   alias ShowMeTheCode.Room.Registry, as: Registry
   alias ShowMeTheCode.Room.Bucket, as: Bucket
-  alias ShowMeTheCode.Error, as: Error
 
   def join("room:" <> room_id, payload, socket) do
     try do

@@ -11,9 +11,10 @@ defmodule ShowMeTheCode.Room do
     timestamps()
   end
 
+  @doc false
   def changeset(room, attrs) do
     room
-    |> cast(attrs, [])
+    |> cast(attrs, [:id, :content, :languge, :expires])
     |> validate_required([:content, :language])
   end
 end

@@ -32,7 +32,9 @@ export interface IReceiveUserSelection {
 
 @Injectable()
 export class ConnectionService implements OnDestroy {
-  private readonly socket = new Socket(url);
+  private readonly socket = new Socket(url, {
+    heartbeatIntervalMs: 30000,
+  });
   private roomId = '';
   readonly connect$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
