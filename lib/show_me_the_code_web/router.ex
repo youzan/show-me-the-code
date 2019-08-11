@@ -13,7 +13,7 @@ defmodule ShowMeTheCodeWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", ShowMeTheCodeWeb do
+  scope "/api", ShowMeTheCodeWeb do
     pipe_through :api
 
     post "/create-one", RoomController, :create_one
