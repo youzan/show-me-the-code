@@ -3,7 +3,7 @@ use Mix.Config
 # Configure your database
 config :show_me_the_code, ShowMeTheCode.Repo,
   username: "intellild",
-  password: "",
+  password: "123456",
   database: "coding_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,

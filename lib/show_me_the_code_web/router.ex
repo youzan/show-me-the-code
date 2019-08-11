@@ -14,9 +14,10 @@ defmodule ShowMeTheCodeWeb.Router do
   end
 
   scope "/", ShowMeTheCodeWeb do
-    pipe_through :browser
+    pipe_through :api
 
-    get "/", PageController, :index
+    post "/create-one", RoomController, :create_one
+    post "/create-many", RoomController, :create_many
   end
 
   # Other scopes may use custom stacks.
