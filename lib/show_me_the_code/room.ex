@@ -4,8 +4,8 @@ defmodule ShowMeTheCode.Room do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "room" do
-    field :content, :string, default: "javascript"
-    field :language, :string, default: ""
+    field :content, :string, default: ""
+    field :language, :string, default: "javascript"
     field :expires, :naive_datetime
 
     timestamps()
