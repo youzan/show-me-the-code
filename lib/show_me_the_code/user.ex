@@ -4,6 +4,6 @@ defmodule ShowMeTheCode.User do
   typedstruct do
     field :name, String.t(), enforce: true
     field :id, String.t(), enforce: true
-    field :color, integer(), enforce: true
+    field :slot, integer(), enforce: true
   end
 end
