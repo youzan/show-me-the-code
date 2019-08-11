@@ -3,6 +3,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
   alias ShowMeTheCode.Room.Registry, as: Registry
   alias ShowMeTheCode.Room.Bucket, as: Bucket
+  alias ShowMeTheCode.Error, as: Error
 
   def join("room:" <> room_id, payload, socket) do
     try do
@@ -26,12 +27,15 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
           Map.get(payload, "username")
         )
 
+      if user == nil, do: throw({:room_full})
+
       socket = socket |> assign(:user, user) |> assign(:room, room_bucket)
 
       {:ok, socket}
     catch
-      {:invalid_room_id} -> {:error, %{ :reason => "invalid room id" }}
-      {:room_not_exist} -> {:error, %{ :reason => "room not exist"}}
+      {:invalid_room_id} -> {:error, %{:reason => "invalid room id"}}
+      {:room_not_exist} -> {:error, %{:reason => "room not exist"}}
+      {:room_full} -> {:error, %{:reason => "room is full"}}
     end
   end
 end
