@@ -86,7 +86,7 @@ export class CodeService implements OnDestroy {
           newCursor = this.model.deltaDecorations(decorations.cursor, [
             {
               options: {
-                className: `user-${user.color}-cursor`,
+                className: `user-${user.slot}-cursor`,
                 hoverMessage: {
                   value: `Cursor: ${user.name}`,
                 },
@@ -114,7 +114,7 @@ export class CodeService implements OnDestroy {
             range: deserializeRange(it),
             options: {
               stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-              className: `user-${user.color}-selection`,
+              className: `user-${user.slot}-selection`,
               hoverMessage: {
                 value: `Selection: ${user.name}`,
               },
