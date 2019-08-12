@@ -1,7 +1,7 @@
 defmodule ShowMeTheCode.Room.Registry do
   use GenServer
 
-  alias ShowMeTheCode.Room.Bucket, as: Bucket
+  alias ShowMeTheCode.Room.Bucket
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, opts)
@@ -14,11 +14,14 @@ defmodule ShowMeTheCode.Room.Registry do
 
   @impl true
   def handle_call({:get_or_create, room_id}, _from, {rooms, refs}) do
-    if Map.has_key?(rooms, room_id) do
-      {:reply, Map.fetch(rooms, room_id), {rooms, refs}}
+    room = Map.get(rooms, room_id)
+
+    if room != nil do
+      {:reply, room, {rooms, refs}}
     else
       {:ok, room} = DynamicSupervisor.start_child(ShowMeTheCode.Room.Supervisor, Bucket)
-      {:ok, ref} = Process.monitor(room)
+
+      ref = Process.monitor(room)
       {:reply, room, {Map.put(rooms, room_id, room), Map.put(refs, ref, room_id)}}
     end
   end

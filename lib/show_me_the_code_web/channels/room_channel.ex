@@ -1,8 +1,7 @@
 defmodule ShowMeTheCodeWeb.RoomChannel do
   use Phoenix.Channel
 
-  alias ShowMeTheCode.Room.Registry, as: Registry
-  alias ShowMeTheCode.Room.Bucket, as: Bucket
+  alias ShowMeTheCode.Room.{Registry, Bucket}
 
   def join("room:" <> room_id, payload, socket) do
     try do
@@ -18,6 +17,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
       if room == nil, do: throw({:room_not_exist})
 
       room_bucket = Registry.get_or_create(Registry, room_id)
+      IO.inspect(room_bucket)
 
       user =
         Bucket.join(

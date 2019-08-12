@@ -1,11 +1,11 @@
 defmodule ShowMeTheCode.Room.Bucket do
   use Agent
 
-  alias ShowMeTheCode.Room.State, as: State
-  alias ShowMeTheCode.User, as: User
+  alias ShowMeTheCode.Room.State
+  alias ShowMeTheCode.User
 
   def start_link(_opts) do
-    Agent.start_link(fn -> %State{} end, name: __MODULE__)
+    Agent.start_link(fn -> %State{} end)
   end
 
   def join(room, user_id, user_name) do
