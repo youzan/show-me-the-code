@@ -3,6 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
 import * as monaco from 'monaco-editor';
+import { post } from './ajax';
 
 declare const process: any;
 
@@ -36,7 +37,7 @@ export class ConnectionService implements OnDestroy {
     heartbeatIntervalMs: 30000,
   });
   private roomId = '';
-  readonly connect$ = new BehaviorSubject(false);
+  readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
   username = '';
   users = new Map<string, IUser>();
@@ -45,10 +46,9 @@ export class ConnectionService implements OnDestroy {
   readonly autoSave$ = new BehaviorSubject(false);
 
   constructor(private readonly messageService: MessageService) {
-    this.socket.connect();
-    this.socket.onOpen(() => this.connect$.next(true));
+    this.socket.onOpen(() => this.connected$.next(true));
     this.socket.onClose(() => {
-      this.connect$.next(false);
+      this.connected$.next(false);
       this.synchronized$.next(false);
     });
     // this.socket
@@ -116,15 +116,17 @@ export class ConnectionService implements OnDestroy {
     return this.users.values().next().value;
   }
 
-  create(username: string) {
+  async create(username: string) {
     this.username = username;
-    // this.socket.emit('room.create', {
-    //   username,
-    // });
+    const roomId = await post<string>('api/create-one');
+    this.join(roomId, username);
   }
 
   join(roomId: string, username: string) {
     this.username = username;
+    this.socket.connect({
+      username,
+    });
     const channel = this.socket.channel(`room:${roomId}`, {
       username,
     });
