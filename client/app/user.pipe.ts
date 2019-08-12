@@ -7,7 +7,7 @@ import { IUser } from './connection.service';
 })
 export class UserClassNamePipe implements PipeTransform {
   transform(value: IUser): string {
-    return `user-${value.color}`;
+    return `user-${value.slot}`;
   }
 }
 
@@ -16,6 +16,6 @@ export class UserClassNamePipe implements PipeTransform {
 })
 export class UserListItemPipe implements PipeTransform {
   transform(value: IUser): string {
-    return `user-${value.color}-li`;
+    return `user-${value.slot}-li`;
   }
 }

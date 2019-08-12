@@ -13,7 +13,7 @@ const url =
 export interface IUser {
   name: string;
   id: string;
-  color: number;
+  slot: number;
 }
 
 export interface IReceiveEdit {
@@ -132,8 +132,9 @@ export class ConnectionService implements OnDestroy {
     });
     channel
       .join()
-      .receive('ok', msg => {
+      .receive('ok', ({ users }: { users: IUser[] }) => {
         this.roomId = roomId;
+        users.forEach(user => this.users.set(user.id, user));
         this.updateUrl();
         this.channel$.next(channel);
       })

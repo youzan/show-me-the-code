@@ -3,7 +3,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
   alias ShowMeTheCode.Room.{Registry, Bucket}
 
-  def join("room:" <> room_id, payload, socket) do
+  def join("room:" <> room_id, _payload, socket) do
     try do
       if !String.match?(
            room_id,
@@ -17,20 +17,21 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
       if room == nil, do: throw({:room_not_exist})
 
       room_bucket = Registry.get_or_create(Registry, room_id)
-      IO.inspect(room_bucket)
 
       user =
         Bucket.join(
           room_bucket,
-          socket.assigns[:id],
-          Map.get(payload, "username")
+          socket.assigns.id,
+          socket.assigns.username
         )
 
       if user == nil, do: throw({:room_full})
 
       socket = socket |> assign(:user, user) |> assign(:room, room_bucket)
 
-      {:ok, socket}
+      user_list = Bucket.get_user_list(room_bucket)
+
+      {:ok, %{:users => user_list}, socket}
     catch
       {:invalid_room_id} -> {:error, %{:reason => "invalid room id"}}
       {:room_not_exist} -> {:error, %{:reason => "room not exist"}}
