@@ -1,6 +1,7 @@
 defmodule ShowMeTheCodeWeb.RoomController do
   use ShowMeTheCodeWeb, :controller
   alias ShowMeTheCode.{Repo, Room}
+  alias Ecto.Multi
 
   def create_one(conn, params) do
     expires = params[:expires]
@@ -11,14 +12,13 @@ defmodule ShowMeTheCodeWeb.RoomController do
   def create_many(conn, %{"amount" => amount} = params) do
     expires = params[:expires]
 
-    list =
-      List.duplicate(
-        [expires: expires],
-        amount
-      )
+    multi =
+      Enum.reduce(1..amount, Multi.new(), fn index, multi ->
+        Multi.insert(multi, index, %Room{expires: expires})
+      end)
 
-    {_count, returns} = Repo.insert_all(Room, list)
-    IO.inspect(returns)
-    json(conn, %{:response => ""})
+    {:ok, result} = Repo.transaction(multi)
+    response = Enum.map(result, fn {_, value} -> value.id end)
+    json(conn, %{:response => response})
   end
 end
