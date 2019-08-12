@@ -22,7 +22,7 @@ export class AppComponent {
   constructor(private readonly connectionService: ConnectionService, private readonly codeService: CodeService) {}
 
   get connection$() {
-    return this.connectionService.connect$;
+    return this.connectionService.connected$;
   }
 
   @HostListener('window:beforeunload', ['$event'])
