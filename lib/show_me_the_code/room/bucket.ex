@@ -10,13 +10,17 @@ defmodule ShowMeTheCode.Room.Bucket do
 
   def join(room, user_id, user_name) do
     Agent.get_and_update(room, fn state ->
-      if length(state.slots) === 0, do: {nil, state}
+      try do
+        if length(state.slots) === 0, do: throw({:room_full})
 
-      [slot | rest] = state.slots
-      user = %User{name: user_name, id: user_id, slot: slot}
-      users = Map.put(state.users, user_id, user)
+        [slot | rest] = state.slots
+        user = %User{name: user_name, id: user_id, slot: slot}
+        users = Map.put(state.users, user_id, user)
 
-      {user, %State{users: users, slots: rest}}
+        {user, %State{users: users, slots: rest}}
+      catch
+        {:room_full} -> {nil, state}
+      end
     end)
   end
 
