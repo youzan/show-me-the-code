@@ -147,6 +147,7 @@ export class ConnectionService implements OnDestroy {
             break;
           case 'invalid room id':
           case 'room not exist':
+          case 'room is full':
             msg = `Join room fail, ${reason}`;
             leave = true;
             break;
