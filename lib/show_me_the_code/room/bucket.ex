@@ -2,6 +2,7 @@ defmodule ShowMeTheCode.Room.Bucket do
   use Agent
 
   alias ShowMeTheCode.Room.State
+  alias ShowMeTheCode.User
 
   def start_link(_opts) do
     Agent.start_link(fn -> %State{} end)
@@ -12,7 +13,7 @@ defmodule ShowMeTheCode.Room.Bucket do
       if length(state.slots) === 0, do: {nil, state}
 
       [slot | rest] = state.slots
-      user = %{name: user_name, id: user_id, slot: slot}
+      user = %User{name: user_name, id: user_id, slot: slot}
       users = Map.put(state.users, user_id, user)
 
       {user, %State{users: users, slots: rest}}
