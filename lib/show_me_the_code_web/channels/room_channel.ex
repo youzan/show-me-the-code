@@ -28,7 +28,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
           {:error, :room_full} -> throw(:room_full)
         end
 
-      Watcher.monitor(socket.channel_pid, room_bucket, user.id)
+      Watcher.monitor(socket.channel_pid, room_bucket, user.id, room_id)
 
       socket = socket |> assign(:user, user) |> assign(:room, room_bucket)
 

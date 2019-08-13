@@ -31,9 +31,10 @@ export interface IReceiveUserSelection {
 
 export interface ISocketEvents {
   'user.join': IUser;
+  'user.leave': { user: string };
 }
 
-const EVENTS = ['user.join'];
+const EVENTS = ['user.join', 'user.leave'];
 
 @Injectable()
 export class ConnectionService extends Events {
@@ -65,6 +66,8 @@ export class ConnectionService extends Events {
       if (user.id !== this.userId) {
         update(users => Users.add(user, users), this.users$);
       }
+    }).on('user.leave', ({ user }) => {
+      update(users => Users.remove(user, users), this.users$);
     });
     // this.socket
     //   .on('connect', () => this.connect$.next(true))
