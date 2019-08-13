@@ -1,7 +1,7 @@
 defmodule ShowMeTheCode.Room.Watcher do
   use GenServer
 
-  alias ShowMeTheCode.Room.{Registry, Bucket}
+  alias ShowMeTheCode.Room.Bucket
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -13,16 +13,17 @@ defmodule ShowMeTheCode.Room.Watcher do
   end
 
   @impl true
-  def handle_cast({:monitor, channel_pid, room_pid, user_id}, state) do
+  def handle_cast({:monitor, channel_pid, room_pid, user_id, room_id}, state) do
     ref = Process.monitor(channel_pid)
-    state = Map.put(state, ref, {room_pid, user_id})
+    state = Map.put(state, ref, {room_pid, user_id, room_id})
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
-    {{room_pid, user_id}, state} = Map.pop(state, ref)
+    {{room_pid, user_id, room_id}, state} = Map.pop(state, ref)
     Bucket.leave(room_pid, user_id)
+    ShowMeTheCodeWeb.Endpoint.broadcast("room:#{room_id}", "user.leave", %{user: user_id})
     {:noreply, state}
   end
 
@@ -31,7 +32,7 @@ defmodule ShowMeTheCode.Room.Watcher do
     {:noreply, state}
   end
 
-  def monitor(channel_pid, room_pid, user_id) do
-    GenServer.cast(__MODULE__, {:monitor, channel_pid, room_pid, user_id})
+  def monitor(channel_pid, room_pid, user_id, room_id) do
+    GenServer.cast(__MODULE__, {:monitor, channel_pid, room_pid, user_id, room_id})
   end
 end
