@@ -36,6 +36,9 @@ export interface ISocketEvents {
 
 const EVENTS = ['user.join', 'user.leave'];
 
+const add = (user: IUser) => (users: Users.IMap) => Users.add(user, users);
+const remove = (user: string) => (users: Users.IMap) => Users.remove(user, users);
+
 @Injectable()
 export class ConnectionService extends Events {
   private socket: Socket | null = null;
@@ -64,10 +67,10 @@ export class ConnectionService extends Events {
     super();
     this.on('user.join', user => {
       if (user.id !== this.userId) {
-        update(users => Users.add(user, users), this.users$);
+        update(add(user), this.users$);
       }
     }).on('user.leave', ({ user }) => {
-      update(users => Users.remove(user, users), this.users$);
+      update(remove(user), this.users$);
     });
     // this.socket
     //   .on('connect', () => this.connect$.next(true))
@@ -203,6 +206,7 @@ export class ConnectionService extends Events {
             channel.leave();
             this.channel$.next(null);
             unlinkEvents(links, channel);
+            this.links = null;
           }
           reject(new Error(msg));
         });
