@@ -3,7 +3,7 @@ import { Observable, merge, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
 import { CodeService } from './code.service';
-import { size } from '../collections/Users.bs';
+import { size } from '../collections/Users';
 
 declare const process: any;
 

@@ -5,7 +5,7 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import * as monaco from 'monaco-editor';
 import { IUser } from '../models';
 import { post } from './ajax';
-import { make as makeUsers, addMany, first } from '../collections/Users.bs';
+import * as Users from '../collections/Users'
 
 declare const process: any;
 
@@ -33,7 +33,7 @@ export class ConnectionService implements OnDestroy {
   private roomId = '';
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
-  readonly users$ = new BehaviorSubject(makeUsers());
+  readonly users$ = new BehaviorSubject(Users.make());
   readonly synchronized$ = new BehaviorSubject(false);
   readonly autoSave$ = new BehaviorSubject(false);
   username = '';
@@ -102,7 +102,7 @@ export class ConnectionService implements OnDestroy {
   }
 
   getFirstUser(): IUser | undefined {
-    return first(this.users$.getValue());
+    return Users.first(this.users$.getValue());
   }
 
   async create(username: string) {
@@ -135,15 +135,13 @@ export class ConnectionService implements OnDestroy {
       return;
     }
     const socket = this.getSocket(username);
-    const channel = socket.channel(`room:${roomId}`, {
-      username,
-    });
+    const channel = socket.channel(`room:${roomId}`);
     return new Promise((resolve, reject) => {
       channel
         .join()
         .receive('ok', ({ users }: { users: IUser[] }) => {
           this.roomId = roomId;
-          this.users$.next(addMany(users, makeUsers()));
+          this.users$.next(Users.addMany(users, Users.make()));
           this.updateUrl();
           this.channel$.next(channel);
           resolve();

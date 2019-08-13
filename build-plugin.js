@@ -26,6 +26,8 @@ exports.default = {
       };
     }
 
+    cfg.resolve.extensions.push('.bs.js');
+
     return cfg;
   },
 };
