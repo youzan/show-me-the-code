@@ -125,7 +125,11 @@ export class CodeService implements OnDestroy {
       })
       .onReceiveSync(code => {
         this.previousSyncVersionId = this.model.getVersionId();
+        const selections = editor.getSelections();
         this.model.setValue(code);
+        if (selections !== null) {
+          editor.setSelections(selections);
+        }
         this.connectionService.init$.next(true);
       })
       .onReceiveSyncRequest(() => {
