@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
-import { size, valuesArray } from '../collections/Users.bs';
+import { size, valuesArray } from '../collections/Users';
 
 @Component({
   selector: 'app-users',
