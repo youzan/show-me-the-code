@@ -32,9 +32,10 @@ export interface IReceiveUserSelection {
 export interface ISocketEvents {
   'user.join': IUser;
   'user.leave': { user: string };
+  'sync.reply': { content: string };
 }
 
-const EVENTS = ['user.join', 'user.leave'];
+const EVENTS = ['user.join', 'user.leave', 'sync.reply'];
 
 const add = (user: IUser) => (users: Users.IMap) => Users.add(user, users);
 const remove = (user: string) => (users: Users.IMap) => Users.remove(user, users);
@@ -69,61 +70,13 @@ export class ConnectionService extends Events {
       if (user.id !== this.userId) {
         update(add(user), this.users$);
       }
-    }).on('user.leave', ({ user }) => {
-      update(remove(user), this.users$);
-    });
-    // this.socket
-    //   .on('connect', () => this.connect$.next(true))
-    //   .on('disconnect', () => {
-    //     this.connect$.next(false);
-    //     this.init$.next(false);
-    //   })
-    //   .on('reconnect', () => {
-    //     const roomId = this.roomId$.getValue();
-    //     if (roomId) {
-    //       this.socket.emit('room.join', {
-    //         id: roomId,
-    //         username: this.username,
-    //       });
-    //     }
-    //   })
-    //   .on('room.created', ({ roomId, userId, users }: { roomId: string; users: IUser[]; userId: string }) => {
-    //     this.roomId$.next(roomId);
-    //     this.userId = userId;
-    //     this.updateUrl();
-    //     users.forEach(user => this.users.set(user.id, user));
-    //     this.autoSave$.next(true);
-    //     this.init$.next(true);
-    //   })
-    //   .on('room.joint', ({ roomId, users, userId }: { roomId: string; users: IUser[]; userId: string }) => {
-    //     this.roomId$.next(roomId);
-    //     this.userId = userId;
-    //     this.updateUrl();
-    //     this.users.clear();
-    //     users.forEach(user => this.users.set(user.id, user));
-    //     this.socket.emit('sync.full');
-    //     const first = this.firstUser;
-    //     if (first && first.id === this.userId) {
-    //       this.autoSave$.next(true);
-    //     }
-    //   })
-    //   .on('room.fail', (msg: string) => {
-    //     this.messageService.add({
-    //       severity: 'error',
-    //       summary: 'Join fail',
-    //       detail: `Join room fail, ${msg}`,
-    //     });
-    //   })
-    //   .on('user.join', (user: IUser) => {
-    //     this.users.set(user.id, user);
-    //   })
-    //   .on('user.leave', (userId: string) => {
-    //     this.users.delete(userId);
-    //     const first = this.firstUser;
-    //     if (first && first.id === this.userId) {
-    //       this.autoSave$.next(true);
-    //     }
-    //   })
+    })
+      .on('user.leave', ({ user }) => {
+        update(remove(user), this.users$);
+      })
+      .on('sync.reply', () => {
+        this.synchronized$.next(true);
+      });
     //   .on('code.save.success', () => {
     //     this.messageService.add({
     //       severity: 'success',

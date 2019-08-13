@@ -59,6 +59,11 @@ export class CodeService implements OnDestroy {
       }
       this.connectionService.userEdit(e.changes);
     });
+    this.connectionService.on('sync.reply', ({ content }) => {
+      if (content !== this.model.getValue()) {
+        this.model.setValue(content);
+      }
+    });
     this.connectionService
       .onReceiveEdit(({ userId, changes }) => {
         if (userId === this.connectionService.userId) {

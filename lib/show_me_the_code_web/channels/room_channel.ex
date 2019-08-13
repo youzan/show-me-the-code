@@ -28,6 +28,13 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
       clients = Bucket.get_clients(room_bucket)
       user_list = Enum.map(clients, fn {_, client} -> User.from_socket(client) end)
       send(self(), :after_join)
+
+      if length(user_list) == 1 do
+        send(self(), {:from_db, room.content})
+      else
+        send(self(), {:request_user, Enum.at(user_list, 0)})
+      end
+
       {:ok, %{users: user_list, userId: socket.assigns.id}, socket}
     catch
       :invalid_room_id -> {:error, %{:reason => "invalid room id"}}
@@ -38,7 +45,17 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
   def handle_info(:after_join, socket) do
     user = User.from_socket(socket)
-    broadcast!(socket, "user.join", user)
+    broadcast_from!(socket, "user.join", user)
+    {:noreply, socket}
+  end
+
+  def handle_info({:from_db, content}, socket) do
+    push(socket, "sync.reply", %{content: content})
+    {:noreply, socket}
+  end
+
+  def handle_info({:request_user, user_socket}, socket) do
+    push(user_socket, "sync.request", %{from: socket.assigns.id})
     {:noreply, socket}
   end
 end
