@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
 import { map, distinctUntilChanged } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
@@ -20,11 +20,17 @@ import { ConnectionService } from './connection.service';
           pButton
           type="button"
           label="Create"
-          [disabled]="!username || pending"
+          [disabled]="!username || (pending$ | async)"
           class="ui-button-secondary"
           (click)="create()"
         ></button>
-        <button pButton type="button" label="Join" [disabled]="!username || pending" (click)="join()"></button>
+        <button
+          pButton
+          type="button"
+          label="Join"
+          [disabled]="!username || (pending$ | async)"
+          (click)="join()"
+        ></button>
       </p-footer>
     </p-dialog>
   `,
@@ -40,15 +46,14 @@ import { ConnectionService } from './connection.service';
 })
 export class JoinDialogComponent {
   readonly roomIdReadOnly: boolean;
-  readonly visible$: Observable<boolean>;
+  @Input() visible$!: Observable<boolean>;
+  readonly pending$ = new BehaviorSubject(false);
   username = '';
   roomId: string;
-  pending = false;
 
   constructor(private readonly connectionService: ConnectionService) {
     const params = new URLSearchParams(location.search);
     const roomId = params.get('roomId');
-    this.visible$ = this.connectionService.channel$.pipe(map(channel => channel === null));
     if (roomId) {
       this.roomId = roomId;
       this.roomIdReadOnly = true;
@@ -60,14 +65,19 @@ export class JoinDialogComponent {
 
   async create() {
     try {
-      this.pending = true;
+      this.pending$.next(true);
       await this.connectionService.create(this.username);
     } finally {
-      this.pending = false;
+      this.pending$.next(false);
     }
   }
 
-  join() {
-    this.connectionService.join(this.roomId, this.username);
+  async join() {
+    try {
+      this.pending$.next(true);
+      await this.connectionService.join(this.roomId, this.username);
+    } finally {
+      this.pending$.next(false);
+    }
   }
 }

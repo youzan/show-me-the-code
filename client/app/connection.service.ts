@@ -29,9 +29,7 @@ export interface IReceiveUserSelection {
 
 @Injectable()
 export class ConnectionService implements OnDestroy {
-  private readonly socket = new Socket(url, {
-    heartbeatIntervalMs: 30000,
-  });
+  private socket: Socket | null = null;
   private roomId = '';
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
@@ -42,11 +40,6 @@ export class ConnectionService implements OnDestroy {
   userId = '';
 
   constructor(private readonly messageService: MessageService) {
-    this.socket.onOpen(() => this.connected$.next(true));
-    this.socket.onClose(() => {
-      this.connected$.next(false);
-      this.synchronized$.next(false);
-    });
     // this.socket
     //   .on('connect', () => this.connect$.next(true))
     //   .on('disconnect', () => {
@@ -115,7 +108,25 @@ export class ConnectionService implements OnDestroy {
   async create(username: string) {
     this.username = username;
     const roomId = await post<string>('api/create-one');
-    this.join(roomId, username);
+    await this.join(roomId, username);
+  }
+
+  getSocket(username: string): Socket {
+    if (this.socket === null) {
+      this.socket = new Socket(url, {
+        heartbeatIntervalMs: 30000,
+        params: {
+          username,
+        },
+      });
+      this.socket.onOpen(() => this.connected$.next(true));
+      this.socket.onClose(() => {
+        this.connected$.next(false);
+        this.synchronized$.next(false);
+      });
+      this.socket.connect();
+    }
+    return this.socket;
   }
 
   join(roomId: string, username: string) {
@@ -123,48 +134,48 @@ export class ConnectionService implements OnDestroy {
     if (this.channel$.getValue() !== null) {
       return;
     }
-    if (!this.socket.isConnected()) {
-      this.socket.connect({
-        username,
-      });
-    }
-    const channel = this.socket.channel(`room:${roomId}`, {
+    const socket = this.getSocket(username);
+    const channel = socket.channel(`room:${roomId}`, {
       username,
     });
-    channel
-      .join()
-      .receive('ok', ({ users }: { users: IUser[] }) => {
-        this.roomId = roomId;
-        this.users$.next(addMany(users, makeUsers()));
-        this.updateUrl();
-        this.channel$.next(channel);
-      })
-      .receive('error', ({ reason }) => {
-        let msg = 'Unknown error';
-        let leave = false;
-        switch (reason) {
-          case 'join crashed':
-            leave = true;
-            break;
-          case 'invalid room id':
-          case 'room not exist':
-          case 'room is full':
-            msg = `Join room fail, ${reason}`;
-            leave = true;
-            break;
-          default:
-            break;
-        }
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Join fail',
-          detail: msg,
+    return new Promise((resolve, reject) => {
+      channel
+        .join()
+        .receive('ok', ({ users }: { users: IUser[] }) => {
+          this.roomId = roomId;
+          this.users$.next(addMany(users, makeUsers()));
+          this.updateUrl();
+          this.channel$.next(channel);
+          resolve();
+        })
+        .receive('error', ({ reason }) => {
+          let msg = 'Unknown error';
+          let leave = false;
+          switch (reason) {
+            case 'join crashed':
+              leave = true;
+              break;
+            case 'invalid room id':
+            case 'room not exist':
+            case 'room is full':
+              msg = `Join room fail, ${reason}`;
+              leave = true;
+              break;
+            default:
+              break;
+          }
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Join fail',
+            detail: msg,
+          });
+          if (leave) {
+            channel.leave();
+            this.channel$.next(null);
+          }
+          reject();
         });
-        if (leave) {
-          channel.leave();
-          this.channel$.next(null);
-        }
-      });
+    });
   }
 
   private updateUrl() {
