@@ -1,11 +1,13 @@
 import { Socket, Channel } from 'phoenix';
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
 import * as monaco from 'monaco-editor';
+import Events from 'eventemitter3';
 import { IUser } from '../models';
 import { post } from './ajax';
-import * as Users from '../collections/Users'
+import * as Users from '../collections/Users';
+import { linkEvents, unlinkEvents, update } from './utils';
 
 declare const process: any;
 
@@ -27,10 +29,17 @@ export interface IReceiveUserSelection {
   userId: string;
 }
 
+export interface ISocketEvents {
+  'user.join': IUser;
+}
+
+const EVENTS = ['user.join'];
+
 @Injectable()
-export class ConnectionService implements OnDestroy {
+export class ConnectionService extends Events {
   private socket: Socket | null = null;
   private roomId = '';
+  private links: Record<string, number> | null = null;
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
   readonly users$ = new BehaviorSubject(Users.make());
@@ -39,7 +48,24 @@ export class ConnectionService implements OnDestroy {
   username = '';
   userId = '';
 
+  on!: <K extends keyof ISocketEvents>(
+    this: this,
+    event: K,
+    cb: (message: ISocketEvents[K], context?: any) => void,
+  ) => this;
+  off!: <K extends keyof ISocketEvents>(
+    this: this,
+    event: K,
+    cb: (message: ISocketEvents[K], context?: any) => void,
+  ) => this;
+
   constructor(private readonly messageService: MessageService) {
+    super();
+    this.on('user.join', user => {
+      if (user.id !== this.userId) {
+        update(users => Users.add(user, users), this.users$);
+      }
+    });
     // this.socket
     //   .on('connect', () => this.connect$.next(true))
     //   .on('disconnect', () => {
@@ -136,12 +162,15 @@ export class ConnectionService implements OnDestroy {
     }
     const socket = this.getSocket(username);
     const channel = socket.channel(`room:${roomId}`);
+    const links = linkEvents(EVENTS, channel, this);
+    this.links = links;
     return new Promise((resolve, reject) => {
       channel
         .join()
-        .receive('ok', ({ users }: { users: IUser[] }) => {
+        .receive('ok', ({ users, userId }: { users: IUser[]; userId: string }) => {
           this.roomId = roomId;
-          this.users$.next(Users.addMany(users, Users.make()));
+          this.userId = userId;
+          this.users$.next(Users.fromArray(users));
           this.updateUrl();
           this.channel$.next(channel);
           resolve();
@@ -170,6 +199,7 @@ export class ConnectionService implements OnDestroy {
           if (leave) {
             channel.leave();
             this.channel$.next(null);
+            unlinkEvents(links, channel);
           }
           reject(new Error(msg));
         });
@@ -228,9 +258,5 @@ export class ConnectionService implements OnDestroy {
     //   code,
     //   silent,
     // });
-  }
-
-  ngOnDestroy() {
-    // this.socket.close();
   }
 }

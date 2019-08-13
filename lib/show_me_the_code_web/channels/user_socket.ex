@@ -30,5 +30,5 @@ defmodule ShowMeTheCodeWeb.UserSocket do
   #     ShowMeTheCodeWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(socket), do: "user_socket:#{socket.assigns[:id]}"
+  def id(socket), do: "user_socket:#{socket.assigns.id}"
 end
