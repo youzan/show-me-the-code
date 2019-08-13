@@ -1,7 +1,7 @@
 defmodule ShowMeTheCodeWeb.RoomChannel do
   use Phoenix.Channel
 
-  alias ShowMeTheCode.Room.{Registry, Bucket}
+  alias ShowMeTheCode.Room.{Registry, Bucket, Watcher}
 
   def join("room:" <> room_id, _payload, socket) do
     try do
@@ -9,23 +9,26 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
            room_id,
            ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
          ) do
-        throw({:invalid_room_id})
+        throw(:invalid_room_id)
       end
 
       room = ShowMeTheCode.Repo.get(ShowMeTheCode.Room, room_id)
 
-      if room == nil, do: throw({:room_not_exist})
+      if room == nil, do: throw(:room_not_exist)
 
       room_bucket = Registry.get_or_create(Registry, room_id)
 
       user =
-        Bucket.join(
-          room_bucket,
-          socket.assigns.id,
-          socket.assigns.username
-        )
+        case Bucket.join(
+               room_bucket,
+               socket.assigns.id,
+               socket.assigns.username
+             ) do
+          {:ok, user} -> user
+          {:error, :room_full} -> throw(:room_full)
+        end
 
-      if user == nil, do: throw({:room_full})
+      Watcher.monitor(socket.channel_pid, room_bucket, user.id)
 
       socket = socket |> assign(:user, user) |> assign(:room, room_bucket)
 
@@ -33,9 +36,9 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
       {:ok, %{:users => user_list}, socket}
     catch
-      {:invalid_room_id} -> {:error, %{:reason => "invalid room id"}}
-      {:room_not_exist} -> {:error, %{:reason => "room not exist"}}
-      {:room_full} -> {:error, %{:reason => "room is full"}}
+      :invalid_room_id -> {:error, %{:reason => "invalid room id"}}
+      :room_not_exist -> {:error, %{:reason => "room not exist"}}
+      :room_full -> {:error, %{:reason => "room is full"}}
     end
   end
 end

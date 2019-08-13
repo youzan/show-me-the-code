@@ -15,6 +15,7 @@ defmodule ShowMeTheCode.Application do
       # Starts a worker by calling: ShowMeTheCode.Worker.start_link(arg)
       # {ShowMeTheCode.Worker, arg},
       {ShowMeTheCode.Room.Registry, name: ShowMeTheCode.Room.Registry},
+      {ShowMeTheCode.Room.Watcher, name: ShowMeTheCode.Room.Watcher},
       {DynamicSupervisor, name: ShowMeTheCode.Room.Supervisor, strategy: :one_for_one}
     ]
 

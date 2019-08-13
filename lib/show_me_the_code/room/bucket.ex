@@ -17,15 +17,20 @@ defmodule ShowMeTheCode.Room.Bucket do
         user = %User{name: user_name, id: user_id, slot: slot}
         users = Map.put(state.users, user_id, user)
 
-        {user, %State{users: users, slots: rest}}
+        {{:ok, user}, %State{users: users, slots: rest}}
       catch
-        {:room_full} -> {nil, state}
+        {:room_full} -> {{:error, :room_full}, state}
       end
     end)
   end
 
   def leave(room, user_id) do
-    Agent.update(room, &Map.delete(&1, user_id))
+    IO.inspect(user_id)
+
+    Agent.update(room, fn state ->
+      {%User{slot: slot}, users} = Map.pop(state.users, user_id)
+      %State{users: users, slots: [slot | state.slots]}
+    end)
   end
 
   def get_user_list(room) do
