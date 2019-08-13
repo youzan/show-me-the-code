@@ -173,7 +173,7 @@ export class ConnectionService implements OnDestroy {
             channel.leave();
             this.channel$.next(null);
           }
-          reject();
+          reject(new Error(msg));
         });
     });
   }
