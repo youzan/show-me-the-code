@@ -1,0 +1,11 @@
+####{BSB GENERATED: NO EDIT
+B lib/bs
+FLG -open ShowMeTheCode
+FLG -ppx '/Volumes/github/show-me-the-code/node_modules/bs-platform/lib/bsppx.exe -bs-jsx 3'
+S /Volumes/github/show-me-the-code/node_modules/bs-platform/lib/ocaml
+B /Volumes/github/show-me-the-code/node_modules/bs-platform/lib/ocaml
+FLG -nostdlib -color always
+FLG -w -30-40+6+7+27+32..39+44+45+101
+S client/collections
+B lib/bs/client/collections
+####BSB GENERATED: NO EDIT}

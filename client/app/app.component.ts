@@ -1,6 +1,7 @@
 import { Component, HostListener } from '@angular/core';
 import { ConnectionService } from './connection.service';
 import { CodeService } from './code.service';
+import { size } from '../collections/Users.bs';
 
 declare const process: any;
 
@@ -30,7 +31,7 @@ export class AppComponent {
     if (process.env.NODE_ENV === 'development') {
       return;
     }
-    if (this.connectionService.users.size === 1) {
+    if (size(this.connectionService.users$.getValue()) === 1) {
       this.codeService.save();
     }
     e.returnValue = 'Sure ?';

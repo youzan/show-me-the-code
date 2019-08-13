@@ -145,3 +145,6 @@ show_me_the_code-*.tar
 /priv/static/
 
 .elixir_ls
+
+*.bs.js
+lib/bs
