@@ -47,11 +47,11 @@ export class MonacoEditorDirective implements AfterViewInit, OnDestroy {
         });
       }),
       this.editorService.format$.subscribe(() => editor.getAction('editor.action.formatDocument').run()),
-      this.connectionService.synchronized$.subscribe(init =>
+      this.connectionService.synchronized$.subscribe(synchronized => {
         editor.updateOptions({
-          readOnly: !init,
-        }),
-      ),
+          readOnly: !synchronized,
+        });
+      }),
     );
     this.codeService.init(this.editor);
   }
