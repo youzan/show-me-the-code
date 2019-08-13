@@ -124,9 +124,14 @@ export class ConnectionService implements OnDestroy {
 
   join(roomId: string, username: string) {
     this.username = username;
-    this.socket.connect({
-      username,
-    });
+    if (this.channel$.getValue() !== null) {
+      return;
+    }
+    if (!this.socket.isConnected()) {
+      this.socket.connect({
+        username,
+      });
+    }
     const channel = this.socket.channel(`room:${roomId}`, {
       username,
     });
