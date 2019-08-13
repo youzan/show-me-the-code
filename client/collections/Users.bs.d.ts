@@ -12,7 +12,7 @@ export function addMany(users: IUser[], map: IMap): IMap;
 
 export function remove(userId: string, map: IMap): IMap;
 
-export function first(map: IMap): IUser;
+export function first(map: IMap): IUser | undefined;
 
 export function size(map: IMap): number;
 

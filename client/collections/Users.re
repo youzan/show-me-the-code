@@ -14,15 +14,17 @@ module UserComparator =
 
 let make = () => Belt.Map.make(~id=(module UserComparator));
 
+let toPair = user => (idGet(user), user);
+
 let add = (user, map) => Belt.Map.set(map, (idGet(user), user));
 
 let addMany = (users, map) =>
-  Belt.Map.mergeMany(map, Array.map(user => (idGet(user), user), users));
+  Belt.Map.mergeMany(map, Array.map(toPair, users));
 
 let remove = (userId, map) => Belt.Map.remove(map, userId);
 
 let first = map => Belt.Map.findFirstBy(map, (_, _) => true);
 
-let size = map => Belt.Map.size(map);
+let size = Belt.Map.size;
 
-let valuesArray = map => Belt.Map.valuesToArray(map);
+let valuesArray = Belt.Map.valuesToArray;
