@@ -5,26 +5,23 @@ type user = {
   slot: int,
 };
 
-module UserComparator =
-  Belt.Id.MakeComparable({
-    type t = user;
-    let cmp = (user1, user2) =>
-      Pervasives.compare(slotGet(user1), slotGet(user2));
-  });
-
-let make = () => Belt.Map.make(~id=(module UserComparator));
+let make = () => Belt.Map.String.fromArray([||]);
 
 let toPair = user => (idGet(user), user);
 
-let add = (user, map) => Belt.Map.set(map, (idGet(user), user));
+let fromArray = users => Belt.Map.String.fromArray(Array.map(toPair, users));
+
+let add = (user, map) => Belt.Map.String.set(map, idGet(user), user);
 
 let addMany = (users, map) =>
-  Belt.Map.mergeMany(map, Array.map(toPair, users));
+  Belt.Map.String.mergeMany(map, Array.map(toPair, users));
 
-let remove = (userId, map) => Belt.Map.remove(map, userId);
+let remove = (userId, map) => Belt.Map.String.remove(map, userId);
 
-let first = map => Belt.Map.findFirstBy(map, (_, _) => true);
+let first = map => Belt.Map.String.findFirstBy(map, (_, _) => true);
 
-let size = Belt.Map.size;
+let size = Belt.Map.String.size;
 
-let valuesArray = Belt.Map.valuesToArray;
+let valuesArray = Belt.Map.String.valuesToArray;
+
+let toArray = Belt.Map.String.toArray;

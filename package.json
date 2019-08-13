@@ -27,6 +27,7 @@
     "@types/prettier": "^1.18.0",
     "@types/socket.io-client": "^1.4.32",
     "bs-platform": "^5.0.6",
+    "eventemitter3": "^4.0.0",
     "mobx": "^5.13.0",
     "mobx-angular": "^3.0.1",
     "monaco-editor": "^0.17.1",

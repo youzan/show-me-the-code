@@ -34,11 +34,18 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
       user_list = Bucket.get_user_list(room_bucket)
 
-      {:ok, %{:users => user_list}, socket}
+      send(self(), :after_join)
+
+      {:ok, %{users: user_list, userId: socket.assigns.id}, socket}
     catch
       :invalid_room_id -> {:error, %{:reason => "invalid room id"}}
       :room_not_exist -> {:error, %{:reason => "room not exist"}}
       :room_full -> {:error, %{:reason => "room is full"}}
     end
+  end
+
+  def handle_info(:after_join, socket) do
+    broadcast!(socket, "user.join", socket.assigns.user)
+    {:noreply, socket}
   end
 end
