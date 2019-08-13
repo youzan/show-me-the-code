@@ -25,8 +25,6 @@ defmodule ShowMeTheCode.Room.Bucket do
   end
 
   def leave(room, user_id) do
-    IO.inspect(user_id)
-
     Agent.update(room, fn state ->
       {%User{slot: slot}, users} = Map.pop(state.users, user_id)
       %State{users: users, slots: [slot | state.slots]}
