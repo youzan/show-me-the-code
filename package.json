@@ -2,6 +2,8 @@
   "name": "show-me-the-code",
   "version": "0.0.0",
   "scripts": {
+    "re:build": "bsb -make-world -clean-world",
+    "re:watch": "bsb -make-world -clean-world -w",
     "ng": "ng",
     "start": "ng serve --plugin ~build-plugin.js",
     "build": "ng build --plugin ~build-plugin.js",
@@ -24,6 +26,7 @@
     "@types/phoenix": "^1.4.2",
     "@types/prettier": "^1.18.0",
     "@types/socket.io-client": "^1.4.32",
+    "bs-platform": "^5.0.6",
     "mobx": "^5.13.0",
     "mobx-angular": "^3.0.1",
     "monaco-editor": "^0.17.1",

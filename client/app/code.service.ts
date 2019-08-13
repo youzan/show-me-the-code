@@ -76,52 +76,52 @@ export class CodeService implements OnDestroy {
         editor.setSelections(selections || []);
       })
       .onReceiveUserCursor(({ userId, position }) => {
-        const user = this.connectionService.users.get(userId);
-        if (!user || user.id === this.connectionService.userId) {
-          return;
-        }
-        let decorations = this.getDecorations(userId);
-        let newCursor: string[];
-        if (position !== null) {
-          newCursor = this.model.deltaDecorations(decorations.cursor, [
-            {
-              options: {
-                className: `user-${user.slot}-cursor`,
-                hoverMessage: {
-                  value: `Cursor: ${user.name}`,
-                },
-              },
-              range: positionToRange(position),
-            },
-          ]);
-        } else {
-          newCursor = this.model.deltaDecorations(decorations.cursor, []);
-        }
-        decorations.cursor = newCursor;
+        // const user = this.connectionService.users.get(userId);
+        // if (!user || user.id === this.connectionService.userId) {
+        //   return;
+        // }
+        // let decorations = this.getDecorations(userId);
+        // let newCursor: string[];
+        // if (position !== null) {
+        //   newCursor = this.model.deltaDecorations(decorations.cursor, [
+        //     {
+        //       options: {
+        //         className: `user-${user.slot}-cursor`,
+        //         hoverMessage: {
+        //           value: `Cursor: ${user.name}`,
+        //         },
+        //       },
+        //       range: positionToRange(position),
+        //     },
+        //   ]);
+        // } else {
+        //   newCursor = this.model.deltaDecorations(decorations.cursor, []);
+        // }
+        // decorations.cursor = newCursor;
       })
       .onReceiveUserSelection(({ ranges, userId }) => {
         if (userId === this.connectionService.userId) {
           return;
         }
-        const user = this.connectionService.users.get(userId);
-        if (!user) {
-          return;
-        }
-        const decorations = this.getDecorations(userId);
-        const newDecorationsId = this.model.deltaDecorations(
-          decorations.selection,
-          ranges.map<monaco.editor.IModelDeltaDecoration>(it => ({
-            range: deserializeRange(it),
-            options: {
-              stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-              className: `user-${user.slot}-selection`,
-              hoverMessage: {
-                value: `Selection: ${user.name}`,
-              },
-            },
-          })),
-        );
-        decorations.selection = newDecorationsId;
+        // const user = this.connectionService.users.get(userId);
+        // if (!user) {
+        //   return;
+        // }
+        // const decorations = this.getDecorations(userId);
+        // const newDecorationsId = this.model.deltaDecorations(
+        //   decorations.selection,
+        //   ranges.map<monaco.editor.IModelDeltaDecoration>(it => ({
+        //     range: deserializeRange(it),
+        //     options: {
+        //       stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+        //       className: `user-${user.slot}-selection`,
+        //       hoverMessage: {
+        //         value: `Selection: ${user.name}`,
+        //       },
+        //     },
+        //   })),
+        // );
+        // decorations.selection = newDecorationsId;
       })
       .onReceiveSync(code => {
         this.previousSyncVersionId = this.model.getVersionId();

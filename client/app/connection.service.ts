@@ -3,18 +3,14 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
 import * as monaco from 'monaco-editor';
+import { IUser } from '../models';
 import { post } from './ajax';
+import { make, addMany } from '../collections/Users.bs';
 
 declare const process: any;
 
 const url =
   process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : `ws://${location.hostname}:4000/websocket`;
-
-export interface IUser {
-  name: string;
-  id: string;
-  slot: number;
-}
 
 export interface IReceiveEdit {
   userId: string;
@@ -39,8 +35,9 @@ export class ConnectionService implements OnDestroy {
   private roomId = '';
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
+  readonly users$ = new BehaviorSubject(make());
   username = '';
-  users = new Map<string, IUser>();
+  // users = new Map<string, IUser>();
   userId = '';
   readonly synchronized$ = new BehaviorSubject(false);
   readonly autoSave$ = new BehaviorSubject(false);
@@ -112,9 +109,9 @@ export class ConnectionService implements OnDestroy {
     //   });
   }
 
-  get firstUser(): IUser | undefined {
-    return this.users.values().next().value;
-  }
+  // get firstUser(): IUser | undefined {
+  //   return this.users.values().next().value;
+  // }
 
   async create(username: string) {
     this.username = username;
@@ -139,7 +136,7 @@ export class ConnectionService implements OnDestroy {
       .join()
       .receive('ok', ({ users }: { users: IUser[] }) => {
         this.roomId = roomId;
-        users.forEach(user => this.users.set(user.id, user));
+        this.users$.next(addMany(users, this.users$.getValue()));
         this.updateUrl();
         this.channel$.next(channel);
       })

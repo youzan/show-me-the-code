@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform} from '@angular/core';
 
-import { IUser } from './connection.service';
+import { IUser } from '../models';
 
 @Pipe({
   name: 'userClass'
