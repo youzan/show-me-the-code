@@ -39,12 +39,6 @@ export class UsersComponent {
   }
 
   get users$() {
-    return this.connectionService.users$.pipe(
-      map(map => {
-        const a = valuesArray(map);
-        console.log(a);
-        return a;
-      }),
-    );
+    return this.connectionService.users$.pipe(map(valuesArray));
   }
 }
