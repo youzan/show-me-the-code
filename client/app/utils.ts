@@ -6,7 +6,7 @@ export function update<T>(updater: (value: T) => T, value$: BehaviorSubject<T>) 
   value$.next(updater(value$.getValue()));
 }
 
-export function linkEvents(events: string[], channel: Channel, target: EventEmitter) {
+export function linkEvents(events: string[], channel: Channel, target: EventEmitter<string>) {
   const links: Record<string, number> = {};
   for (let i = 0; i < events.length; i += 1) {
     const event = events[i];

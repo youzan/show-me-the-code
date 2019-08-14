@@ -1,7 +1,9 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
-import { size, valuesArray } from '../collections/Users';
+import * as Users from '../collections/Users';
+import { IUser } from '../models';
 
 @Component({
   selector: 'app-users',
@@ -32,13 +34,11 @@ import { size, valuesArray } from '../collections/Users';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent {
-  constructor(private readonly connectionService: ConnectionService) {}
+  count$: Observable<number | string>;
+  users$: Observable<IUser[]>;
 
-  get count$() {
-    return this.connectionService.users$.pipe(map(map => size(map) || '_'));
-  }
-
-  get users$() {
-    return this.connectionService.users$.pipe(map(valuesArray));
+  constructor(readonly connectionService: ConnectionService) {
+    this.count$ = connectionService.users$.pipe(map(map => Users.size(map) || '_'));
+    this.users$ = connectionService.users$.pipe(map(Users.valuesArray));
   }
 }

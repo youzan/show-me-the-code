@@ -3,7 +3,6 @@ import { Observable, merge, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
 import { CodeService } from './code.service';
-import { size } from '../collections/Users';
 
 declare const process: any;
 
@@ -39,7 +38,7 @@ export class AppComponent {
     if (process.env.NODE_ENV === 'development') {
       return;
     }
-    if (size(this.connectionService.users$.getValue()) === 1) {
+    if (this.connectionService.getUserCount() === 1) {
       this.codeService.save();
     }
     e.returnValue = 'Sure ?';
