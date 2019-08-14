@@ -3,7 +3,12 @@ const WorkerPlugin = require('worker-plugin');
 
 exports.default = {
   config(cfg) {
-    cfg.plugins.push(new MonacoWebpackPlugin(), new WorkerPlugin());
+    cfg.plugins.push(
+      new MonacoWebpackPlugin(),
+      new WorkerPlugin({
+        globalObject: 'self',
+      }),
+    );
     for (const rule of cfg.module.rules) {
       if (rule.test.toString() === '/\\.css$/' && rule.exclude) {
         rule.exclude.push(/monaco-editor/);
