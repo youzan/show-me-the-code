@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
 import * as monaco from 'monaco-editor';
-import Events from 'eventemitter3';
+import EventEmitter from 'eventemitter3';
 import { IUser } from '../models';
 import { post } from './ajax';
 import * as Users from '../collections/Users';
@@ -41,7 +41,7 @@ const add = (user: IUser) => (users: Users.IMap) => Users.add(user, users);
 const remove = (user: string) => (users: Users.IMap) => Users.remove(user, users);
 
 @Injectable()
-export class ConnectionService extends Events {
+export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   private socket: Socket | null = null;
   private roomId = '';
   private links: Record<string, number> | null = null;
@@ -90,6 +90,10 @@ export class ConnectionService extends Events {
     return Users.first(this.users$.getValue());
   }
 
+  getUserCount() {
+    return Users.size(this.users$.getValue());
+  }
+
   async create(username: string) {
     this.username = username;
     const roomId = await post<string>('api/create-one');
@@ -121,7 +125,7 @@ export class ConnectionService extends Events {
     }
     const socket = this.getSocket(username);
     const channel = socket.channel(`room:${roomId}`);
-    const links = linkEvents(EVENTS, channel, this);
+    const links = linkEvents(EVENTS, channel, this as EventEmitter<string>);
     this.links = links;
     return new Promise((resolve, reject) => {
       channel
