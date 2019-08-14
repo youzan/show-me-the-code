@@ -149,3 +149,4 @@ show_me_the_code-*.tar
 *.bs.js
 lib/bs
 .bsb.lock
+*.iml
