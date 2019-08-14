@@ -1,4 +1,4 @@
-import { Socket, Channel } from 'phoenix';
+import { Socket, Channel, Presence } from 'phoenix';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
@@ -40,6 +40,10 @@ const EVENTS = ['user.join', 'user.leave', 'sync.reply'];
 const add = (user: IUser) => (users: Users.IMap) => Users.add(user, users);
 const remove = (user: string) => (users: Users.IMap) => Users.remove(user, users);
 
+function pickMeta(_: string, { metas }: { metas: IUser[] }) {
+  return metas[0];
+}
+
 @Injectable()
 export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   private socket: Socket | null = null;
@@ -47,7 +51,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   private links: Record<string, number> | null = null;
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
-  readonly users$ = new BehaviorSubject(Users.make());
+  readonly userList$ = new BehaviorSubject<IUser[]>([]);
   readonly synchronized$ = new BehaviorSubject(false);
   readonly autoSave$ = new BehaviorSubject(false);
   username = '';
@@ -66,17 +70,9 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
 
   constructor(private readonly messageService: MessageService) {
     super();
-    this.on('user.join', user => {
-      if (user.id !== this.userId) {
-        update(add(user), this.users$);
-      }
-    })
-      .on('user.leave', ({ user }) => {
-        update(remove(user), this.users$);
-      })
-      .on('sync.reply', () => {
-        this.synchronized$.next(true);
-      });
+    this.on('sync.reply', () => {
+      this.synchronized$.next(true);
+    });
     //   .on('code.save.success', () => {
     //     this.messageService.add({
     //       severity: 'success',
@@ -84,14 +80,6 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     //       detail: 'Save success',
     //     });
     //   });
-  }
-
-  getFirstUser(): IUser | undefined {
-    return Users.first(this.users$.getValue());
-  }
-
-  getUserCount() {
-    return Users.size(this.users$.getValue());
   }
 
   async create(username: string) {
@@ -127,13 +115,16 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     const channel = socket.channel(`room:${roomId}`);
     const links = linkEvents(EVENTS, channel, this as EventEmitter<string>);
     this.links = links;
+    const presence = new Presence(channel);
+    // presence.onJoin(joins => console.log(joins, presence.list()))
+    // presence.onLeave(leaves => console.log(leaves, presence.list()))
+    presence.onSync(() => this.userList$.next(presence.list<IUser>(pickMeta)));
     return new Promise((resolve, reject) => {
       channel
         .join()
-        .receive('ok', ({ users, userId }: { users: IUser[]; userId: string }) => {
+        .receive('ok', ({ userId }: { userId: string }) => {
           this.roomId = roomId;
           this.userId = userId;
-          this.users$.next(Users.fromArray(users));
           this.updateUrl();
           this.channel$.next(channel);
           resolve();

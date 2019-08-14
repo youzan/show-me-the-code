@@ -2,8 +2,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
-import * as Users from '../collections/Users';
-import { IUser } from '../models';
 
 @Component({
   selector: 'app-users',
@@ -18,7 +16,7 @@ import { IUser } from '../models';
       pButton
       icon="pi pi-users"
       (click)="op.toggle($event)"
-      [label]="count$ | async"
+      [label]="(users$ | async).length || '-'"
       class="ui-button-success user-count"
     ></button>
   `,
@@ -34,11 +32,9 @@ import { IUser } from '../models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent {
-  count$: Observable<number | string>;
-  users$: Observable<IUser[]>;
+  constructor(private readonly connectionService: ConnectionService) {}
 
-  constructor(readonly connectionService: ConnectionService) {
-    this.count$ = connectionService.users$.pipe(map(map => Users.size(map) || '_'));
-    this.users$ = connectionService.users$.pipe(map(Users.valuesArray));
+  get users$() {
+    return this.connectionService.userList$;
   }
 }
