@@ -15,20 +15,14 @@ defmodule ShowMeTheCode.Room.Watcher do
   @impl true
   def handle_cast({:monitor, socket}, state) do
     ref = Process.monitor(socket.channel_pid)
-    state = Map.put(state, ref, socket)
+    state = Map.put(state, ref, {socket.assigns.room, socket.assigns.slot})
     {:noreply, state}
   end
 
   @impl true
   def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
-    {socket, state} = Map.pop(state, ref)
-    user_id = socket.assigns.id
-    Bucket.leave(socket.assigns.room, user_id)
-
-    ShowMeTheCodeWeb.Endpoint.broadcast("room:#{socket.assigns.room_id}", "user.leave", %{
-      user: user_id
-    })
-
+    {{room, slot}, state} = Map.pop(state, ref)
+    Bucket.leave(room, slot)
     {:noreply, state}
   end
 

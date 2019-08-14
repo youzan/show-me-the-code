@@ -16,7 +16,8 @@ defmodule ShowMeTheCode.Application do
       # {ShowMeTheCode.Worker, arg},
       {ShowMeTheCode.Room.Registry, name: ShowMeTheCode.Room.Registry},
       {ShowMeTheCode.Room.Watcher, name: ShowMeTheCode.Room.Watcher},
-      {DynamicSupervisor, name: ShowMeTheCode.Room.Supervisor, strategy: :one_for_one}
+      {DynamicSupervisor, name: ShowMeTheCode.Room.Supervisor, strategy: :one_for_one},
+      ShowMeTheCode.Room.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
