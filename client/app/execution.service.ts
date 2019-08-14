@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { observable } from 'mobx';
 import { MessageService } from 'primeng/components/common/messageservice';
-import * as monaco from 'monaco-editor';
 import { EditorService } from './editor.service';
 
 type IStdout =

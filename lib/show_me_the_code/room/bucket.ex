@@ -3,7 +3,6 @@ defmodule ShowMeTheCode.Room.Bucket do
 
   alias Phoenix.Socket
   alias ShowMeTheCode.Room.State
-  alias ShowMeTheCode.User
 
   def start_link(_opts) do
     Agent.start_link(fn -> %State{} end)
