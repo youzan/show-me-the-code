@@ -19,6 +19,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
       room_bucket = Registry.get_or_create(Registry, room_id)
       slot = Bucket.join(room_bucket)
       if slot == nil, do: throw(:room_full)
+      Watcher.monitor(socket)
 
       socket =
         socket |> assign(:room_id, room_id) |> assign(:room, room_bucket) |> assign(:slot, slot)
@@ -34,7 +35,6 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
   end
 
   def handle_info({:after_join, user, room}, socket) do
-    Watcher.monitor(socket)
     user_list = Presence.list(socket)
     push(socket, "presence_state", user_list)
 

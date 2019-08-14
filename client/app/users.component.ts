@@ -16,7 +16,7 @@ import { ConnectionService } from './connection.service';
       pButton
       icon="pi pi-users"
       (click)="op.toggle($event)"
-      [label]="(users$ | async).length || '-'"
+      [label]="(users$ | async).length || '_'"
       class="ui-button-success user-count"
     ></button>
   `,
