@@ -150,3 +150,5 @@ show_me_the_code-*.tar
 lib/bs
 .bsb.lock
 *.iml
+*.proto.js
+client/serializers/index.d.ts

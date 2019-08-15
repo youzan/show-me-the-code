@@ -4,6 +4,7 @@
   "scripts": {
     "re:build": "bsb -make-world -clean-world",
     "re:watch": "bsb -make-world -clean-world -w",
+    "proto:gen": "pbjs -t static-module -w es6 -o client/serializers/index.proto.js client/serializers/*.proto && pbts -o client/serializers/index.d.ts client/serializers/index.proto.js",
     "ng": "ng",
     "start": "ng serve --plugin ~build-plugin.js",
     "build": "ng build --plugin ~build-plugin.js",
@@ -37,6 +38,7 @@
     "prettier": "^1.18.2",
     "primeicons": "^1.0.0",
     "primeng": "^8.0.1",
+    "protobufjs": "~6.8.8",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~6.4.0",
     "socket.io-client": "~2.2.0",
