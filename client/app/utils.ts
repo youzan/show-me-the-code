@@ -10,8 +10,7 @@ export function linkEvents(events: string[], channel: Channel, target: EventEmit
   const links: Record<string, number> = {};
   for (let i = 0; i < events.length; i += 1) {
     const event = events[i];
-    const ref = channel.on(event, msg => target.emit(event, msg));
-    links[event] = ref;
+    links[event]  = channel.on(event, msg => target.emit(event, msg));
   }
   return links;
 }
@@ -29,4 +28,42 @@ export function unlinkEvents(links: Record<string, number>, channel: Channel) {
     const ref = links[event];
     channel.off(event, ref);
   }
+}
+
+function blob2base64(blob: Blob): Promise<string> {
+  return new Promise<string>(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as string);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+const PREFIX = 'data:application/octet-stream;base64,';
+
+/**
+ * encode array buffer to base64
+ */
+export async function encodeArrayBuffer(buffer: Uint8Array) {
+  const blob = new Blob([buffer]);
+  const base64 = await blob2base64(blob);
+  return base64.substring(PREFIX.length);
+}
+
+declare global {
+  interface Blob {
+    arrayBuffer(): Promise<ArrayBuffer>;
+  }
+}
+
+/**
+ * decode base64 to array buffer
+ */
+export async function decodeArrayBuffer(base64: string) {
+  const dataUrl = PREFIX + base64;
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const arrayBuffer = await blob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
 }
