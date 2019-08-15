@@ -2,7 +2,6 @@ import { Socket, Channel, Presence } from 'phoenix';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/components/common/messageservice';
-import * as monaco from 'monaco-editor';
 import EventEmitter from 'eventemitter3';
 import { IUser } from '../models';
 import { post } from './ajax';
@@ -14,21 +13,6 @@ declare const process: any;
 const url =
   process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : `ws://${location.hostname}:4000/websocket`;
 
-export interface IReceiveEdit {
-  userId: string;
-  changes: monaco.editor.IModelContentChange[];
-}
-
-export interface IReceiveUserCursor {
-  position: monaco.IPosition | null;
-  userId: string;
-}
-
-export interface IReceiveUserSelection {
-  ranges: monaco.IRange[];
-  userId: string;
-}
-
 export interface ISocketEvents {
   'user.join': IUser;
   'user.leave': { user: string };
@@ -36,9 +20,10 @@ export interface ISocketEvents {
   'sync.full.request': { from: string };
   'sync.full.reply': { to: string; content: string; language: string; expires: Date | null };
   'user.edit': { from: string; event: string };
+  'user.selection': { from: string; event: string };
 }
 
-const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request', 'user.edit'];
+const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request', 'user.edit', 'user.selection'];
 
 function pickMeta(_: string, { metas }: { metas: IUser[] }) {
   return metas[0];
@@ -54,6 +39,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   readonly userList$ = new BehaviorSubject<IUser[]>([]);
   readonly synchronized$ = new BehaviorSubject(false);
   readonly autoSave$ = new BehaviorSubject(false);
+  readonly userMap = new Map<string, IUser>();
   username = '';
   userId = '';
 
@@ -120,7 +106,15 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     const links = linkEvents(EVENTS, channel, this as EventEmitter<string>);
     this.links = links;
     const presence = new Presence(channel);
-    presence.onSync(() => this.userList$.next(presence.list<IUser>(pickMeta)));
+    presence.onSync(() => {
+      const userList = presence.list<IUser>(pickMeta);
+      this.userList$.next(userList);
+      this.userMap.clear();
+      for (let i = 0; i < userList.length; i += 1) {
+        const user = userList[i];
+        this.userMap.set(user.id, user);
+      }
+    });
     return new Promise<void>((resolve, reject) => {
       channel
         .join()
