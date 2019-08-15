@@ -19,7 +19,9 @@ monaco.editor.setTheme('vs-dark');
 export class EditorService implements OnDestroy {
   readonly language$ = new BehaviorSubject('javascript');
   readonly fontSize$ = new BehaviorSubject(14);
+  readonly expired$ = new BehaviorSubject(false);
   readonly format$ = new Subject();
+  expires: Date | null = null;
 
   readonly model = monaco.editor.createModel('', this.language$.getValue());
   private $$: Subscription[] = [];

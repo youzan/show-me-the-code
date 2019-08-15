@@ -6,8 +6,8 @@ import * as monaco from 'monaco-editor';
 import EventEmitter from 'eventemitter3';
 import { IUser } from '../models';
 import { post } from './ajax';
-import * as Users from '../collections/Users';
-import { linkEvents, unlinkEvents, update } from './utils';
+// import * as Users from '../collections/Users';
+import { linkEvents, unlinkEvents } from './utils';
 
 declare const process: any;
 
@@ -32,13 +32,12 @@ export interface IReceiveUserSelection {
 export interface ISocketEvents {
   'user.join': IUser;
   'user.leave': { user: string };
-  'sync.reply': { content: string };
+  'sync.full': { content: string; language: string; expires: string | null };
+  'sync.full.request': { from: string };
+  'sync.full.reply': { to: string; content: string; language: string; expires: Date | null };
 }
 
-const EVENTS = ['user.join', 'user.leave', 'sync.reply'];
-
-const add = (user: IUser) => (users: Users.IMap) => Users.add(user, users);
-const remove = (user: string) => (users: Users.IMap) => Users.remove(user, users);
+const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request'];
 
 function pickMeta(_: string, { metas }: { metas: IUser[] }) {
   return metas[0];
@@ -70,7 +69,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
 
   constructor(private readonly messageService: MessageService) {
     super();
-    this.on('sync.reply', () => {
+    this.on('sync.full', () => {
       this.synchronized$.next(true);
     });
     //   .on('code.save.success', () => {
@@ -86,6 +85,13 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     this.username = username;
     const roomId = await post<string>('api/create-one');
     await this.join(roomId, username);
+  }
+
+  push<K extends keyof ISocketEvents>(event: K, payload: ISocketEvents[K]) {
+    const channel = this.channel$.getValue();
+    if (channel) {
+      channel.push(event, payload);
+    }
   }
 
   getSocket(username: string): Socket {
@@ -116,8 +122,6 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     const links = linkEvents(EVENTS, channel, this as EventEmitter<string>);
     this.links = links;
     const presence = new Presence(channel);
-    // presence.onJoin(joins => console.log(joins, presence.list()))
-    // presence.onLeave(leaves => console.log(leaves, presence.list()))
     presence.onSync(() => this.userList$.next(presence.list<IUser>(pickMeta)));
     return new Promise((resolve, reject) => {
       channel
@@ -129,36 +133,12 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
           this.channel$.next(channel);
           resolve();
         })
-        .receive('error', ({ reason }) => {
-          let msg = 'Unknown error';
-          let leave = false;
-          switch (reason) {
-            case 'join crashed':
-              leave = true;
-              break;
-            case 'invalid room id':
-            case 'room not exist':
-            case 'room is full':
-              msg = `Join room fail, ${reason}`;
-              leave = true;
-              break;
-            default:
-              break;
-          }
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Join fail',
-            detail: msg,
-          });
-          if (leave) {
-            channel.leave();
-            this.channel$.next(null);
-            unlinkEvents(links, channel);
-            this.links = null;
-          }
-          reject(new Error(msg));
-        });
+        .receive('error', msg => this.handleJoinError(msg, links, channel, reject));
     });
+  }
+
+  getUserCount() {
+    return this.userList$.getValue().length;
   }
 
   private updateUrl() {
@@ -167,51 +147,38 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     history.replaceState(history.state, '', url.href);
   }
 
-  userEdit(changes: monaco.editor.IModelContentChange[]) {
-    // this.socket.emit('user.edit', changes);
-  }
-
-  onReceiveEdit(cb: (e: IReceiveEdit) => void) {
-    // this.socket.on('user.edit', cb);
-    return this;
-  }
-
-  cursorChange(pos: monaco.IPosition | null) {
-    // this.socket.emit('user.cursor', pos);
-  }
-
-  onReceiveUserCursor(cb: (e: IReceiveUserCursor) => void) {
-    // this.socket.on('user.cursor', cb);
-    return this;
-  }
-
-  selectionChange(selections: monaco.IRange[]) {
-    // this.socket.emit('user.selection', selections);
-  }
-
-  onReceiveUserSelection(cb: (e: IReceiveUserSelection) => void) {
-    // this.socket.on('user.selection', cb);
-    return this;
-  }
-
-  onReceiveSync(cb: (value: string) => void) {
-    // this.socket.on('sync.full', cb);
-    return this;
-  }
-
-  responseSync(code: string) {
-    // this.socket.emit('sync.full.response', code);
-  }
-
-  onReceiveSyncRequest(cb: () => void) {
-    // this.socket.on('sync.full.request', cb);
-    return this;
-  }
-
-  save(code: string, silent = false) {
-    // this.socket.emit('code.save-v2', {
-    //   code,
-    //   silent,
-    // });
+  private handleJoinError(
+    { reason }: { reason: string },
+    links: Record<string, number>,
+    channel: Channel,
+    reject: (e: Error) => void,
+  ) {
+    let msg = 'Unknown error';
+    let leave = false;
+    switch (reason) {
+      case 'join crashed':
+        leave = true;
+        break;
+      case 'invalid room id':
+      case 'room not exist':
+      case 'room is full':
+        msg = `Join room fail, ${reason}`;
+        leave = true;
+        break;
+      default:
+        break;
+    }
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Join fail',
+      detail: msg,
+    });
+    if (leave) {
+      channel.leave();
+      this.channel$.next(null);
+      unlinkEvents(links, channel);
+      this.links = null;
+    }
+    reject(new Error(msg));
   }
 }

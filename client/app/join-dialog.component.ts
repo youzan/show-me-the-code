@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { ConnectionService } from './connection.service';
 
 @Component({

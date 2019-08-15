@@ -1,5 +1,5 @@
 import { Component, HostListener } from '@angular/core';
-import { Observable, merge, combineLatest } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
 import { CodeService } from './code.service';
@@ -26,10 +26,8 @@ export class AppComponent {
 
   constructor(private readonly connectionService: ConnectionService, private readonly codeService: CodeService) {
     this.joinVisible$ = connectionService.channel$.pipe(map(channel => channel === null));
-    this.blockUI$ = combineLatest(
-      connectionService.channel$,
-      connectionService.connected$,
-      (channel, connected) => channel !== null && !connected,
+    this.blockUI$ = combineLatest(connectionService.channel$, connectionService.connected$).pipe(
+      map(([channel, connected]) => channel !== null && !connected),
     );
   }
 

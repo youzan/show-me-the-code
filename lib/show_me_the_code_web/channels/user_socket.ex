@@ -3,6 +3,7 @@ defmodule ShowMeTheCodeWeb.UserSocket do
 
   ## Channels
   channel "room:*", ShowMeTheCodeWeb.RoomChannel
+  channel "user_private:*", ShowMeTheCodeWeb.UserChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
