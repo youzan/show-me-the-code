@@ -7,7 +7,7 @@ defmodule ShowMeTheCodeWeb.RoomController do
     case pick_expires(params) do
       {:ok, expires} ->
         Repo.insert!(%Room{expires: expires})
-        |> (&json(conn, %{response: &1})).()
+        |> (&json(conn, %{response: &1.id})).()
 
       {:error, _} ->
         send_resp(conn, 400, "invalid expires")
