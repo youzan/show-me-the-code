@@ -31,7 +31,7 @@ exports.default = {
       };
     }
 
-    cfg.resolve.extensions.push('.bs.js');
+    cfg.resolve.extensions.push('.bs.js', '.proto.js');
 
     return cfg;
   },

@@ -62,21 +62,13 @@ export class JoinDialogComponent {
     }
   }
 
-  async create() {
-    try {
-      this.pending$.next(true);
-      await this.connectionService.create(this.username);
-    } finally {
-      this.pending$.next(false);
-    }
+  create() {
+    this.pending$.next(true);
+    this.connectionService.create(this.username).finally(() => this.pending$.next(false));
   }
 
-  async join() {
-    try {
-      this.pending$.next(true);
-      await this.connectionService.join(this.roomId, this.username);
-    } finally {
-      this.pending$.next(false);
-    }
+  join() {
+    this.pending$.next(true);
+    this.connectionService.join(this.roomId, this.username).finally(() => this.pending$.next(false));
   }
 }
