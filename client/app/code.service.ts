@@ -1,9 +1,9 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as monaco from 'monaco-editor';
 // import { interval, never } from 'rxjs';
 // import { switchMap } from 'rxjs/operators';
 import { EditorService } from './editor.service';
-import { ConnectionService } from './connection.service';
+import { ConnectionService, ISocketEvents } from './connection.service';
 import { Proto } from '../serializers';
 import { decodeArrayBuffer, encodeArrayBuffer } from './utils';
 
@@ -33,9 +33,7 @@ function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumb
 // }
 
 @Injectable()
-export class CodeService implements OnDestroy {
-  $$: monaco.IDisposable[] = [];
-
+export class CodeService {
   // private readonly userDecorations = new Map<string, IUserDecorations>();
   private previousSyncVersionId = 0;
 
@@ -55,58 +53,11 @@ export class CodeService implements OnDestroy {
   // }
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
-    this.editorService.model.onDidChangeContent(async e => {
-      if (e.versionId === this.previousSyncVersionId + 1) {
-        return;
-      }
-      const buffer = Proto.Editor.IModelContentChangedEvent.encode(e).finish();
-      const base64 = await encodeArrayBuffer(buffer);
-      this.connectionService.push('user.edit', {
-        from: this.connectionService.userId,
-        event: base64,
-      });
-    });
+    this.editorService.model.onDidChangeContent(e => this.onDidContentChange(e));
     this.connectionService
-      .on('sync.full', ({ content, language, expires }) => {
-        this.setModelValue(content, editor);
-        this.editorService.language$.next(language);
-        if (!expires) {
-          return;
-        }
-        this.editorService.expires = new Date(expires);
-        const expireTime = this.editorService.expires.getTime();
-        const now = Date.now();
-        if (expireTime <= now) {
-          this.editorService.expired$.next(true);
-        } else {
-          setTimeout(() => this.editorService.expired$.next(true), expireTime - now);
-        }
-      })
-      .on('sync.full.request', ({ from }) => {
-        const language = this.editorService.language$.getValue();
-        const expires = this.editorService.expires;
-        const content = this.model.getValue();
-        this.connectionService.push('sync.full.reply', {
-          language,
-          expires,
-          content,
-          to: from,
-        });
-      })
-      .on('user.edit', async ({ event }) => {
-        const buffer = await decodeArrayBuffer(event);
-        const { changes } = Proto.Editor.IModelContentChangedEvent.decode(
-          buffer,
-        ) as monaco.editor.IModelContentChangedEvent;
-        const edits = changes.map(change => ({
-          ...change,
-          range: deserializeRange(change.range),
-        }));
-        const selections = editor.getSelections();
-        this.previousSyncVersionId = this.model.getVersionId();
-        this.model.pushEditOperations(selections || [], edits, () => null);
-        selections && editor.setSelections(selections);
-      });
+      .on('sync.full', msg => this.onReceiveFullSync(msg, editor))
+      .on('sync.full.request', msg => this.onReceiveFullSyncRequest(msg))
+      .on('user.edit', msg => this.onReceiveUserEdit(msg, editor));
     // .onReceiveUserCursor(({ userId, position }) => {
     // const user = this.connectionService.users.get(userId);
     // if (!user || user.id === this.connectionService.userId) {
@@ -156,16 +107,16 @@ export class CodeService implements OnDestroy {
     // decorations.selection = newDecorationsId;
     // })
 
-    this.$$
-      .push
-      // editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
-      // editor.onDidBlurEditorText(() => this.connectionService.cursorChange(null)),
-      // editor.onDidFocusEditorText(() => this.connectionService.cursorChange(editor.getPosition())),
-      // editor.onDidChangeCursorSelection(e =>
-      //   this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
-      // ),
-      // this.registerAutoSave(),
-      ();
+    // this.$$
+    //   .push
+    // editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
+    // editor.onDidBlurEditorText(() => this.connectionService.cursorChange(null)),
+    // editor.onDidFocusEditorText(() => this.connectionService.cursorChange(editor.getPosition())),
+    // editor.onDidChangeCursorSelection(e =>
+    //   this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
+    // ),
+    // this.registerAutoSave(),
+    // ();
   }
 
   // registerAutoSave(): monaco.IDisposable {
@@ -196,7 +147,61 @@ export class CodeService implements OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.$$.forEach(it => it.dispose());
+  async onDidContentChange(e: monaco.editor.IModelContentChangedEvent) {
+    if (e.versionId === this.previousSyncVersionId + 1) {
+      return;
+    }
+    const buffer = Proto.Editor.IModelContentChangedEvent.encode(e).finish();
+    const base64 = await encodeArrayBuffer(buffer);
+    this.connectionService.push('user.edit', {
+      from: this.connectionService.userId,
+      event: base64,
+    });
+  }
+
+  onReceiveFullSync(
+    { content, language, expires }: ISocketEvents['sync.full'],
+    editor: monaco.editor.IStandaloneCodeEditor,
+  ) {
+    this.setModelValue(content, editor);
+    this.editorService.language$.next(language);
+    if (!expires) {
+      return;
+    }
+    this.editorService.expires = new Date(expires);
+    const expireTime = this.editorService.expires.getTime();
+    const now = Date.now();
+    if (expireTime <= now) {
+      this.editorService.expired$.next(true);
+    } else {
+      setTimeout(() => this.editorService.expired$.next(true), expireTime - now);
+    }
+  }
+
+  onReceiveFullSyncRequest({ from }: ISocketEvents['sync.full.request']) {
+    const language = this.editorService.language$.getValue();
+    const expires = this.editorService.expires;
+    const content = this.model.getValue();
+    this.connectionService.push('sync.full.reply', {
+      language,
+      expires,
+      content,
+      to: from,
+    });
+  }
+
+  async onReceiveUserEdit({ event }: ISocketEvents['user.edit'], editor: monaco.editor.IStandaloneCodeEditor) {
+    const buffer = await decodeArrayBuffer(event);
+    const { changes } = Proto.Editor.IModelContentChangedEvent.decode(
+      buffer,
+    ) as monaco.editor.IModelContentChangedEvent;
+    const edits = changes.map(change => ({
+      ...change,
+      range: deserializeRange(change.range),
+    }));
+    const selections = editor.getSelections();
+    this.previousSyncVersionId = this.model.getVersionId();
+    this.model.pushEditOperations(selections || [], edits, () => null);
+    selections && editor.setSelections(selections);
   }
 }

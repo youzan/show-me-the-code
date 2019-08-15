@@ -70,9 +70,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
 
   constructor(private readonly messageService: MessageService) {
     super();
-    this.on('sync.full', () => {
-      this.synchronized$.next(true);
-    });
+    this.on('sync.full', () => this.synchronized$.next(true));
     //   .on('code.save.success', () => {
     //     this.messageService.add({
     //       severity: 'success',
