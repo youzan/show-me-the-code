@@ -1,0 +1,32 @@
+syntax = "proto3";
+package Proto.Editor;
+
+message IRange {
+    uint32 endColumn = 1;
+    uint32 endLineNumber = 2;
+    uint32 startColumn = 3;
+    uint32 startLineNumber = 4;
+}
+
+message IModelContentChange {
+    IRange range = 1;
+    uint32 rangeLength = 2;
+    uint32 rangeOffset = 3;
+    string text = 4;
+}
+
+message IModelContentChangedEvent {
+    repeated IModelContentChange changes = 1;
+    string eol = 2;
+    bool isFlush = 3;
+    bool isRedoing = 4;
+    bool isUndoing = 5;
+    uint32 versionId = 6;
+}
+
+message ISelection {
+    uint32 selectionStartLineNumber = 1;
+    uint32 selectionStartColumn = 2;
+    uint32 positionLineNumber = 3;
+    uint32 positionColumn = 4;
+}
