@@ -46,6 +46,11 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("user.edit", payload, socket) do
+    broadcast_from(socket, "user.edit", Map.put(payload, "from", socket.assigns.id))
+    {:noreply, socket}
+  end
+
   def handle_info({:after_join, user, room}, socket) do
     user_list = Presence.list(socket)
     push(socket, "presence_state", user_list)

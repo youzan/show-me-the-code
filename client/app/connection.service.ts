@@ -35,9 +35,10 @@ export interface ISocketEvents {
   'sync.full': { content: string; language: string; expires: string | null };
   'sync.full.request': { from: string };
   'sync.full.reply': { to: string; content: string; language: string; expires: Date | null };
+  'user.edit': { from: string; event: string };
 }
 
-const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request'];
+const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request', 'user.edit'];
 
 function pickMeta(_: string, { metas }: { metas: IUser[] }) {
   return metas[0];
@@ -81,10 +82,9 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     //   });
   }
 
-  async create(username: string) {
+  create(username: string): Promise<void> {
     this.username = username;
-    const roomId = await post<string>('api/create-one');
-    await this.join(roomId, username);
+    return post<string>('/api/create-one').then(roomId => this.join(roomId, username));
   }
 
   push<K extends keyof ISocketEvents>(event: K, payload: ISocketEvents[K]) {
@@ -112,10 +112,10 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     return this.socket;
   }
 
-  join(roomId: string, username: string) {
+  join(roomId: string, username: string): Promise<void> {
     this.username = username;
     if (this.channel$.getValue() !== null) {
-      return;
+      return Promise.resolve();
     }
     const socket = this.getSocket(username);
     const channel = socket.channel(`room:${roomId}`);
@@ -123,7 +123,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     this.links = links;
     const presence = new Presence(channel);
     presence.onSync(() => this.userList$.next(presence.list<IUser>(pickMeta)));
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       channel
         .join()
         .receive('ok', ({ userId }: { userId: string }) => {

@@ -4,10 +4,12 @@ import * as monaco from 'monaco-editor';
 // import { switchMap } from 'rxjs/operators';
 import { EditorService } from './editor.service';
 import { ConnectionService } from './connection.service';
+import { Proto } from '../serializers';
+import { decodeArrayBuffer, encodeArrayBuffer } from './utils';
 
-// function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumber }: monaco.IRange): monaco.Range {
-//   return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
-// }
+function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumber }: monaco.IRange): monaco.Range {
+  return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
+}
 //
 // function positionToRange({ lineNumber, column }: monaco.IPosition): monaco.IRange {
 //   return {
@@ -53,11 +55,16 @@ export class CodeService implements OnDestroy {
   // }
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
-    this.editorService.model.onDidChangeContent(e => {
+    this.editorService.model.onDidChangeContent(async e => {
       if (e.versionId === this.previousSyncVersionId + 1) {
         return;
       }
-      // this.connectionService.userEdit(e.changes);
+      const buffer = Proto.Editor.IModelContentChangedEvent.encode(e).finish();
+      const base64 = await encodeArrayBuffer(buffer);
+      this.connectionService.push('user.edit', {
+        from: this.connectionService.userId,
+        event: base64,
+      });
     });
     this.connectionService
       .on('sync.full', ({ content, language, expires }) => {
@@ -85,22 +92,21 @@ export class CodeService implements OnDestroy {
           content,
           to: from,
         });
+      })
+      .on('user.edit', async ({ event }) => {
+        const buffer = await decodeArrayBuffer(event);
+        const { changes } = Proto.Editor.IModelContentChangedEvent.decode(
+          buffer,
+        ) as monaco.editor.IModelContentChangedEvent;
+        const edits = changes.map(change => ({
+          ...change,
+          range: deserializeRange(change.range),
+        }));
+        const selections = editor.getSelections();
+        this.previousSyncVersionId = this.model.getVersionId();
+        this.model.pushEditOperations(selections || [], edits, () => null);
+        selections && editor.setSelections(selections);
       });
-    // this.connectionService
-    //   .onReceiveEdit(({ userId, changes }) => {
-    //     if (userId === this.connectionService.userId) {
-    //       return;
-    //     }
-    //     const edits = changes.map(change => ({
-    //       ...change,
-    //       range: deserializeRange(change.range),
-    //       remote: true,
-    //     }));
-    //     const selections = editor.getSelections();
-    //     this.previousSyncVersionId = this.model.getVersionId();
-    //     this.model.pushEditOperations(selections || [], edits, () => selections);
-    //     editor.setSelections(selections || []);
-    //   })
     // .onReceiveUserCursor(({ userId, position }) => {
     // const user = this.connectionService.users.get(userId);
     // if (!user || user.id === this.connectionService.userId) {
@@ -150,7 +156,8 @@ export class CodeService implements OnDestroy {
     // decorations.selection = newDecorationsId;
     // })
 
-    this.$$.push(
+    this.$$
+      .push
       // editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
       // editor.onDidBlurEditorText(() => this.connectionService.cursorChange(null)),
       // editor.onDidFocusEditorText(() => this.connectionService.cursorChange(editor.getPosition())),
@@ -158,7 +165,7 @@ export class CodeService implements OnDestroy {
       //   this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
       // ),
       // this.registerAutoSave(),
-    );
+      ();
   }
 
   // registerAutoSave(): monaco.IDisposable {
