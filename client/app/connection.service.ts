@@ -21,9 +21,18 @@ export interface ISocketEvents {
   'sync.full.reply': { to: string; content: string; language: string; expires: Date | null };
   'user.edit': { from: string; event: string };
   'user.selection': { from: string; event: string };
+  'user.cursor': { from: string; event: string };
 }
 
-const EVENTS = ['user.join', 'user.leave', 'sync.full', 'sync.full.request', 'user.edit', 'user.selection'];
+const EVENTS = [
+  'user.join',
+  'user.leave',
+  'sync.full',
+  'sync.full.request',
+  'user.edit',
+  'user.selection',
+  'user.cursor',
+];
 
 function pickMeta(_: string, { metas }: { metas: IUser[] }) {
   return metas[0];
