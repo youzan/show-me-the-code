@@ -9,8 +9,10 @@ import { linkEvents, unlinkEvents } from './utils';
 
 declare const process: any;
 
+const DOMAIN = process.env.NODE_ENV === 'production' ? '//socket.icode.live' : '';
+
 const url =
-  process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : `ws://${location.hostname}:4000/websocket`;
+  process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live/socket' : `ws://${location.hostname}:4000/socket`;
 
 export interface ISocketEvents {
   'sync.full': { content: string; language: string; expires: string | null };
@@ -59,7 +61,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
 
   create(username: string): Promise<void> {
     this.username = username;
-    return post<string>('/api/create-one').then(roomId => this.join(roomId, username));
+    return post<string>(`${DOMAIN}/api/create-one`).then(roomId => this.join(roomId, username));
   }
 
   push<K extends keyof ISocketEvents>(event: K, payload: ISocketEvents[K]) {
