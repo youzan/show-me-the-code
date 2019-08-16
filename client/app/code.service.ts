@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import * as monaco from 'monaco-editor';
+import { Subject } from 'rxjs';
 import { EditorService } from './editor.service';
 import { ConnectionService, ISocketEvents } from './connection.service';
 import { Proto } from '../serializers';
 import { decodeArrayBuffer, encodeArrayBuffer } from './utils';
 import { MessageService } from 'primeng/api';
+import { debounceTime } from 'rxjs/operators';
 
 function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumber }: monaco.IRange): monaco.Range {
   return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
@@ -35,6 +37,7 @@ function emptyDecorations(): IUserDecorations {
 export class CodeService {
   private readonly decorationMap = new Map<string, IUserDecorations>();
   private previousSyncVersionId = 0;
+  private readonly edit$ = new Subject<void>();
 
   get model() {
     return this.editorService.model;
@@ -44,7 +47,11 @@ export class CodeService {
     private readonly editorService: EditorService,
     private readonly connectionService: ConnectionService,
     private readonly messageService: MessageService,
-  ) {}
+  ) {
+    this.edit$.pipe(debounceTime(1000)).subscribe(() => {
+      this.saveSilently();
+    });
+  }
 
   private getDecorations(userId: string): IUserDecorations {
     let decorations = this.decorationMap.get(userId);
@@ -56,7 +63,13 @@ export class CodeService {
   }
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
-    this.editorService.model.onDidChangeContent(e => this.onDidContentChange(e));
+    this.editorService.model.onDidChangeContent(e => {
+      if (e.versionId === this.previousSyncVersionId) {
+        return;
+      }
+      this.edit$.next();
+      this.onDidContentChange(e);
+    });
     editor.onDidChangeCursorPosition(e => this.onDidChangeCursorPosition(e));
     editor.onDidChangeCursorSelection(e => this.onDidChangeCursorSelection(e));
     this.connectionService
@@ -68,9 +81,13 @@ export class CodeService {
       .on('user.leave', msg => this.removeUserDecorations(msg));
   }
 
-  save() {
+  saveSilently() {
     const value = this.editorService.model.getValue();
-    this.connectionService.save(value, this.editorService.language$.getValue()).then(
+    return this.connectionService.save(value, this.editorService.language$.getValue());
+  }
+
+  save() {
+    this.saveSilently().then(
       () => {
         this.messageService.add({
           severity: 'success',
