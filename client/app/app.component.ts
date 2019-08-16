@@ -44,6 +44,7 @@ export class AppComponent {
 
   @HostListener('window:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
+    console.log(e.key)
     if (e.metaKey && e.key === 's') {
       e.preventDefault();
       this.codeService.save();
