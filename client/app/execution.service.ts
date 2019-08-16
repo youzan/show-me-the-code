@@ -51,7 +51,7 @@ export class ExecutionService {
   @observable
   output: unknown[][] = [];
 
-  constructor(private readonly messageService: MessageService, private readonly editorService: EditorService) {}
+  constructor(private readonly messageService: MessageService) {}
 
   private workerEventListener = ({ data }: MessageEvent) => {
     switch (data.type) {

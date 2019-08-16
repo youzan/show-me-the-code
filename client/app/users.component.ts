@@ -1,6 +1,4 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { ConnectionService } from './connection.service';
 
 @Component({
