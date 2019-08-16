@@ -1,20 +1,19 @@
 defmodule ShowMeTheCodeWeb.RoomChannel do
   use Phoenix.Channel
 
-  alias ShowMeTheCodeWeb.Endpoint
-  alias ShowMeTheCode.User
+  alias ShowMeTheCode.{User, Repo, Room}
   alias ShowMeTheCode.Room.{Registry, Bucket, Watcher, Presence}
 
   def join("room:" <> room_id, _payload, socket) do
     try do
       if !String.match?(
-        room_id,
-        ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      ) do
+           room_id,
+           ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+         ) do
         throw(:invalid_room_id)
       end
 
-      room = ShowMeTheCode.Repo.get(ShowMeTheCode.Room, room_id)
+      room = Repo.get(ShowMeTheCode.Room, room_id)
       if room == nil, do: throw(:room_not_exist)
       room_bucket = Registry.get_or_create(Registry, room_id)
       slot = Bucket.join(room_bucket, socket.assigns.id, self())
@@ -39,7 +38,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
 
   def handle_in(
         "sync.full.reply",
-        %{"to" => to, "content" => content, "language" => language, "expires" => expires},
+        %{"content" => content, "language" => language, "expires" => expires},
         socket
       ) do
     broadcast(socket, "sync.full", %{content: content, language: language, expires: expires})
@@ -61,15 +60,25 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("save", %{"content" => content, "language" => language}, socket) do
+    {status, _} =
+      %Room{id: socket.assigns.room_id}
+      |> Room.changeset(%{content: content, language: language})
+      |> Repo.update()
+
+    {:reply, status, socket}
+  end
+
   def handle_info({:after_join, user, room}, socket) do
     user_list = Presence.list(socket)
     push(socket, "presence_state", user_list)
     user_count = map_size(user_list)
 
-    result = if user_count > 0 do
-      {target_user_id, _} = Enum.at(user_list, 0)
-      send_to_user(target_user_id, {:sync_full_request, %{from: user.id}}, socket)
-    end
+    result =
+      if user_count > 0 do
+        {target_user_id, _} = Enum.at(user_list, 0)
+        send_to_user(target_user_id, {:sync_full_request, %{from: user.id}}, socket)
+      end
 
     if user_count == 0 or result != :ok do
       push(socket, "sync.full", Map.take(room, [:content, :language, :expires]))
@@ -87,6 +96,7 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
   defp send_to_user(user_id, payload, socket) do
     clients = Bucket.get_clients(socket.assigns.room)
     channel_pid = Map.get(clients, user_id)
+
     if channel_pid != nil do
       send(channel_pid, payload)
       :ok
