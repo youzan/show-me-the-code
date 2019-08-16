@@ -58,13 +58,13 @@ export class HeaderComponent {
   }
 
   async executeTypeScript(source: string) {
-    // const ts = await import('typescript');
-    // const { outputText } = ts.transpileModule(source, {
-    //   compilerOptions: {
-    //     target: ts.ScriptTarget.ES2019,
-    //   },
-    // });
-    // this.executionService.exec('javascript', outputText);
+    const ts = await import('typescript');
+    const { outputText } = ts.transpileModule(source, {
+      compilerOptions: {
+        target: ts.ScriptTarget.ES2019,
+      },
+    });
+    this.executionService.exec('javascript', outputText);
   }
 
   clean() {
