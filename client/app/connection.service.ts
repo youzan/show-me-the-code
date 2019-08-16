@@ -13,25 +13,16 @@ const url =
   process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live' : `ws://${location.hostname}:4000/websocket`;
 
 export interface ISocketEvents {
-  'user.join': IUser;
-  'user.leave': { user: string };
   'sync.full': { content: string; language: string; expires: string | null };
   'sync.full.request': {};
   'sync.full.reply': { content: string; language: string; expires: Date | null };
   'user.edit': { from: string; event: string };
   'user.selection': { from: string; event: string };
   'user.cursor': { from: string; event: string };
+  'user.leave': { userId: string };
 }
 
-const EVENTS = [
-  'user.join',
-  'user.leave',
-  'sync.full',
-  'sync.full.request',
-  'user.edit',
-  'user.selection',
-  'user.cursor',
-];
+const EVENTS = ['sync.full', 'sync.full.request', 'user.edit', 'user.selection', 'user.cursor'];
 
 function pickMeta(_: string, { metas }: { metas: IUser[] }) {
   return metas[0];
@@ -41,7 +32,6 @@ function pickMeta(_: string, { metas }: { metas: IUser[] }) {
 export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   private socket: Socket | null = null;
   private roomId = '';
-  private links: Record<string, number> | null = null;
   readonly connected$ = new BehaviorSubject(false);
   readonly channel$ = new BehaviorSubject<Channel | null>(null);
   readonly userList$ = new BehaviorSubject<IUser[]>([]);
@@ -105,7 +95,6 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
     const socket = this.getSocket(username);
     const channel = socket.channel(`room:${roomId}`);
     const links = linkEvents(EVENTS, channel, this as EventEmitter<string>);
-    this.links = links;
     const presence = new Presence(channel);
     presence.onSync(() => {
       const userList = presence.list<IUser>(pickMeta);
@@ -116,6 +105,7 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
         this.userMap.set(user.id, user);
       }
     });
+    presence.onLeave(userId => this.emit('user.leave', { userId }));
     return new Promise<void>((resolve, reject) => {
       channel
         .join()
@@ -186,7 +176,6 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
       channel.leave();
       this.channel$.next(null);
       unlinkEvents(links, channel);
-      this.links = null;
     }
     reject(new Error(msg));
   }

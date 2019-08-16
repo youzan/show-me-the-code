@@ -7,9 +7,9 @@ defmodule ShowMeTheCodeWeb.RoomChannel do
   def join("room:" <> room_id, _payload, socket) do
     try do
       if !String.match?(
-        room_id,
-        ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      ) do
+           room_id,
+           ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+         ) do
         throw(:invalid_room_id)
       end
 
