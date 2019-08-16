@@ -5,7 +5,6 @@ import { MessageService } from 'primeng/components/common/messageservice';
 import EventEmitter from 'eventemitter3';
 import { IUser } from '../models';
 import { post } from './ajax';
-// import * as Users from '../collections/Users';
 import { linkEvents, unlinkEvents } from './utils';
 
 declare const process: any;
@@ -17,8 +16,8 @@ export interface ISocketEvents {
   'user.join': IUser;
   'user.leave': { user: string };
   'sync.full': { content: string; language: string; expires: string | null };
-  'sync.full.request': { from: string };
-  'sync.full.reply': { to: string; content: string; language: string; expires: Date | null };
+  'sync.full.request': {};
+  'sync.full.reply': { content: string; language: string; expires: Date | null };
   'user.edit': { from: string; event: string };
   'user.selection': { from: string; event: string };
   'user.cursor': { from: string; event: string };
@@ -66,13 +65,6 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
   constructor(private readonly messageService: MessageService) {
     super();
     this.on('sync.full', () => this.synchronized$.next(true));
-    //   .on('code.save.success', () => {
-    //     this.messageService.add({
-    //       severity: 'success',
-    //       summary: 'Save success',
-    //       detail: 'Save success',
-    //     });
-    //   });
   }
 
   create(username: string): Promise<void> {
@@ -135,6 +127,22 @@ export class ConnectionService extends EventEmitter<keyof ISocketEvents> {
           resolve();
         })
         .receive('error', msg => this.handleJoinError(msg, links, channel, reject));
+    });
+  }
+
+  save(content: string, language: string): Promise<void> {
+    const channel = this.channel$.getValue();
+    if (!channel) {
+      return Promise.reject();
+    }
+    return new Promise<void>((resolve, reject) => {
+      channel
+        .push('save', {
+          content,
+          language,
+        })
+        .receive('ok', resolve)
+        .receive('error', reject);
     });
   }
 

@@ -4,6 +4,7 @@ import { EditorService } from './editor.service';
 import { ConnectionService, ISocketEvents } from './connection.service';
 import { Proto } from '../serializers';
 import { decodeArrayBuffer, encodeArrayBuffer } from './utils';
+import { MessageService } from 'primeng/api';
 
 function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumber }: monaco.IRange): monaco.Range {
   return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
@@ -39,7 +40,11 @@ export class CodeService {
     return this.editorService.model;
   }
 
-  constructor(private readonly editorService: EditorService, private readonly connectionService: ConnectionService) {}
+  constructor(
+    private readonly editorService: EditorService,
+    private readonly connectionService: ConnectionService,
+    private readonly messageService: MessageService,
+  ) {}
 
   private getDecorations(userId: string): IUserDecorations {
     let decorations = this.decorationMap.get(userId);
@@ -56,15 +61,27 @@ export class CodeService {
     editor.onDidChangeCursorSelection(e => this.onDidChangeCursorSelection(e));
     this.connectionService
       .on('sync.full', msg => this.onReceiveFullSync(msg, editor))
-      .on('sync.full.request', msg => this.onReceiveFullSyncRequest(msg))
+      .on('sync.full.request', () => this.onReceiveFullSyncRequest())
       .on('user.edit', msg => this.onReceiveUserEdit(msg, editor))
       .on('user.selection', msg => this.onReceiveUserSelection(msg))
       .on('user.cursor', msg => this.onReceiveUserCursor(msg));
   }
 
   save() {
-    // const value = this.editorService.model.getValue();
-    // this.connectionService.save(value, silent);
+    const value = this.editorService.model.getValue();
+    this.connectionService.save(value, this.editorService.language$.getValue()).then(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Save success',
+        detail: 'Save success',
+      });
+    }, () => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Save fail',
+        detail: 'Save fail',
+      });
+    });
   }
 
   setModelValue(content: string, editor: monaco.editor.IStandaloneCodeEditor) {
@@ -135,7 +152,7 @@ export class CodeService {
     }
   }
 
-  private onReceiveFullSyncRequest({ from }: ISocketEvents['sync.full.request']) {
+  private onReceiveFullSyncRequest() {
     const language = this.editorService.language$.getValue();
     const expires = this.editorService.expires;
     const content = this.model.getValue();
@@ -143,7 +160,6 @@ export class CodeService {
       language,
       expires,
       content,
-      to: from,
     });
   }
 
