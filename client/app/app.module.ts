@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
 import { RadioButtonModule } from 'primeng/radiobutton'
+import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/components/common/messageservice';
 
 import { AppComponent } from './app.component';
@@ -58,6 +59,7 @@ import { ToStringPipe } from './to-string.pipe';
     BlockUIModule,
     MobxAngularModule,
     RadioButtonModule,
+    MessageModule,
   ],
   providers: [EditorService, ConnectionService, MessageService, CodeService, ExecutionService],
   bootstrap: [AppComponent],
