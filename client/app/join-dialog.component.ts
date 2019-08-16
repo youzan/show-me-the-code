@@ -2,10 +2,17 @@ import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { ConnectionService } from './connection.service';
 
+declare global {
+  interface Window {
+    notificationMessage?: string;
+  }
+}
+
 @Component({
   selector: 'app-join',
   template: `
     <p-dialog [visible]="visible$ | async" [modal]="true" [closable]="false" [draggable]="false">
+      <p-message *ngIf="hasMessage" class="message" severity="warn" [text]="message" style="display: block"></p-message>
       <div class="ui-float-label username">
         <input [(ngModel)]="username" id="username" type="text" size="30" pInputText autocomplete="off" />
         <label for="username">Name</label>
@@ -39,6 +46,10 @@ import { ConnectionService } from './connection.service';
       .username {
         margin: 20px;
       }
+
+      :host ::ng-deep .ui-message {
+        display: block;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +58,7 @@ export class JoinDialogComponent {
   readonly roomIdReadOnly: boolean;
   @Input() visible$!: Observable<boolean>;
   readonly pending$ = new BehaviorSubject(false);
+  readonly hasMessage = !!window.notificationMessage;
   username = '';
   roomId: string;
 
@@ -60,6 +72,10 @@ export class JoinDialogComponent {
       this.roomId = '';
       this.roomIdReadOnly = false;
     }
+  }
+
+  get message() {
+    return window.notificationMessage;
   }
 
   create() {
