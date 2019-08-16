@@ -48,7 +48,7 @@ export class CodeService {
     private readonly connectionService: ConnectionService,
     private readonly messageService: MessageService,
   ) {
-    this.edit$.pipe(debounceTime(1000)).subscribe(() => {
+    this.edit$.pipe(debounceTime(10000)).subscribe(() => {
       this.saveSilently();
     });
   }
