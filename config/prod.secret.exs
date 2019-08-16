@@ -36,3 +36,4 @@ config :show_me_the_code, ShowMeTheCodeWeb.Endpoint,
 #
 # Then you can assemble a release by calling `mix release`.
 # See `mix help release` for more information.
+config :show_me_the_code, ShowMeTheCodeWeb.Endpoint, server: true
