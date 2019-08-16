@@ -11,7 +11,8 @@ use Mix.Config
 # before starting your production server.
 config :show_me_the_code, ShowMeTheCodeWeb.Endpoint,
   url: [host: "socket.icode.live", port: 80],
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: ["http://www.icode.live", "http://socket.icode.live"]
 
 # Do not print debug messages in production
 config :logger, level: :info
