@@ -27,3 +27,12 @@ message ModelContentChangedEvent {
 message UserSelection {
     repeated Range selections = 1;
 }
+
+message Position {
+    uint32 column = 1;
+    uint32 lineNumber = 2;
+}
+
+message UserCursor {
+    repeated Position positions = 1;
+}

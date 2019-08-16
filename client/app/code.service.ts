@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
 import * as monaco from 'monaco-editor';
-// import { interval, never } from 'rxjs';
-// import { switchMap } from 'rxjs/operators';
 import { EditorService } from './editor.service';
 import { ConnectionService, ISocketEvents } from './connection.service';
 import { Proto } from '../serializers';
@@ -11,15 +9,14 @@ function deserializeRange({ startColumn, startLineNumber, endColumn, endLineNumb
   return new monaco.Range(startLineNumber, startColumn, endLineNumber, endColumn);
 }
 
-//
-// function positionToRange({ lineNumber, column }: monaco.IPosition): monaco.IRange {
-//   return {
-//     startColumn: column,
-//     startLineNumber: lineNumber,
-//     endColumn: column,
-//     endLineNumber: lineNumber,
-//   };
-// }
+function positionToRange({ lineNumber, column }: monaco.IPosition): monaco.IRange {
+  return {
+    startColumn: column,
+    startLineNumber: lineNumber,
+    endColumn: column,
+    endLineNumber: lineNumber,
+  };
+}
 
 interface IUserDecorations {
   cursor: string[];
@@ -55,83 +52,15 @@ export class CodeService {
 
   init(editor: monaco.editor.IStandaloneCodeEditor) {
     this.editorService.model.onDidChangeContent(e => this.onDidContentChange(e));
+    editor.onDidChangeCursorPosition(e => this.onDidChangeCursorPosition(e));
     editor.onDidChangeCursorSelection(e => this.onDidChangeCursorSelection(e));
     this.connectionService
       .on('sync.full', msg => this.onReceiveFullSync(msg, editor))
       .on('sync.full.request', msg => this.onReceiveFullSyncRequest(msg))
       .on('user.edit', msg => this.onReceiveUserEdit(msg, editor))
-      .on('user.selection', msg => this.onReceiveUserSelection(msg));
-    // .onReceiveUserCursor(({ userId, position }) => {
-    // const user = this.connectionService.users.get(userId);
-    // if (!user || user.id === this.connectionService.userId) {
-    //   return;
-    // }
-    // let decorations = this.getDecorations(userId);
-    // let newCursor: string[];
-    // if (position !== null) {
-    //   newCursor = this.model.deltaDecorations(decorations.cursor, [
-    //     {
-    //       options: {
-    //         className: `user-${user.slot}-cursor`,
-    //         hoverMessage: {
-    //           value: `Cursor: ${user.name}`,
-    //         },
-    //       },
-    //       range: positionToRange(position),
-    //     },
-    //   ]);
-    // } else {
-    //   newCursor = this.model.deltaDecorations(decorations.cursor, []);
-    // }
-    // decorations.cursor = newCursor;
-    // })
-    // .onReceiveUserSelection(({ ranges, userId }) => {
-    //   if (userId === this.connectionService.userId) {
-    //     return;
-    //   }
-    // const user = this.connectionService.users.get(userId);
-    // if (!user) {
-    //   return;
-    // }
-    // const decorations = this.getDecorations(userId);
-    // const newDecorationsId = this.model.deltaDecorations(
-    //   decorations.selection,
-    //   ranges.map<monaco.editor.IModelDeltaDecoration>(it => ({
-    //     range: deserializeRange(it),
-    //     options: {
-    //       stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-    //       className: `user-${user.slot}-selection`,
-    //       hoverMessage: {
-    //         value: `Selection: ${user.name}`,
-    //       },
-    //     },
-    //   })),
-    // );
-    // decorations.selection = newDecorationsId;
-    // })
-
-    // this.$$
-    //   .push
-    // editor.onDidChangeCursorPosition(e => this.connectionService.cursorChange(e.position)),
-    // editor.onDidBlurEditorText(() => this.connectionService.cursorChange(null)),
-    // editor.onDidFocusEditorText(() => this.connectionService.cursorChange(editor.getPosition())),
-    // editor.onDidChangeCursorSelection(e =>
-    //   this.connectionService.selectionChange([e.selection].concat(e.secondarySelections)),
-    // ),
-    // this.registerAutoSave(),
-    // ();
+      .on('user.selection', msg => this.onReceiveUserSelection(msg))
+      .on('user.cursor', msg => this.onReceiveUserCursor(msg));
   }
-
-  // registerAutoSave(): monaco.IDisposable {
-  //   const $ = this.connectionService.autoSave$
-  //     .pipe(switchMap(autoSave => (autoSave ? interval(60000) : never())))
-  //     .subscribe(() => this.save(true));
-  //   return {
-  //     dispose() {
-  //       $.unsubscribe();
-  //     },
-  //   };
-  // }
 
   save() {
     // const value = this.editorService.model.getValue();
@@ -150,7 +79,7 @@ export class CodeService {
     }
   }
 
-  async onDidContentChange(e: monaco.editor.IModelContentChangedEvent) {
+  private async onDidContentChange(e: monaco.editor.IModelContentChangedEvent) {
     if (e.versionId === this.previousSyncVersionId + 1) {
       return;
     }
@@ -162,7 +91,20 @@ export class CodeService {
     });
   }
 
-  async onDidChangeCursorSelection({ selection, secondarySelections }: monaco.editor.ICursorSelectionChangedEvent) {
+  private async onDidChangeCursorPosition({ position, secondaryPositions }: monaco.editor.ICursorPositionChangedEvent) {
+    const positions = [position].concat(secondaryPositions);
+    const buffer = Proto.Editor.UserCursor.encode({ positions }).finish();
+    const base64 = await encodeArrayBuffer(buffer);
+    this.connectionService.push('user.cursor', {
+      from: this.connectionService.userId,
+      event: base64,
+    });
+  }
+
+  private async onDidChangeCursorSelection({
+    selection,
+    secondarySelections,
+  }: monaco.editor.ICursorSelectionChangedEvent) {
     const selections = [selection].concat(secondarySelections);
     const buffer = Proto.Editor.UserSelection.encode({
       selections,
@@ -174,7 +116,7 @@ export class CodeService {
     });
   }
 
-  onReceiveFullSync(
+  private onReceiveFullSync(
     { content, language, expires }: ISocketEvents['sync.full'],
     editor: monaco.editor.IStandaloneCodeEditor,
   ) {
@@ -193,7 +135,7 @@ export class CodeService {
     }
   }
 
-  onReceiveFullSyncRequest({ from }: ISocketEvents['sync.full.request']) {
+  private onReceiveFullSyncRequest({ from }: ISocketEvents['sync.full.request']) {
     const language = this.editorService.language$.getValue();
     const expires = this.editorService.expires;
     const content = this.model.getValue();
@@ -205,7 +147,7 @@ export class CodeService {
     });
   }
 
-  async onReceiveUserEdit({ event }: ISocketEvents['user.edit'], editor: monaco.editor.IStandaloneCodeEditor) {
+  private async onReceiveUserEdit({ event }: ISocketEvents['user.edit'], editor: monaco.editor.IStandaloneCodeEditor) {
     const buffer = await decodeArrayBuffer(event);
     const { changes } = Proto.Editor.ModelContentChangedEvent.decode(buffer) as monaco.editor.IModelContentChangedEvent;
     const edits = changes.map(change => ({
@@ -218,13 +160,13 @@ export class CodeService {
     selections && editor.setSelections(selections);
   }
 
-  async onReceiveUserSelection({ event, from }: ISocketEvents['user.selection']) {
-    const buffer = await decodeArrayBuffer(event);
-    const { selections } = Proto.Editor.UserSelection.decode(buffer);
+  private async onReceiveUserSelection({ event, from }: ISocketEvents['user.selection']) {
     const user = this.connectionService.userMap.get(from);
     if (!user) {
       return;
     }
+    const buffer = await decodeArrayBuffer(event);
+    const { selections } = Proto.Editor.UserSelection.decode(buffer);
     const decorations = this.getDecorations(from);
     decorations.selection = this.model.deltaDecorations(
       decorations.selection,
@@ -237,6 +179,28 @@ export class CodeService {
             value: `Selection: ${user.name}`,
           },
         },
+      })),
+    );
+  }
+
+  private async onReceiveUserCursor({ from, event }: ISocketEvents['user.cursor']) {
+    const user = this.connectionService.userMap.get(from);
+    if (!user) {
+      return;
+    }
+    const buffer = await decodeArrayBuffer(event);
+    const { positions } = await Proto.Editor.UserCursor.decode(buffer);
+    const decorations = this.getDecorations(from);
+    decorations.cursor = this.model.deltaDecorations(
+      decorations.cursor,
+      positions.map(position => ({
+        options: {
+          className: `user-${user.slot}-cursor`,
+          hoverMessage: {
+            value: `Cursor: ${user.name}`,
+          },
+        },
+        range: positionToRange(position as monaco.IPosition),
       })),
     );
   }
