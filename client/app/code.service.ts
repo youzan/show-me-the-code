@@ -64,24 +64,28 @@ export class CodeService {
       .on('sync.full.request', () => this.onReceiveFullSyncRequest())
       .on('user.edit', msg => this.onReceiveUserEdit(msg, editor))
       .on('user.selection', msg => this.onReceiveUserSelection(msg))
-      .on('user.cursor', msg => this.onReceiveUserCursor(msg));
+      .on('user.cursor', msg => this.onReceiveUserCursor(msg))
+      .on('user.leave', msg => this.removeUserDecorations(msg));
   }
 
   save() {
     const value = this.editorService.model.getValue();
-    this.connectionService.save(value, this.editorService.language$.getValue()).then(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Save success',
-        detail: 'Save success',
-      });
-    }, () => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Save fail',
-        detail: 'Save fail',
-      });
-    });
+    this.connectionService.save(value, this.editorService.language$.getValue()).then(
+      () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Save success',
+          detail: 'Save success',
+        });
+      },
+      () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Save fail',
+          detail: 'Save fail',
+        });
+      },
+    );
   }
 
   setModelValue(content: string, editor: monaco.editor.IStandaloneCodeEditor) {
@@ -219,5 +223,14 @@ export class CodeService {
         range: positionToRange(position as monaco.IPosition),
       })),
     );
+  }
+
+  private removeUserDecorations({ userId }: ISocketEvents['user.leave']) {
+    const decorations = this.decorationMap.get(userId);
+    if (!decorations) {
+      return;
+    }
+    this.decorationMap.delete(userId);
+    this.model.deltaDecorations(decorations.cursor.concat(decorations.selection), []);
   }
 }
