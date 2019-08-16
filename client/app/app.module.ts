@@ -12,13 +12,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BlockUIModule } from 'primeng/blockui';
+import { RadioButtonModule } from 'primeng/radiobutton'
 import { MessageService } from 'primeng/components/common/messageservice';
 
 import { AppComponent } from './app.component';
 import { MonacoEditorDirective } from './editor.directive';
 import { EditorService } from './editor.service';
 import { HeaderComponent } from './header.component';
-import { ConfigCompoennt } from './config.component';
+import { ConfigComponent } from './config.component';
 import { ConnectionService } from './connection.service';
 import { JoinDialogComponent } from './join-dialog.component';
 import { UsersComponent } from './users.component';
@@ -34,7 +35,7 @@ import { ToStringPipe } from './to-string.pipe';
     AppComponent,
     MonacoEditorDirective,
     HeaderComponent,
-    ConfigCompoennt,
+    ConfigComponent,
     JoinDialogComponent,
     UsersComponent,
     UserClassNamePipe,
@@ -56,6 +57,7 @@ import { ToStringPipe } from './to-string.pipe';
     ProgressSpinnerModule,
     BlockUIModule,
     MobxAngularModule,
+    RadioButtonModule,
   ],
   providers: [EditorService, ConnectionService, MessageService, CodeService, ExecutionService],
   bootstrap: [AppComponent],
