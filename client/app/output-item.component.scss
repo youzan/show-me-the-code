@@ -53,7 +53,8 @@
   color: #3dc9b0;
 }
 
-.object {
+.object,
+.array {
   display: flex;
   flex-direction: column;
 

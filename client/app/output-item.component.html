@@ -3,6 +3,15 @@
     <div *ngIf="key" class="key">{{ key }}</div>
     {{ value.message }}
   </div>
+  <div *ngSwitchCase="'array'" class="array" [class.expand]="expand">
+    <div class="title" (click)="toggle()">
+      <div *ngIf="key" class="key">{{ key }}</div>
+      [{{ value.length }}]
+    </div>
+    <ng-container *ngIf="expand">
+      <app-output-item *ngFor="let item of value; index as index" [key]="index | toString" [value]="item"></app-output-item>
+    </ng-container>
+  </div>
   <div *ngSwitchCase="'object'" class="object" [class.expand]="expand">
     <div class="title" (click)="toggle()">
       <div *ngIf="key" class="key">{{ key }}</div>
@@ -11,6 +20,10 @@
     <ng-container *ngIf="expand">
       <app-output-item *ngFor="let item of value | keyvalue" [key]="item.key" [value]="item.value"></app-output-item>
     </ng-container>
+  </div>
+  <div *ngSwitchCase="'string'" class="string">
+    <div *ngIf="key" class="key">{{ key }}</div>
+    "{{ value }}"
   </div>
   <div *ngSwitchDefault [class]="type">
     <div *ngIf="key" class="key">{{ key }}</div>

@@ -10,7 +10,8 @@ type IItemType =
   | 'null'
   | 'bigint'
   | 'symbol'
-  | 'function';
+  | 'function'
+  | 'array';
 
 @Component({
   selector: 'app-output-item',
@@ -36,6 +37,9 @@ export class OutputItemComponent {
     }
     if (this.value === null) {
       return 'null';
+    }
+    if (Array.isArray(this.value)) {
+      return 'array';
     }
     return typeof this.value;
   }
