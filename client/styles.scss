@@ -60,6 +60,7 @@ $colors: #d50000, #2962ff, #00bfa5, #ffab00, #00c853;
     &-cursor {
       background-color: $color;
       width: 2px !important;
+      transform: translateX(-100%);
     }
 
     &-selection {

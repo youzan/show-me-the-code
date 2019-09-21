@@ -31,7 +31,7 @@
     "eventemitter3": "^4.0.0",
     "mobx": "^5.13.0",
     "mobx-angular": "^3.0.1",
-    "monaco-editor": "^0.17.1",
+    "monaco-editor": "^0.18.1",
     "monaco-editor-webpack-plugin": "^1.7.0",
     "ngx-build-plus": "^8.1.1",
     "phoenix": "^1.4.9",
