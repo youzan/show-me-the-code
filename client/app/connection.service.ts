@@ -11,8 +11,12 @@ declare const process: any;
 
 const DOMAIN = process.env.NODE_ENV === 'production' ? '//socket.icode.live' : '';
 
+const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+
 const url =
-  process.env.NODE_ENV === 'production' ? 'ws://socket.icode.live/socket' : `ws://${location.hostname}:4000/socket`;
+  process.env.NODE_ENV === 'production'
+    ? `${protocol}://socket.icode.live/socket`
+    : `${protocol}://${location.hostname}:4000/socket`;
 
 export interface ISocketEvents {
   'sync.full': { content: string; language: string; expires: string | null };
