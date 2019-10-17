@@ -2,8 +2,6 @@
   "name": "show-me-the-code",
   "version": "0.0.0",
   "scripts": {
-    "re:build": "bsb -make-world -clean-world",
-    "re:watch": "bsb -make-world -clean-world -w",
     "proto:gen": "pbjs -t static-module -w es6 -o client/serializers/index.proto.js client/serializers/*.proto && pbts -o client/serializers/index.d.ts client/serializers/index.proto.js",
     "ng": "ng",
     "start": "ng serve --plugin ~build-plugin.js",
@@ -27,7 +25,6 @@
     "@types/phoenix": "^1.4.2",
     "@types/prettier": "^1.18.0",
     "@types/socket.io-client": "^1.4.32",
-    "bs-platform": "^5.0.6",
     "eventemitter3": "^4.0.0",
     "mobx": "^5.13.0",
     "mobx-angular": "^3.0.1",
