@@ -11,7 +11,7 @@ declare const process: any;
 
 const DOMAIN = process.env.NODE_ENV === 'production' ? '//socket.icode.live' : '';
 
-const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
 
 const url =
   process.env.NODE_ENV === 'production'
